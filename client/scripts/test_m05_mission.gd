@@ -11,7 +11,7 @@ class ManagerProbe extends "res://scripts/game_manager.gd":
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
-	set_meta("fragr_settings_path", "user://m05-mission-%d.cfg" % OS.get_process_id())
+	set_meta("localexception_settings_path", "user://m05-mission-%d.cfg" % OS.get_process_id())
 	_run.call_deferred()
 
 func _check(value: bool, message: String) -> void:
@@ -188,7 +188,7 @@ func _run() -> void:
 	town.configure_map(lamp_info)
 	var lamps: Array[Node] = town.find_children("WorkshopRepairPool", "OmniLight3D", true, false)
 	_check(lamps.size() == 1, "actual registered workshop wall creates one bounded practical pool")
-	var preferences: FragrSettings = FragrSettings.new(str(get_meta("fragr_settings_path")))
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(str(get_meta("localexception_settings_path")))
 	preferences.set_value("video", "quality", RenderQuality.MEDIUM)
 	RenderQuality.apply_practicals(town, preferences)
 	_check(lamps.size() == 1 and (lamps[0] as OmniLight3D).shadow_enabled, "newly created practical receives Medium shadow policy")

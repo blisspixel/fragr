@@ -82,7 +82,7 @@ accepts 28, and admits more than four fighters. Spend is $0. No cloud apply.
 ## Success
 
 One process, started with `--bind 0.0.0.0:6767 --bots 4 --playlist`, keeps
-serving until the operator stops `fragr-server.exe`. Rounds change map and
+serving until the operator stops `localexception-server.exe`. Rounds change map and
 mode in the order above. A client that can play Sabotage can stay connected
 through the night. The join check is a separate plan:
 [join preflight](join-preflight.md).

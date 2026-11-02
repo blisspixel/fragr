@@ -54,7 +54,7 @@ pub(super) fn completed_tender() -> RunDocument {
 #[test]
 fn arc_completed_tender_round_trips_through_disk_unchanged() {
     let source = completed_tender();
-    let directory = std::env::temp_dir().join(format!("fragr-arc-{}", Uuid::new_v4()));
+    let directory = std::env::temp_dir().join(format!("localexception-arc-{}", Uuid::new_v4()));
     let store = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
     store.save(&source).unwrap();
     drop(store);

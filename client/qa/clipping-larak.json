@@ -1,5 +1,5 @@
 {
-  "comment": "Clipping sweep on Larak Lot: the death view's old fixed boom against its cleared spot for a killer in the Impound and in the Lane, and first-person eye positions at the closest legal approach to a shear wall corner and under the Bridge at a jump's head contact. Run with FRAGR_QA_MAP=1 FRAGR_QA_BOTS=4 FRAGR_QA_MANIFEST=res://qa/clipping-larak.json. Static camera placement; the killer is a point, not a posed pawn.",
+  "comment": "Clipping sweep on Larak Lot: the death view's old fixed boom against its cleared spot for a killer in the Impound and in the Lane, and first-person eye positions at the closest legal approach to a shear wall corner and under the Bridge at a jump's head contact. Run with LOCALEXCEPTION_QA_MAP=1 LOCALEXCEPTION_QA_BOTS=4 LOCALEXCEPTION_QA_MANIFEST=res://qa/clipping-larak.json. Static camera placement; the killer is a point, not a posed pawn.",
   "width": 1280,
   "height": 720,
   "states": [

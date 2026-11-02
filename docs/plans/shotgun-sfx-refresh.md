@@ -29,7 +29,7 @@ historical prompt asks for a pump rack. No reload action exists.
 
 ## Production and budget
 
-Use the existing developer-only `fragr-audiogen` binary and credential lookup.
+Use the existing developer-only `localexception-audiogen` binary and credential lookup.
 Three original variants request 0.85 seconds each, `pcm_24000`, fixed prompt
 influence and no looping. The separate spec writes to ignored staging storage,
 so generation cannot replace the live library or touch story manifests.

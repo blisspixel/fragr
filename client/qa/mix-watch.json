@@ -1,5 +1,5 @@
 {
-  "comment": "Watched-match mix capture for the loudness gate: the default spectator follows a rule bot on Larak Lot for about 24 seconds with the radio on; the Master bus is recorded after its limiter (pre master fader). Measured with `cargo run -p fragr-audiogen -- loudness --check <out>/NN_live_audio.wav`. Run with FRAGR_QA_BOTS=6 and FRAGR_QA_MANIFEST=res://qa/mix-watch.json on a real audio driver.",
+  "comment": "Watched-match mix capture for the loudness gate: the default spectator follows a rule bot on Larak Lot for about 24 seconds with the radio on; the Master bus is recorded after its limiter (pre master fader). Measured with `cargo run -p localexception-audiogen -- loudness --check <out>/NN_live_audio.wav`. Run with LOCALEXCEPTION_QA_BOTS=6 and LOCALEXCEPTION_QA_MANIFEST=res://qa/mix-watch.json on a real audio driver.",
   "width": 1280,
   "height": 720,
   "states": [

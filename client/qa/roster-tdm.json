@@ -1,5 +1,5 @@
 {
-  "comment": "Fighter roster in a team match (issue 530): the free side keeps personal looks with amber tape; the Union side wears issued livery with rank marks. Run FRAGR_QA_MODE=tdm FRAGR_QA_BOTS=8 FRAGR_QA_MANIFEST=res://qa/roster-tdm.json tools/qa_tour.sh.",
+  "comment": "Fighter roster in a team match (issue 530): the free side keeps personal looks with amber tape; the Union side wears issued livery with rank marks. Run LOCALEXCEPTION_QA_MODE=tdm LOCALEXCEPTION_QA_BOTS=8 LOCALEXCEPTION_QA_MANIFEST=res://qa/roster-tdm.json tools/qa_tour.sh.",
   "width": 1280,
   "height": 720,
   "states": [

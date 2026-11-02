@@ -154,7 +154,7 @@ Verification.
 
 ## Visual check
 
-`FRAGR_QA_MAP=3`, `4` and `5` tours (24 states each) were captured under
+`LOCALEXCEPTION_QA_MAP=3`, `4` and `5` tours (24 states each) were captured under
 `.agents/qa/spawnq-map{3,4,5b}/` and the overview and first-person stills were
 inspected: the new bays render as the maps' existing crate stacks, on the ring,
 with the pits, halls and gulch still open. The first map 5 attempt ended with a
@@ -180,10 +180,10 @@ Local Windows, Ryzen 7 7840U, logs under `.agents/verify-spawn/`:
   among 6, 25, 22, 37, 48 and 51 frags on maps 1 to 6.
 - `cargo llvm-cov --workspace --locked` reports 93.86 percent of lines with
   every test passing. Two earlier coverage runs failed
-  `fragr-brain` `bot::tests::failed_calls_fall_back_and_still_count` (and once
+  `localexception-brain` `bot::tests::failed_calls_fall_back_and_still_count` (and once
   `a_bad_key_switches_the_brain_off_after_one_call`), timing-sensitive tests
   under instrumentation. The first also fails under `cargo llvm-cov -p
-  fragr-brain` on unchanged `main`, so it is not caused by this change.
+  localexception-brain` on unchanged `main`, so it is not caused by this change.
 - `tools/godot_check.sh` with Godot 4.7.2-stable passes.
 
 ## Remaining limits
@@ -327,17 +327,17 @@ Local Windows, Ryzen 7 7840U, logs under `.agents/spawnq-map5/` and
   --bench-check --bench-assert`) passes and reports `"deterministic": true`.
 - `cargo llvm-cov --workspace --locked --fail-under-lines 90` passed at 94.32
   percent of lines on the run recorded here. A second run failed
-  `fragr-brain`'s `ask_sends_under_a_cap_and_reports_the_charge` on a pending
+  `localexception-brain`'s `ask_sends_under_a_cap_and_reports_the_charge` on a pending
   ledger file; that test passes cleanly under plain `cargo test`, so this is
   the same instrumentation-timing flake this plan already recorded for a
-  different `fragr-brain` test, not something this change caused.
+  different `localexception-brain` test, not something this change caused.
 - The four required playtest smokes (default, `--mode tdm`, `--mutator
   rail-only`, `--mode tdm --mutator licence-to-kill`) all pass with `--assert`.
 - `bash tools/playtest_roster.sh` passed three consecutive times, all six
   maps, zero spawn deaths of any kind on any map in two of the three runs and
   one respawn death (not an opening death) on map 4 in the other.
-- `target/release/fragr-playtest --soak --soak-seconds 120 ...` passes:
+- `target/release/localexception-playtest --soak --soak-seconds 120 ...` passes:
   p99 tick time 0.62 ms, RSS 37.6 to 38.5 MiB over 120 s.
-- The playable smoke started `fragr-server --bind 127.0.0.1:16767 --bots 4`,
+- The playable smoke started `localexception-server --bind 127.0.0.1:16767 --bots 4`,
   confirmed bots spawn and the tick loop runs at 20 Hz, and the process was
   stopped by its own PID.

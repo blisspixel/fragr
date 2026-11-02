@@ -7,7 +7,7 @@ use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-/// The folder under the run directory (`FRAGR_RUN_DIR` or the platform's
+/// The folder under the run directory (`LOCALEXCEPTION_RUN_DIR` or the platform's
 /// user data folder) that holds every record.
 pub const DIRECTORY: &str = "fun-metrics";
 const PREFIX: &str = "match-";
@@ -230,7 +230,7 @@ mod tests {
 
     fn scratch(label: &str) -> PathBuf {
         let dir = std::env::temp_dir().join(format!(
-            "fragr-fun-{label}-{}-{}",
+            "localexception-fun-{label}-{}-{}",
             std::process::id(),
             SystemTime::now()
                 .duration_since(UNIX_EPOCH)

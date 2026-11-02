@@ -8,7 +8,10 @@ use std::time::Duration;
 use tokio_tungstenite::{connect_async, tungstenite::Message};
 
 fn trace_path(label: &str) -> std::path::PathBuf {
-    std::env::temp_dir().join(format!("fragr-{label}-{}.ndjson", uuid::Uuid::new_v4()))
+    std::env::temp_dir().join(format!(
+        "localexception-{label}-{}.ndjson",
+        uuid::Uuid::new_v4()
+    ))
 }
 
 #[tokio::test]
@@ -41,7 +44,8 @@ async fn live_trace_ticks_join_the_snapshots_a_spectator_receives() {
                 "gameplay_version": crate::protocol::GAMEPLAY_VERSION,
                 "geometry_version": crate::protocol::GEOMETRY_VERSION
             })
-            .to_string(),
+            .to_string()
+            .into(),
         ))
         .await
         .unwrap();
@@ -110,7 +114,7 @@ async fn live_trace_ticks_join_the_snapshots_a_spectator_receives() {
 #[tokio::test]
 async fn an_unwritable_trace_path_fails_the_start_before_ready() {
     let path = std::env::temp_dir()
-        .join(format!("fragr-missing-{}", uuid::Uuid::new_v4()))
+        .join(format!("localexception-missing-{}", uuid::Uuid::new_v4()))
         .join("trace.ndjson");
     let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
     let result = tokio::time::timeout(

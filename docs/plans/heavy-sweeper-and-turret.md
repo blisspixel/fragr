@@ -144,8 +144,8 @@ The gate is 0.22 for every pair at both sizes. The Heavy's tell alone changes
 
 Rendered evidence (Windows, Godot 4.7.2, AMD Radeon 780M, OpenGL):
 
-`FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/test/heavy-turret-range.json
-FRAGR_QA_MANIFEST=res://qa/heavy-turret.json tools/qa_tour.sh` passed all seven
+`LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MAP_FILE=server/maps/test/heavy-turret-range.json
+LOCALEXCEPTION_QA_MANIFEST=res://qa/heavy-turret.json tools/qa_tour.sh` passed all seven
 states with ordinary input. The Turret fight observed its shot first, strafed
 through the charge and took no damage, then needed four Flechette hits. The
 Heavy fight observed its burst, took one round (100 to 75 health), and needed

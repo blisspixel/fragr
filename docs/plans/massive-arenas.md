@@ -54,7 +54,7 @@ A fighter that leaves the set gets one last `gone` marker so the client can hide
 
 The server keeps the last eight snapshots it sent to each client, keyed by tick. Each client acknowledges the newest tick it has applied in its regular input message (humans) or `observe` call (agents). A snapshot is encoded as a delta against the newest acknowledged baseline: only fields that changed for players in the relevance set, plus adds and removes. If no baseline is acknowledged within eight ticks the server sends a full snapshot again. Order is guaranteed on WebSocket; on UDP (buttery-controls stage 7) the baseline mechanism is exactly what tolerates loss.
 
-### 5. Binary wire format for humans (fragr-wire v1)
+### 5. Binary wire format for humans (localexception-wire v1)
 
 JSON stays for `Hello`, `Welcome`, events, speak, the agent door, and spectators who ask for it. Humans and the playtest harness move to binary frames on the same socket once the delta path exists. Little-endian, versioned by a leading byte, fixed layouts, no self-describing overhead:
 
@@ -123,7 +123,7 @@ What this says, and it is not what we assumed. The simulation is nowhere near th
 1. Seeded RNG (**shipped**: `--seed`, printed on boot, proven by the benchmark's determinism check) and the spatial grid, with hit tests and bot scans on the grid. Evidence: identical results to all-pairs on the sim tests, a benchmark line at 16 and 64.
 2. Interest sets and per-client snapshots (still JSON), spectators at 10 Hz in the wide view. Evidence: bytes per client before and after at 64.
 3. Delta snapshots with acknowledgement and the full-resend fallback. Evidence: a loss-injection test on the in-process harness.
-4. fragr-wire v1 for humans and the harness; JSON kept for everything else. Evidence: the ladder table through the Server rung.
+4. localexception-wire v1 for humans and the harness; JSON kept for everything else. Evidence: the ladder table through the Server rung.
 5. Several arenas per process. Evidence: the Arena rung measured with two arenas on one process.
 
 ## Success criteria

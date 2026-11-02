@@ -361,7 +361,7 @@ fn bout_victory_opens_gates_and_enables_departure() {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../client/golden/m15_lifecycle.json");
     let bytes = serde_json::to_string_pretty(&receipts).unwrap() + "\n";
-    if std::env::var_os("FRAGR_UPDATE_LATE_CAMPAIGN_WORLDS").is_some() {
+    if std::env::var_os("LOCALEXCEPTION_UPDATE_LATE_CAMPAIGN_WORLDS").is_some() {
         std::fs::write(&path, &bytes).unwrap();
     }
     assert_eq!(std::fs::read_to_string(path).unwrap(), bytes);

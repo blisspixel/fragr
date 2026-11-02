@@ -300,7 +300,7 @@ fn conquest_counts_flips_and_the_sites_and_tickets_at_the_whistle() {
 #[test]
 fn a_host_recorder_files_each_match_once_and_an_unplayed_one_never() {
     let dir = std::env::temp_dir().join(format!(
-        "fragr-fun-host-{}-{}",
+        "localexception-fun-host-{}-{}",
         std::process::id(),
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)

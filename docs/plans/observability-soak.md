@@ -46,7 +46,7 @@ fields and the harness, and records one local run of at least an hour.
   broadcast and unicast enqueue) into the ring, feeds queue overflows, and
   refreshes the operator block once a second. The `STATUS` log line is
   unchanged. A change of health is logged once, at warn when it degrades.
-- **`tools/playtest`** gains `--soak`: it starts the real `fragr-server`
+- **`tools/playtest`** gains `--soak`: it starts the real `localexception-server`
   binary as a child with rule bots, connects N reflex agents and M spectators
   over WebSocket, samples `GET /status?clients=1` and the child's resident set
   on an interval into NDJSON under `.agents/soak/`, stops the child by its own
@@ -88,7 +88,7 @@ Health is `degraded` when any of these hold, otherwise `ok`:
 - [ ] `/status` reports tick p50/p95/p99/max and over-budget counts (window and
       lifetime), per-client and total traffic, connections by role, uptime,
       start time, build identity and health, documented in `docs/protocol.md`.
-- [ ] `fragr-playtest --soak` writes NDJSON samples and fails on a crash, a
+- [ ] `localexception-playtest --soak` writes NDJSON samples and fails on a crash, a
       stall, RSS growth, p99 over budget, connection drift or queue drops.
 - [x] A local soak of at least 60 minutes recorded below with commit and hardware (two runs; the second failed its own tick rate rule under host load).
 - [ ] A twenty-four hour soak on a release candidate (not this PR).
@@ -103,7 +103,7 @@ and 2 spectators on loopback, `--soak-map-rotate` (all six arena maps),
 seed 1, one sample a minute. Evidence NDJSON stays under `.agents/soak/`.
 
 ```bash
-target/release/fragr-playtest --soak --soak-seconds 3900 --soak-sample-seconds 60 --soak-bots 4 --agents 4 --soak-spectators 2 --soak-map-rotate --assert --soak-log .agents/soak/final-65min.ndjson
+target/release/localexception-playtest --soak --soak-seconds 3900 --soak-sample-seconds 60 --soak-bots 4 --agents 4 --soak-spectators 2 --soak-map-rotate --assert --soak-log .agents/soak/final-65min.ndjson
 ```
 
 | | Run A | Run B |

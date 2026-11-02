@@ -7,7 +7,7 @@ and [Terraform guide](../terraform/README.md).
 ## Image and identity
 
 The Terraform draft consumes an existing private Artifact Registry Docker
-repository and a published `fragr-server` manifest digest. The repository,
+repository and a published `localexception-server` manifest digest. The repository,
 build, push and legal-notice check must be done and reviewed before a cloud
 apply. A floating tag cannot select the deployed build.
 
@@ -20,9 +20,9 @@ Manager; IAM limits what it can read. Operator IAP IAM is separate.
 Create a Secret Manager version with a single 16 to 256 byte ASCII token
 containing letters, digits, underscore or hyphen. Pin its numeric version.
 Terraform holds only the secret name and version, not its value. At boot the
-host reads that version into root-only `/run/fragr` tmpfs and passes it
+host reads that version into root-only `/run/localexception` tmpfs and passes it
 through Docker's env-file interface, because the current server reads
-`FRAGR_JOIN_SECRET` from the environment. Root and Docker administrators on
+`LOCALEXCEPTION_JOIN_SECRET` from the environment. Root and Docker administrators on
 the host can inspect the running environment. A missing or invalid secret
 keeps the game container stopped. The launcher removes a stale env file at
 each attempt and deletes a newly staged file if image pull fails. Its shell
@@ -58,15 +58,15 @@ exact approved runtime window and teardown before any apply.
 
 1. Confirm the desired digest and numeric secret version in the reviewed
    Terraform plan, then inspect the instance's startup-script journal.
-2. Through IAP SSH, check `systemctl status fragr-server.service`,
-   `docker inspect fragr-server --format '{{json .State.Health}}'`, and
+2. Through IAP SSH, check `systemctl status localexception-server.service`,
+   `docker inspect localexception-server --format '{{json .State.Health}}'`, and
    `curl -fsS http://127.0.0.1:6767/status`. Require
    `health.status: ok` and the expected map/roster. Do not print the secret,
    metadata token, env file or Docker environment.
 3. If public ingress was separately approved, probe `GET /status` and a
    complete WebSocket join from an allowed external /32, then confirm a
    blocked source cannot connect. Test IAP access and closed UDP.
-4. Review journal and `docker logs fragr-server` on startup failure.
+4. Review journal and `docker logs localexception-server` on startup failure.
    Systemd retries a failed image pull or stopped container. Docker's
    health check reports degraded status, but an unhealthy container does
    not automatically restart solely because of that result.

@@ -2171,7 +2171,7 @@ mod tests {
     }
 
     /// Prints the reach of a rocket jump fired on each tick of a jump:
-    /// `cargo test -p fragr-server --lib rocket_jump_heights -- --ignored --nocapture`.
+    /// `cargo test -p localexception-server --lib rocket_jump_heights -- --ignored --nocapture`.
     #[test]
     #[ignore]
     fn rocket_jump_heights() {
@@ -2365,7 +2365,7 @@ mod tests {
     }
 
     /// Rewrites the golden file from the current model. Run it on purpose:
-    /// `cargo test -p fragr-server regenerate_golden_vectors -- --ignored`.
+    /// `cargo test -p localexception-server regenerate_golden_vectors -- --ignored`.
     #[test]
     #[ignore]
     fn regenerate_golden_vectors() {

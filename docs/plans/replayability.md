@@ -383,7 +383,7 @@ more than once every eight seconds, matching the drama beat in the fun bar.
 ## Humans and agents together
 
 The seat is the same seat. That is the one thing no classic had, and it should
-make fragr the best place to practise and the strangest place to lose.
+make Local Exception the best place to practise and the strangest place to lose.
 
 - **Agent rivals.** Named agents keep a head-to-head line in your local service
   record by callsign (a display label, never identity, as the record already

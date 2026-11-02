@@ -35,7 +35,7 @@ pub(crate) fn bound_send_buffer(stream: &TcpStream) {
 
 /// Tracing target for the host's audit trail: joins, rejects, kicks and bans.
 /// Never log a ticket, resume token or secret under it.
-pub const AUDIT_TARGET: &str = "fragr_server::audit";
+pub const AUDIT_TARGET: &str = "localexception_server::audit";
 
 /// What a session writer counts into: its traffic and, only when a harness
 /// measures, the shared writer probe.
@@ -244,8 +244,8 @@ where
                     break;
                 }
                 let json = match delivery.frame {
-                    // tungstenite 0.24 owns each frame's String, so a shared
-                    // payload is copied, never serialized again.
+                    // Materialize the selected full/delta payload once for
+                    // this writer, never serialize a shared broadcast again.
                     Outbound::Shared(broadcast) => {
                         let (text, frame) = sent_world.choose(&broadcast);
                         let json = text.into_owned();
@@ -266,7 +266,7 @@ where
                         json
                     }
                 };
-                (Message::Text(json), Some(stale_at))
+                (Message::Text(json.into()), Some(stale_at))
             }
             _ = ping.tick() => {
                 let now = std::time::Instant::now();
@@ -291,7 +291,7 @@ where
                     });
                     break;
                 }
-                (Message::Ping(traffic.ping_payload()), None)
+                (Message::Ping(traffic.ping_payload().into()), None)
             }
             _ = &mut stop => return sink,
         };
@@ -693,13 +693,11 @@ fn forbidden_origin() -> http::Response<Option<String>> {
 }
 
 fn websocket_limits() -> WebSocketConfig {
-    #[allow(deprecated)]
-    WebSocketConfig {
-        max_message_size: Some(MAX_MESSAGE_BYTES),
-        max_frame_size: Some(MAX_FRAME_BYTES),
-        max_write_buffer_size: MAX_WRITE_BUFFER_BYTES,
-        ..WebSocketConfig::default()
-    }
+    WebSocketConfig::default()
+        .read_buffer_size(8 * 1024)
+        .max_message_size(Some(MAX_MESSAGE_BYTES))
+        .max_frame_size(Some(MAX_FRAME_BYTES))
+        .max_write_buffer_size(MAX_WRITE_BUFFER_BYTES)
 }
 
 struct Admission {
@@ -815,7 +813,7 @@ async fn close_with_error(
         ServerMessage::Error { code, .. } => code.clone(),
         _ => return Err("admission rejection must be an error".into()),
     };
-    sink.send(Message::Text(serde_json::to_string(&rejection)?))
+    sink.send(Message::Text(serde_json::to_string(&rejection)?.into()))
         .await?;
     // Some clients retire queued text when a close arrives in the same poll.
     // The stable code also survives in the protocol's bounded close reason.
@@ -1841,7 +1839,7 @@ struct SessionEnd {
 
 /// One admitted frame after the idle timer has been refreshed.
 enum InboundFrame {
-    Text(String),
+    Text(tokio_tungstenite::tungstenite::Utf8Bytes),
     /// Binary, or any payload that is not a JSON client message, and its size.
     Junk(usize),
     /// Ping, pong, or a raw frame, and its size. Counted in the inbound
@@ -2124,7 +2122,7 @@ async fn send_welcome(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let text = serde_json::to_string(welcome)?;
     let bytes = text.len();
-    sink.send(Message::Text(text)).await?;
+    sink.send(Message::Text(text.into())).await?;
     traffic.sent(bytes);
     Ok(())
 }

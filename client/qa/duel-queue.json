@@ -1,5 +1,5 @@
 {
-  "comment": "The Duel line on Larak Lot (gameplay 59): two rule bots hold both seats, the tour watches and presses Join, and the server puts it in line. Run with FRAGR_QA_MODE=duel, FRAGR_QA_BOTS=2 and FRAGR_QA_MANIFEST=res://qa/duel-queue.json.",
+  "comment": "The Duel line on Larak Lot (gameplay 59): two rule bots hold both seats, the tour watches and presses Join, and the server puts it in line. Run with LOCALEXCEPTION_QA_MODE=duel, LOCALEXCEPTION_QA_BOTS=2 and LOCALEXCEPTION_QA_MANIFEST=res://qa/duel-queue.json.",
   "width": 1280,
   "height": 720,
   "states": [

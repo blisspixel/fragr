@@ -315,7 +315,7 @@ func _run() -> void:
 	_test_incoming_camera(effects)
 	# The real match route must retain the weapon even with no surviving pawn.
 	var game: Node = load("res://scenes/main.tscn").instantiate()
-	game.settings = FragrSettings.new()
+	game.settings = LocalExceptionSettings.new()
 	var hud: HudProbe = HudProbe.new()
 	game.hud = hud
 	game.net_client = game.get_node("NetClient")

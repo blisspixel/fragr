@@ -1,6 +1,6 @@
-# fragr - Architecture & Vertical Slice Plan
+# Local Exception - Architecture & Vertical Slice Plan
 
-**Working name:** fragr 
+**Product:** Local Exception
 **Owner GitHub:** blisspixel (Nick Seal) - personal only; stay out of work accounts 
 **Spend:** $0 assumed for this draft and for Slice 1. Hard cap $50 total with Nick's approval before spending.
 **Status:** Living decision record. Sections 1 to 6 describe Slice 1 as it was designed (September 2026) and are kept as history; the decision log at the end is current and `ROADMAP.md` carries sequencing.
@@ -40,7 +40,7 @@ flowchart TB
  end
 
  subgraph Server["Authoritative sim (Rust, home-host)"]
- GS["fragr-server<br/>tick loop + arena rules"]
+ GS["localexception-server<br/>tick loop + arena rules"]
  API["Session API<br/>WS / binary later"]
  end
 
@@ -65,7 +65,7 @@ flowchart TB
 | `spectator` | Godot (default) | nothing (or camera-only UI) | full/filtered snapshots |
 | `human` | Godot (opt-in) | same action schema as agents | snapshots |
 
-All game truth lives in **fragr-server**. Godot never simulates combat/HP; it interpolates rendered poses from snapshots.
+All game truth lives in **localexception-server**. Godot never simulates combat/HP; it interpolates rendered poses from snapshots.
 
 ---
 
@@ -79,7 +79,7 @@ All game truth lives in **fragr-server**. Godot never simulates combat/HP; it in
 - **Later (post-slice):** Optional UDP/`renet`-style channel for low-latency FPS once WS proves the loop. Do **not** block Slice 1 on custom UDP in GDScript.
 
 ### Server - Rust, **not** Bevy-as-client
-| Option | Verdict for fragr |
+| Option | Verdict for Local Exception |
 |--------|-------------------|
 | **Custom tokio + WS + tick ECS-lite** | **Choose for Slice 1.** Thin, Godot-friendly, easy for MCP adapter. |
 | `renet` / `bevy_renet` | Strong UDP/netcode later; Godot client support is DIY. Defer. |
@@ -109,12 +109,12 @@ All game truth lives in **fragr-server**. Godot never simulates combat/HP; it in
 - **Spectators:** same snapshot stream; server ignores input from `spectator` role.
 
 ### How agents issue actions (agent-play path)
-**Best current approach for 2026 fragr:** dedicated **MCP server adapter** in front of the game session (pattern proven by game MCP adapter stacks (minecraft-mcp / nethack-mcp style; not a Doom product path)).
+**Best current approach for 2026 Local Exception:** dedicated **MCP server adapter** in front of the game session (pattern proven by game MCP adapter stacks (minecraft-mcp / nethack-mcp style; not a Doom product path)).
 
-- Process: `fragr-agent-adapter` (Rust or TypeScript; prefer **Rust** to share protocol types with server, or TS if Buildy wants FastMCP speed - **recommend Rust** for one language on server side).
+- Process: `localexception-agent-adapter` (Rust or TypeScript; prefer **Rust** to share protocol types with server, or TS if Buildy wants FastMCP speed - **recommend Rust** for one language on server side).
 - Transport to agents: **MCP over stdio** (local clawbots / any MCP client) - zero cloud.
 - Tools (minimal):
- - Boot Hello on connect with display `name` (`fragr-agent-adapter mcp --name ...` or `FRAGR_AGENT_NAME`) → player_id via Welcome
+ - Boot Hello on connect with display `name` (`localexception-agent-adapter mcp --name ...` or `LOCALEXCEPTION_AGENT_NAME`) → player_id via Welcome
  - First-class `join` / `leave` / `round_state` (join idempotent; leave = clean WS disconnect; round summary without scraping observe)
  - `observe()` → structured JSON (self pose/hp, visible players, arena bounds, tick)
  - `act(actions, ticks?)` → apply intents; return next observation
@@ -163,10 +163,10 @@ One graybox arena on loopback. Two **scripted agent bots** (or one agent + one s
 
 ## 5. Repo layout proposal (blisspixel / personal)
 
-Monorepo (recommended for protocol sharing). Name suggestion: `fragr` under blisspixel.
+Monorepo (recommended for protocol sharing). Name suggestion: `localexception` under blisspixel.
 
 ```text
-fragr/
+localexception/
 ├── README.md # how to run Slice 1 (3 terminals)
 ├── ARCHITECTURE.md # this doc
 ├── SLICE-1.md # build checklist
@@ -277,6 +277,7 @@ Anything that costs money is **blocked** for Slice 1 and flagged here:
 
 | Date | Decision | Choice |
 |------|----------|--------|
+| 2026-11-01 | Current stable dependencies | Rust 1.99.1 is shared by CI, release builds and the Debian 13 container. WebSocket 0.30 keeps the existing JSON protocol, 64 KiB frame/message limits and 512 KiB server write ceiling; explicit 8 KiB read buffers avoid its larger default allocation. Incoming UTF-8 frames retain their owned byte buffers. Resume secrets still use OS randomness and fail closed if it is unavailable. |
 | 2026-10-28 | Bounded hitscan lag compensation | A human Action may carry `view_tick` (gameplay 62), the tick its client draws others at. The server refuses a view newer than the newest tick it produced, rewinds only ordinary fighters' hit volumes for that human's hitscan shots, clamps to 200 ms from 250 ms of history, and never stretches a broken history. Cover, projectiles, campaign actors and damage stay in the present. Agents and bots aim at the present, so their shots are never rewound; as targets they are rewound like anyone else. A seated rider stays with its vehicle in the present. Measured in `docs/BENCHMARK.md`, "Lag compensation (#434 stage 5)". |
 | 2026-10-24 | Encode-once broadcasts | The tick encodes each broadcast once and every initialized session's outbound queue holds that same immutable payload; only targeted messages are encoded by their own writer, so private state never enters a shared payload. The queue still inspects the typed message for world replacement and the MapInfo and Mission barriers. The pinned tungstenite 0.24 owns each frame's `String`, so a writer copies the shared text rather than borrowing it. The wire is unchanged; the measured effect is in `docs/BENCHMARK.md` (#434 stage 2). |
 | 2026-10-05 | Exceptional server and hosting doors | The Rust server and its modes are a full-build goal: excellent at today's populations, then measured toward a 64-player battle. A spare home machine is a complete host and does not require Docker, a domain, or a cloud account. The same binary later has plan-only Terraform for one popular small-VM virtual network and for GCP, AWS, and Azure. The GCP COS draft remains the only cloud root written. No template is applied without a priced approval. Serverless does not run the tick. Detail and the pass order: `plans/server-excellence.md`. |
@@ -293,7 +294,7 @@ Anything that costs money is **blocked** for Slice 1 and flagged here:
 | 2026-09-19 | Campaign content boundary | Server-owned validated JSON is the initial authoring direction. Geometry drives collision, navigation and rendering; overlapping floors need explicit support. Editor/importer selection awaits a bounded compatibility spike (`plans/campaign-continuance.md`). |
 | 2026-09-18 | Agent door revision | MCP 2026-07-28 is the target, the old handshake is compatibility only; team play through an MCP blackboard before any A2A (`plans/agent-door-2026.md`) |
 | 2026-09-21 | Watch scale and server trust | The watch and the join happen in the Godot app. There is no web client. The large number is the audience in that app, not the simulating roster. Humans and agents share one bounded fight. Spectators watch that same match and can join it. One Rust process stays authoritative. Self-host is the default. A central host, when spend is approved, is a long-lived process on a small VM (the GCP shape in `infra/README.md`). Serverless fits status, tickets, and a server list. It does not run the tick. Clients stay untrusted: frame caps, connection caps, and an inbound rate limit are the first controls. A bigger watcher count waits on a measured snapshot fan-out, not on a claim that Rust makes the current JSON broadcast free. |
-| 2026-09-22 | Join tickets | Optional HMAC-SHA256 on hello, using the `sha2` crate already in the server. No secret leaves local and LAN hello open. `FRAGR_JOIN_SECRET` (16 to 256 bytes, environment only) requires `v1.<unix exp>.<role>.<lowercase hex>` for a human or agent. The role is `human` or `agent`. Spectators are not ticketed. The ticket does not name the player. The same ticket works until it expires. It does not by itself resume a dropped pawn. A later issuer can mint this ticket without copying the secret onto every player. |
+| 2026-09-22 | Join tickets | Optional HMAC-SHA256 on hello, using the `sha2` crate already in the server. No secret leaves local and LAN hello open. `LOCALEXCEPTION_JOIN_SECRET` (16 to 256 bytes, environment only) requires `v1.<unix exp>.<role>.<lowercase hex>` for a human or agent. The role is `human` or `agent`. Spectators are not ticketed. The ticket does not name the player. The same ticket works until it expires. It does not by itself resume a dropped pawn. A later issuer can mint this ticket without copying the secret onto every player. |
 | 2026-09-22 | Pawn resume | A hello that asks gets a process-local resume token. A dropped socket parks that pawn for ten seconds, clears its input, and keeps its party seat. The same id rebinds. Explicit leave removes the pawn now. The sim does not rewind. Callsigns still do not evict anyone. |
 | 2026-09-30 | Scheduled Service prototype | M03 uses the existing mission control and resolved-shot seams, capability 24, and exactly two precomputed mast worlds. Optional car rescues walk authoritative held-to-safe segments without adding collision variants or departure timing. Local v4 saves promote compatible M02 runs, archive v2/v3 source bytes and retain car outcomes at pending M04. The daylight yard and reader-paced scenes remain development content pending final mission acceptance. |
 | 2026-09-30 | Notice to Vacate prototype | M04 uses six ordered encounters, a guarded optional clinic Use and shared roof departure through the existing mission channel. Bounded raised Notary bodies use authored clear hover segments, locked attacks and authoritative supported death falls. Both clinic worlds are prepared before readiness. All live authored missions require capability 25 and rules revision 3, retiring the previous live contract. Local v5 upgrades explicit historical v2/v3/v4 revision 2 saves, archives exact bytes and carries M03 choices through M04 retries; completed patient/photo outcomes wait at M05. Original offline sprites and audio avoid external spend. |

@@ -7,7 +7,7 @@ use tokio_tungstenite::{connect_async, tungstenite::Message};
 
 fn scratch() -> std::path::PathBuf {
     std::env::temp_dir().join(format!(
-        "fragr-fun-wire-{}-{}",
+        "localexception-fun-wire-{}-{}",
         std::process::id(),
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
@@ -42,7 +42,8 @@ async fn welcome(address: std::net::SocketAddr, role: &str) -> serde_json::Value
                 "gameplay_version": crate::protocol::GAMEPLAY_VERSION,
                 "geometry_version": crate::protocol::GEOMETRY_VERSION,
             })
-            .to_string(),
+            .to_string()
+            .into(),
         ))
         .await
         .unwrap();

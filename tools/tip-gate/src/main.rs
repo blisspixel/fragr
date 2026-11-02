@@ -177,8 +177,10 @@ mod tests {
     }
 
     fn scratch(label: &str) -> std::path::PathBuf {
-        let dir =
-            std::env::temp_dir().join(format!("fragr-tip-gate-{label}-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!(
+            "localexception-tip-gate-{label}-{}",
+            std::process::id()
+        ));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         dir

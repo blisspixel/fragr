@@ -57,9 +57,9 @@ func _run() -> void:
 	_check(MenuTheme.build(MenuTheme.Context.FRONT_END) != MenuTheme.build(MenuTheme.Context.GAMEPLAY), "menu appearance cannot mutate the cached gameplay theme")
 
 	var settings_path: String = "user://test-menu-theme-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", settings_path)
+	set_meta("localexception_settings_path", settings_path)
 	var menu: Control = load("res://scenes/boot_menu.tscn").instantiate()
-	menu.set("_settings", FragrSettings.new(settings_path))
+	menu.set("_settings", LocalExceptionSettings.new(settings_path))
 	root.add_child(menu)
 	for page: String in ["main", "multi", "join", "profile", "settings", "host", "records"]:
 		menu._show(page)

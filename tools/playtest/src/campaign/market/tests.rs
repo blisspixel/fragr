@@ -2,11 +2,11 @@
 //! calibration inputs, not earned market clears or supplied player actions.
 use super::*;
 use crate::campaign::{market_status, Scenario};
-use fragr_server::maps::AuthoredSource;
-use fragr_server::protocol::{
+use localexception_server::maps::AuthoredSource;
+use localexception_server::protocol::{
     AmmoPool, MagazineCount, MissionId, Role, WeaponType, M19_OBJECTIVE_IDS,
 };
-use fragr_server::session::GameSession;
+use localexception_server::session::GameSession;
 use uuid::Uuid;
 
 fn fixture() -> (MissionState, Status) {
@@ -376,7 +376,7 @@ fn per_action_market_facts_start_at_public_entry_and_stop_at_the_terminal_receip
 fn terminal_and_continuation_boundaries_close_open_market_contacts() {
     let (mut state, status) = fixture();
     let names = std::collections::BTreeMap::new();
-    let strip = fragr_server::protocol::PaverStripState {
+    let strip = localexception_server::protocol::PaverStripState {
         owner_id: Uuid::from_u128(7),
         origin: [status.feet[0] - 1.0, status.feet[1], status.feet[2]],
         yaw: 0.0,

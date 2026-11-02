@@ -15,7 +15,7 @@ Expose first-class MCP tools for session lifecycle and round summary so agents d
 
 | Tool | Behavior |
 |---|---|
-| `join` | Optional `name` (else `--name` / `FRAGR_AGENT_NAME`). Ensures connected Hello/Welcome. Idempotent success if already joined. Unknown fields -> schema error. |
+| `join` | Optional `name` (else `--name` / `LOCALEXCEPTION_AGENT_NAME`). Ensures connected Hello/Welcome. Idempotent success if already joined. Unknown fields -> schema error. |
 | `leave` | Clean disconnect. `isError` if not connected. No fields. |
 | `round_state` | Current round fields from last snapshot plus recent `round_start` / `round_end` (state, number, time, frag limit, mode_name, host_line, pressure). No scrape of full observe required. |
 

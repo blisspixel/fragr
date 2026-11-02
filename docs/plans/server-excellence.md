@@ -52,7 +52,7 @@ different game, and it is not required to play or to host friends.
 
 ## Hosting doors
 
-Every door runs the same `fragr-server` binary or the same container image,
+Every door runs the same `localexception-server` binary or the same container image,
 on port 6767, with the same rules and the same admission. The tick stays a
 long-lived process. Serverless hosts do not run it.
 
@@ -597,7 +597,7 @@ the ones that keep the room without restarting the process.
   when the desk input closes, including under a service manager that
   never attaches a terminal.
 
-Fragr already had audit logs on `fragr_server::audit`, address bans,
+LocalException already had audit logs on `localexception_server::audit`, address bans,
 optional join tickets, ten-second resume, and an anonymous status probe.
 It did not have a desk.
 
@@ -646,7 +646,7 @@ built. The scale ladder's next step remains pass 1.
 
 - A desk the operator can attach after the launching terminal is gone.
   The credential is the operating-system user. SSH to that account is the
-  remote door. A passworded fragr protocol is a larger hazard than local
+  remote door. A passworded Local Exception protocol is a larger hazard than local
   stdin, so the plan does not add one.
 - A private-night passphrase, distinct from join tickets. Tickets are
   clearance for a fighter. They are not a room password a stranger can
@@ -671,7 +671,7 @@ TLS session remain open. The next measurement step is still pass 1.
 
 ## Synthetic traffic
 
-`--traffic` on `fragr-playtest` starts a local server and fills it with
+`--traffic` on `localexception-playtest` starts a local server and fills it with
 synthetic fighters and read-only spectators. Fighters send movement and a
 held trigger at a chosen rate. They do not pathfind, so the load is the
 tick, the shots, and the fan-out. Each loopback address takes up to 24
@@ -697,7 +697,7 @@ is in [BENCHMARK.md](../BENCHMARK.md#stage-1-stress-baseline-434).
 Checked again on 2026-10-05 against Source's rate model, Quake Live's split
 between a host file and a mode factory, Counter-Strike's separate round
 clocks, SourceTV's relay, and Glenn Fiedler's snapshot articles. Their
-tick rates and byte caps are not fragr's numbers.
+tick rates and byte caps are not Local Exception's numbers.
 
 Already the right shape, and not a rebuild:
 
@@ -907,7 +907,7 @@ draft's plan-only contract. `infra/README.md` is the hosting index.
 ## Sources
 
 Practice checked 2026-10-05, used for the rules above and not as a claim that
-those games' numbers are fragr's numbers:
+those games' numbers are Local Exception's numbers:
 
 - id Software, Quake III Arena `sv_fps` default 20, rate choke, delta
   snapshots, and a 64-client ceiling with a much smaller default:

@@ -201,7 +201,8 @@ fn authored_jeep_boards_switches_and_resolves_mounted_fire_against_a_flying_nota
 async fn authored_fleet_requires_vehicle_capability_for_every_role_and_sends_geometry_first() {
     use futures_util::{SinkExt, StreamExt};
     use tokio_tungstenite::{connect_async, tungstenite::Message};
-    let path = std::env::temp_dir().join(format!("fragr-vehicles-{}.json", Uuid::new_v4()));
+    let path =
+        std::env::temp_dir().join(format!("localexception-vehicles-{}.json", Uuid::new_v4()));
     std::fs::write(&path, serde_json::to_vec(&document()).unwrap()).unwrap();
     let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
     let (stop_tx, stop_rx) = tokio::sync::oneshot::channel();
@@ -219,13 +220,19 @@ async fn authored_fleet_requires_vehicle_capability_for_every_role_and_sends_geo
     ));
     let address = ready_rx.await.unwrap();
     for role in ["human", "agent", "spectator"] {
-        for version in [38, 39, crate::protocol::ASSESSOR_GAMEPLAY_VERSION] {
+        for version in [
+            38,
+            39,
+            crate::protocol::ASSESSOR_GAMEPLAY_VERSION,
+            crate::protocol::GAMEPLAY_VERSION,
+        ] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
             socket
                 .send(Message::Text(
                     json!({"type":"hello","role":role,"name":"Vehicle probe",
                 "gameplay_version":version,"geometry_version":crate::protocol::GEOMETRY_VERSION})
-                    .to_string(),
+                    .to_string()
+                    .into(),
                 ))
                 .await
                 .unwrap();
@@ -238,22 +245,19 @@ async fn authored_fleet_requires_vehicle_capability_for_every_role_and_sends_geo
                     };
                     let value: serde_json::Value = frames.read_value(&body).unwrap();
                     if value["type"] == "error" {
-                        assert!(
-                            version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION,
-                            "{value}"
-                        );
+                        assert!(version < crate::protocol::GAMEPLAY_VERSION, "{value}");
                         assert_eq!(value["code"], "unsupported_gameplay");
-                        assert!(value["message"].as_str().unwrap().contains(&format!(
-                            "version {}",
-                            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
-                        )));
+                        assert!(value["message"]
+                            .as_str()
+                            .unwrap()
+                            .contains(&format!("version {}", crate::protocol::GAMEPLAY_VERSION)));
                         return;
                     }
                     if value["type"] == "map_info" {
                         saw_map = true;
                     }
                     if value["type"] == "snapshot" {
-                        assert_eq!(version, crate::protocol::ASSESSOR_GAMEPLAY_VERSION);
+                        assert_eq!(version, crate::protocol::GAMEPLAY_VERSION);
                         assert!(saw_map, "vehicle snapshot overtook initial geometry");
                         assert_eq!(value["vehicles"].as_array().unwrap().len(), 1);
                         return;

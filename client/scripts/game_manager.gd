@@ -194,9 +194,9 @@ var _retry_snapshot_tick: int = -1
 var arena_cover: ArenaCover = null
 var current_map_info: Dictionary = {}
 var latest_snapshot: Dictionary = {}
-var console: FragrConsole = null
+var console: LocalExceptionConsole = null
 var pause_menu: PauseMenu = null
-var settings: FragrSettings
+var settings: LocalExceptionSettings
 var records: PlayerRecords
 var _record_save_warning: bool = false
 var role_transition: bool = false
@@ -383,7 +383,7 @@ func _ready():
 		hud.combat_feed.push(text, MenuTheme.BONE))
 	add_child(notary_audio)
 	if settings == null:
-		settings = FragrSettings.for_tree(get_tree())
+		settings = LocalExceptionSettings.for_tree(get_tree())
 	settings.load_from_disk()
 	records = PlayerRecords.for_tree(get_tree())
 	settings.changed.connect(_apply_preferences)
@@ -808,9 +808,9 @@ func _on_map_info(info: Dictionary) -> void:
 ## The console, the pause menu and the loading card. Built here rather than in
 ## the scene because they are the same three things whatever the match is.
 func _setup_frontend() -> void:
-	console = FragrConsole.new()
+	console = LocalExceptionConsole.new()
 	console.preferences = settings
-	console.name = "FragrConsole"
+	console.name = "LocalExceptionConsole"
 	add_child(console)
 	if _benchmark:
 		_prepare_benchmark_presentation()
@@ -838,7 +838,7 @@ func _setup_frontend() -> void:
 ## keeps the fact in memory instead of writing a player's real settings.
 func _on_controls_hint_shown() -> void:
 	settings.set_value("gameplay", "controls_hint_seen", true)
-	if get_tree().get_meta("fragr_automated", false) and settings.storage_path == FragrSettings.PATH:
+	if get_tree().get_meta("fragr_automated", false) and settings.storage_path == LocalExceptionSettings.PATH:
 		return
 	settings.save_to_disk()
 
@@ -860,7 +860,7 @@ func _apply_preferences() -> void:
 
 func _apply_render_preferences() -> void:
 	var world: WorldEnvironment = _find_world_environment(self)
-	var active_settings: FragrSettings = settings
+	var active_settings: LocalExceptionSettings = settings
 	var run: BenchmarkRun = get_node_or_null("BenchmarkRun") as BenchmarkRun
 	if run != null and run.render_settings != null:
 		active_settings = run.render_settings
@@ -907,7 +907,7 @@ func _note_governor_advice() -> void:
 	if record.is_empty() or bool(record.get("retune_advised", false)):
 		return
 	record["retune_advised"] = true
-	var draft: FragrSettings = settings.draft()
+	var draft: LocalExceptionSettings = settings.draft()
 	draft.set_value("video", "tune", record)
 	settings.commit(draft)
 
@@ -1156,8 +1156,8 @@ func _on_leave_requested() -> void:
 		net_client.leave_match()
 	if local_match != null:
 		local_match.stop()
-	if get_tree().has_meta("fragr_boot"):
-		get_tree().remove_meta("fragr_boot")
+	if get_tree().has_meta("localexception_boot"):
+		get_tree().remove_meta("localexception_boot")
 	get_tree().change_scene_to_file("res://scenes/boot_menu.tscn")
 
 func _on_local_failure(key: String) -> void:
@@ -1323,9 +1323,9 @@ func _venue_quiets_radio() -> bool:
 	return (m01_intake != null and m01_intake.active()) or (still_here != null and not still_here.geometry.is_empty())
 
 func _resolve_boot() -> Dictionary:
-	# Boot menu meta wins; then --rejoin; then --solo / FRAGR_SOLO; then --human; else spectator.
-	if get_tree().has_meta("fragr_boot"):
-		var meta = get_tree().get_meta("fragr_boot")
+	# Boot menu meta wins; then --rejoin; then --solo / LOCALEXCEPTION_SOLO; then --human; else spectator.
+	if get_tree().has_meta("localexception_boot"):
+		var meta = get_tree().get_meta("localexception_boot")
 		if typeof(meta) == TYPE_DICTIONARY:
 			var benchmark: Dictionary = BenchmarkRun.read_boot(meta)
 			if not benchmark.is_empty():
@@ -1347,7 +1347,7 @@ func _resolve_boot() -> Dictionary:
 	var rejoined: Dictionary = ReleaseInstall.rejoin_boot(user_args, settings.player_name())
 	if not rejoined.is_empty():
 		return rejoined
-	var wants_solo = OS.get_environment("FRAGR_SOLO") == "1" or "--solo" in args or "--solo" in user_args
+	var wants_solo = OS.get_environment("LOCALEXCEPTION_SOLO") == "1" or "--solo" in args or "--solo" in user_args
 	if wants_solo:
 		return {"role": "human", "name": settings.player_name(), "host": "127.0.0.1:6767", "hud_mode": "SOLO BROADCAST", "mode": "solo"}
 	if "--human" in args or "--human" in user_args:

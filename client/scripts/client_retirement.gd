@@ -4,7 +4,7 @@ class_name ClientRetirement
 ## Scene-independent resource retirement. Decoder release needs a mixer turn;
 ## pending Compatibility skies need a completed draw before their RID is freed.
 ## The owner survives a return to the menu and drains before application quit.
-const META: StringName = &"fragr_client_retirement"
+const META: StringName = &"localexception_client_retirement"
 const DEADLINE_MS: int = 2000
 
 signal quit_ready(exit_code: int)

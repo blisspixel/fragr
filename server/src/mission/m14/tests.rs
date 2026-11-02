@@ -486,7 +486,7 @@ fn m14_ordinary_finite_infantry_completes_after_jeep_destruction() {
     ordinary_infantry(Role::Agent, 2);
 }
 #[test]
-#[ignore = "seed survey: cargo test -p fragr-server --lib seed_survey -- --ignored --nocapture"]
+#[ignore = "seed survey: cargo test -p localexception-server --lib seed_survey -- --ignored --nocapture"]
 fn m14_ordinary_infantry_seed_survey() {
     crate::mission::route_skill::survey("M14 ordinary infantry", 1010..1026, |seed| {
         for (role, jeep) in [(Role::Agent, 0), (Role::Human, 1), (Role::Agent, 2)] {
@@ -895,7 +895,7 @@ fn native_launch_fact_vectors_match_client_fixture() {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../client/golden/m14_fact_vectors.json");
     let bytes = serde_json::to_vec_pretty(&document).unwrap();
-    if std::env::var_os("FRAGR_UPDATE_M14_FACTS").is_some() {
+    if std::env::var_os("LOCALEXCEPTION_UPDATE_M14_FACTS").is_some() {
         std::fs::write(&path, &bytes).unwrap();
     }
     assert!(

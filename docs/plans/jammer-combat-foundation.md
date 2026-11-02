@@ -73,7 +73,7 @@ use local development tooling and original offline art.
   reset cleanup and retained dead-emitter ownership. No existing enemy timing
   changed. The range validates all landmarks, supplies and enemy routes through
   the existing authored loader.
-- `cargo test -p fragr-server --locked tests::jammer -- --nocapture` passed:
+- `cargo test -p localexception-server --locked tests::jammer -- --nocapture` passed:
   16 dedicated tests plus one matching legacy Jammer-dish test. This includes
   live socket admission for human, agent and spectator roles: capability 22
   receives `unsupported_gameplay` before game messages, capability 23 receives
@@ -85,9 +85,9 @@ use local development tooling and original offline art.
   tick after encounter placement and the existing Rail's 80 damage. The
   implementation and existing weapon damage were preserved.
 - Focused Clippy caught a redundant `clone` on a Copy wire point in a test; it
-  was removed. `cargo clippy -p fragr-server --all-targets --locked -- -D warnings`
+  was removed. `cargo clippy -p localexception-server --all-targets --locked -- -D warnings`
   then passed. Coordinated workspace and rendered verification remain open.
-- `cargo test -p fragr-server --locked tests::traveling_shot` passed all 13
+- `cargo test -p localexception-server --locked tests::traveling_shot` passed all 13
   existing projectile regression tests, preserving the original four-second
   fixture, floor and wall collision, shield behavior, departed shooter behavior,
   round cleanup and omitted-empty wire contract.
@@ -105,7 +105,7 @@ use local development tooling and original offline art.
 ## Local range
 
 ```sh
-cargo run -p fragr-server --locked -- --bind 127.0.0.1:6767 --bots 0 --map-file server/maps/test/jammer-range.json
+cargo run -p localexception-server --locked -- --bind 127.0.0.1:6767 --bots 0 --map-file server/maps/test/jammer-range.json
 ```
 
 Watch or join through the existing client. Find the Rifle and Shotgun beside the

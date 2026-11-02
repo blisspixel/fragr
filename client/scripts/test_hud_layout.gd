@@ -13,7 +13,7 @@ var query_answer: Variant = []
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
-	set_meta("fragr_settings_path", "user://test-hud-layout-%d.cfg" % OS.get_process_id())
+	set_meta("localexception_settings_path", "user://test-hud-layout-%d.cfg" % OS.get_process_id())
 	_run.call_deferred()
 
 func _check(ok: bool, message: String) -> void:
@@ -181,7 +181,7 @@ func _test_nameplate_blockers() -> void:
 	await _settle()
 
 func _test_scaled_columns() -> void:
-	for spec: Array in [[1.5, FragrSettings.TEXT_LARGE], [1.5, FragrSettings.TEXT_STANDARD], [1.0, FragrSettings.TEXT_LARGE], [0.75, FragrSettings.TEXT_STANDARD]]:
+	for spec: Array in [[1.5, LocalExceptionSettings.TEXT_LARGE], [1.5, LocalExceptionSettings.TEXT_STANDARD], [1.0, LocalExceptionSettings.TEXT_LARGE], [0.75, LocalExceptionSettings.TEXT_STANDARD]]:
 		hud.hud_style = HudStyle.new(spec[0], spec[1], false, hud.hud_style.revision + 1)
 		hud.call("_apply_hud_style")
 		_busy_top()
@@ -195,7 +195,7 @@ func _test_scaled_columns() -> void:
 		for line: Node in hud.combat_feed.get_children():
 			if line is Label:
 				_check(not HudRegions.text_bounds(line).intersects(center), "notices clear center facts" + tag)
-	hud.hud_style = HudStyle.new(1.0, FragrSettings.TEXT_STANDARD, false, hud.hud_style.revision + 1)
+	hud.hud_style = HudStyle.new(1.0, LocalExceptionSettings.TEXT_STANDARD, false, hud.hud_style.revision + 1)
 	hud.call("_apply_hud_style")
 	await _settle()
 
@@ -279,7 +279,7 @@ func _test_result_cards() -> void:
 	stamp._process(0.016)
 
 func _test_card_placement() -> void:
-	hud.hud_style = HudStyle.new(1.5, FragrSettings.TEXT_LARGE, false, hud.hud_style.revision + 1)
+	hud.hud_style = HudStyle.new(1.5, LocalExceptionSettings.TEXT_LARGE, false, hud.hud_style.revision + 1)
 	hud.call("_apply_hud_style")
 	hud.set_mode("SPECTATING")
 	hud.set_map_name("Arena Duel")
@@ -312,7 +312,7 @@ func _test_card_placement() -> void:
 	_check(is_equal_approx(hud.round_backdrop.offset_bottom, -25.0) and is_zero_approx(hud.regions.card_shift), "the next backed card does not inherit the earlier shift")
 	hud.round_message.hide()
 	await _settle()
-	hud.hud_style = HudStyle.new(1.0, FragrSettings.TEXT_STANDARD, false, hud.hud_style.revision + 1)
+	hud.hud_style = HudStyle.new(1.0, LocalExceptionSettings.TEXT_STANDARD, false, hud.hud_style.revision + 1)
 	hud.call("_apply_hud_style")
 	hud.show_round_end("Winner", "", 20)
 	await _settle()

@@ -1566,7 +1566,7 @@ fn severe_side_ward_route_survives_with_ordinary_supplies() {
 }
 
 #[test]
-#[ignore = "seed survey: cargo test -p fragr-server --lib seed_survey -- --ignored --nocapture"]
+#[ignore = "seed survey: cargo test -p localexception-server --lib seed_survey -- --ignored --nocapture"]
 fn severe_side_ward_seed_survey() {
     crate::mission::route_skill::survey("M02 Severe side ward", 60..76, severe_side_ward);
 }

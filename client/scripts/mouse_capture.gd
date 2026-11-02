@@ -11,6 +11,7 @@ var _automated: bool = false
 func _ready() -> void:
 	var window: Window = get_window()
 	_focused = window.has_focus()
+	# Keep this private automation key stable: baked-art source receipts include it.
 	_automated = DisplayServer.get_name() == "headless" or get_tree().has_meta("fragr_automated")
 	window.focus_entered.connect(_focus_entered)
 	window.focus_exited.connect(_focus_exited)

@@ -1,5 +1,5 @@
 {
-  "comment": "Bot-free live rocket jump on Larak Lot from the first spawn slot (TOLL north): take the Rocket from the bottom of the Pit, climb back out by the Toll Steps and the Spiral to the Gallery, and jump the 1.5 m onto the Roof with a rocket fired at the floor, then look at the Custody Plate. Ordinary input through the server. Run with FRAGR_QA_BOTS=0, FRAGR_QA_NO_ROUND_EVENTS=1 and FRAGR_QA_MANIFEST=res://qa/rocket-jump.json.",
+  "comment": "Bot-free live rocket jump on Larak Lot from the first spawn slot (TOLL north): take the Rocket from the bottom of the Pit, climb back out by the Toll Steps and the Spiral to the Gallery, and jump the 1.5 m onto the Roof with a rocket fired at the floor, then look at the Custody Plate. Ordinary input through the server. Run with LOCALEXCEPTION_QA_BOTS=0, LOCALEXCEPTION_QA_NO_ROUND_EVENTS=1 and LOCALEXCEPTION_QA_MANIFEST=res://qa/rocket-jump.json.",
   "width": 1280,
   "height": 720,
   "states": [

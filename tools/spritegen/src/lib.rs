@@ -1,4 +1,4 @@
-//! Sprite generation for fragr through the Higgsfield API.
+//! Sprite generation for localexception through the Higgsfield API.
 //!
 //! Developer-only. Never in CI, never called by the game. It exists because the
 //! art list in `docs/ART-ASSET-LIST.md` is thousands of frames and the contract
@@ -1198,7 +1198,7 @@ mod tests {
 
     #[test]
     fn credential_is_read_from_a_dotenv_file() {
-        let dir = std::env::temp_dir().join("fragr-spritegen-env");
+        let dir = std::env::temp_dir().join("localexception-spritegen-env");
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join(".env");
         std::fs::write(&path, "elevenlabs=sk_x\nhiggsfield=abc-123:def-456\n").unwrap();
@@ -1208,7 +1208,7 @@ mod tests {
 
     #[test]
     fn a_credential_without_a_secret_half_is_refused() {
-        let dir = std::env::temp_dir().join("fragr-spritegen-env-bad");
+        let dir = std::env::temp_dir().join("localexception-spritegen-env-bad");
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join(".env");
         std::fs::write(&path, "higgsfield=only-an-id\n").unwrap();

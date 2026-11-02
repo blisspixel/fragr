@@ -24,7 +24,7 @@ to both documents.
 
 ## Current baseline
 
-- `fragr-server` runs one 20 Hz authoritative match on TCP WebSocket port 6767.
+- `localexception-server` runs one 20 Hz authoritative match on TCP WebSocket port 6767.
   `GET /status` reports health and traffic. The server already has bounded
   sessions, inbound budgets, tickets, resume, bans and allow lists, and bounded
   spectator delivery. CLI and local launch share `server/src/run.rs`.
@@ -46,7 +46,7 @@ to both documents.
 
 | Layer | Near-term home | Reason |
 |---|---|---|
-| Match authority | One `fragr-server` process or container | Needs a continuous tick and a public game socket. |
+| Match authority | One `localexception-server` process or container | Needs a continuous tick and a public game socket. |
 | Local friend host | Docker Compose on a host or the existing binary | Same server behavior, no cloud cost. |
 | Optional HTTP edge | Cloud Run only when ticket, list or status APIs exist | Request-driven HTTP fits; it does not accept public UDP gameplay. |
 | Cloud match host | Container image on a thin COS or comparable host, after approval | Reuses the tested image and exposes the game port. |
@@ -63,7 +63,7 @@ before it is enabled. Do not create a ticket issuer or server list with no
 consumer or access contract. A host may use TLS for public WebSocket, but TLS termination and
 ticket distribution need an end-to-end design before public admission is called
 secure. The current Godot client can mint an HMAC join ticket only when it knows
-`FRAGR_JOIN_SECRET`; distributing that long-term secret to public clients lets
+`LOCALEXCEPTION_JOIN_SECRET`; distributing that long-term secret to public clients lets
 them mint their own tickets. An issuer must keep the secret server-side and
 define who may request a ticket. Existing tickets can also be replayed during
 their validity window. Docker alone does not make an open internet server safe.
@@ -217,7 +217,7 @@ cloud apply; external spend remains $0.
 The local dedicated host now has a Dockerfile, a narrow build context and a
 Compose service. The image built on Docker 29.8.0 with the verified Rust
 1.98.1 builder. It runs as UID 10001 with a read-only root filesystem and
-carries fragr's license plus notices for 94 linked Linux crates. Compose
+carries Local Exception's license plus notices for 94 linked Linux crates. Compose
 reported `healthy`, and `/status` showed an active Arena Duel match with four
 rule bots. A ten-second local-rules agent joined through the published
 WebSocket port, received 200 snapshots and sent 199 actions; the run made no

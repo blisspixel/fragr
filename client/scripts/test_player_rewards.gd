@@ -5,8 +5,8 @@ var failures: int = 0
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
-	set_meta("fragr_settings_path", "")
-	set_meta("fragr_records_path", "")
+	set_meta("localexception_settings_path", "")
+	set_meta("localexception_records_path", "")
 	_run.call_deferred()
 
 func _check(value: bool, message: String) -> void:
@@ -296,7 +296,7 @@ func _profile_navigation() -> void:
 	menu._unhandled_input(cancel)
 	await process_frame
 	await menu._show("profile")
-	_check(menu._root.get_node("Callsign").text == FragrSettings.DEFAULT_CALLSIGN \
+	_check(menu._root.get_node("Callsign").text == LocalExceptionSettings.DEFAULT_CALLSIGN \
 		and menu._settings.player_body() == "human", "cancelling the enclosing profile still discards the whole unsaved draft")
 	menu.queue_free()
 	await process_frame

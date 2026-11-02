@@ -607,7 +607,10 @@ async fn a_live_server_reports_ticks_traffic_and_roles_on_status() {
         crate::protocol::GAMEPLAY_VERSION,
         crate::protocol::GEOMETRY_VERSION
     );
-    socket.send(Message::Text(hello.to_string())).await.unwrap();
+    socket
+        .send(Message::Text(hello.to_string().into()))
+        .await
+        .unwrap();
     let mut received = 0usize;
     let mut snapshots = 0;
     while snapshots < 30 {
@@ -702,7 +705,10 @@ async fn a_measured_live_server_sends_every_watcher_one_shared_payload() {
         let (mut socket, _) = tokio_tungstenite::connect_async(format!("ws://{address}"))
             .await
             .unwrap();
-        socket.send(Message::Text(hello.clone())).await.unwrap();
+        socket
+            .send(Message::Text(hello.clone().into()))
+            .await
+            .unwrap();
         sockets.push(socket);
     }
     // Snapshot text by tick, per watcher: what came on the wire and the world
@@ -720,7 +726,7 @@ async fn a_measured_live_server_sends_every_watcher_one_shared_payload() {
             let message = frames.read(&text).unwrap();
             if let crate::protocol::ServerMessage::Snapshot(snapshot) = &message {
                 let world = serde_json::to_string(&message).unwrap();
-                seen.insert(snapshot.tick, (text, world));
+                seen.insert(snapshot.tick, (text.to_string(), world));
             }
         }
     }

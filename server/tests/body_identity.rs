@@ -3,9 +3,9 @@
 
 use std::time::Duration;
 
-use fragr_server::protocol::{BodyKind, Role, ServerMessage, GAMEPLAY_VERSION};
-use fragr_server::run::{run_server, ServerOptions};
 use futures_util::{SinkExt, StreamExt};
+use localexception_server::protocol::{BodyKind, Role, ServerMessage, GAMEPLAY_VERSION};
+use localexception_server::run::{run_server, ServerOptions};
 use serde_json::json;
 use tokio::time::timeout;
 use tokio_tungstenite::tungstenite::Message;
@@ -30,7 +30,10 @@ async fn next_message(socket: &mut Socket) -> Option<ServerMessage> {
 
 async fn hello(url: &str, value: serde_json::Value) -> Socket {
     let (mut socket, _) = connect_async(url).await.unwrap();
-    socket.send(Message::Text(value.to_string())).await.unwrap();
+    socket
+        .send(Message::Text(value.to_string().into()))
+        .await
+        .unwrap();
     socket
 }
 
@@ -52,7 +55,7 @@ async fn snapshot_body(socket: &mut Socket, id: Uuid) -> Option<BodyKind> {
 
 #[tokio::test]
 async fn body_is_accepted_shown_to_watchers_and_kept_across_resume() {
-    tokio::task::spawn_blocking(fragr_server::session::GameSession::new)
+    tokio::task::spawn_blocking(localexception_server::session::GameSession::new)
         .await
         .expect("navigation");
     let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel();

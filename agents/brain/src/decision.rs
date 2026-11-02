@@ -6,7 +6,7 @@
 
 use crate::budget::Pricing;
 use crate::plan::{parse_weapon, weapon_name, Plan, Source, Stance};
-use fragr_server::protocol::WeaponType;
+use localexception_server::protocol::WeaponType;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap;
@@ -429,7 +429,7 @@ pub fn constrain_plan_weapon(plan: &mut Plan, questions: &BTreeMap<String, Quest
 #[cfg(test)]
 mod tests {
     use super::*;
-    use fragr_server::protocol::WeaponType;
+    use localexception_server::protocol::WeaponType;
 
     #[test]
     fn stance_only_play_retains_mission_instructions_and_local_equipment() {

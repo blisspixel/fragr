@@ -1,7 +1,7 @@
 use std::process::{Command, Output};
 
 fn run(args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_fragr-server"))
+    Command::new(env!("CARGO_BIN_EXE_localexception-server"))
         .args(args)
         .output()
         .expect("start benchmark CLI")
@@ -9,7 +9,10 @@ fn run(args: &[&str]) -> Output {
 
 #[test]
 fn trace_cli_round_trip_refuses_overwrite_and_corruption() {
-    let path = std::env::temp_dir().join(format!("fragr-bench-{}.ndjson", uuid::Uuid::new_v4()));
+    let path = std::env::temp_dir().join(format!(
+        "localexception-bench-{}.ndjson",
+        uuid::Uuid::new_v4()
+    ));
     let path_text = path.to_str().unwrap();
     let recorded = run(&[
         "--bench",

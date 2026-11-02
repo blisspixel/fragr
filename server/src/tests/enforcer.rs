@@ -212,7 +212,8 @@ async fn enforcer_campaign_requires_current_rules_for_every_role_and_orders_geom
     use std::time::Duration;
     use tokio_tungstenite::{connect_async, tungstenite::Message};
 
-    let directory = std::env::temp_dir().join(format!("fragr-enforcer-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-enforcer-{}", Uuid::new_v4()));
     std::fs::create_dir(&directory).unwrap();
     let path = directory.join("range.json");
     std::fs::write(&path, serde_json::to_vec(&document(false, false)).unwrap()).unwrap();
@@ -239,13 +240,14 @@ async fn enforcer_campaign_requires_current_rules_for_every_role_and_orders_geom
         crate::protocol::MISSION_RESULTS_GAMEPLAY_VERSION,
         crate::protocol::M09_GAMEPLAY_VERSION,
         crate::protocol::ASSESSOR_GAMEPLAY_VERSION,
+        crate::protocol::GAMEPLAY_VERSION,
     ] {
         for role in ["human", "agent", "spectator"] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
             socket.send(Message::Text(json!({
                 "type":"hello", "role":role, "name":"ChargeProbe",
                 "gameplay_version":version, "geometry_version":crate::protocol::GEOMETRY_VERSION
-            }).to_string())).await.unwrap();
+            }).to_string().into())).await.unwrap();
             tokio::time::timeout(Duration::from_secs(5), async {
                 let mut saw_map = false;
                 let mut frames = crate::protocol::WorldReader::new();
@@ -256,13 +258,13 @@ async fn enforcer_campaign_requires_current_rules_for_every_role_and_orders_geom
                         continue;
                     };
                     let value: serde_json::Value = frames.read_value(&text).unwrap();
-                    if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
+                    if version < crate::protocol::GAMEPLAY_VERSION {
                         assert_eq!(value["type"], "error", "old reader admitted");
                         assert_eq!(value["code"], "unsupported_gameplay");
-                        assert!(value["message"].as_str().unwrap().contains(&format!(
-                            "version {}",
-                            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
-                        )));
+                        assert!(value["message"]
+                            .as_str()
+                            .unwrap()
+                            .contains(&format!("version {}", crate::protocol::GAMEPLAY_VERSION)));
                         break;
                     }
                     match value["type"].as_str().unwrap() {
@@ -292,7 +294,7 @@ async fn enforcer_campaign_requires_current_rules_for_every_role_and_orders_geom
             })
             .await
             .unwrap_or_else(|error| panic!("bounded Enforcer admission {version}/{role}: {error}"));
-            if version >= crate::protocol::ASSESSOR_GAMEPLAY_VERSION && role != "spectator" {
+            if version >= crate::protocol::GAMEPLAY_VERSION && role != "spectator" {
                 // Keep an actual participant while inspecting the spectator
                 // roster. An empty party may reset authored encounter bodies.
                 participants.push(socket);

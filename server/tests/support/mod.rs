@@ -1,7 +1,7 @@
 //! A test client connection that holds the world it last read, so snapshot
 //! deltas (gameplay 61) read as whole worlds through `WorldReader`.
 
-use fragr_server::protocol::{delta::ReadError, ServerMessage, WorldReader};
+use localexception_server::protocol::{delta::ReadError, ServerMessage, WorldReader};
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 
 type Stream = WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>;

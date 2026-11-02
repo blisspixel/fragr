@@ -80,6 +80,7 @@
       "weapon": "Tack",
       "await_clear_frame": 45,
       "clear_frame_face": 30,
+      "retry_join_for_clear_frame": true,
       "note": "Actual human join, saved callsign, the free-for-all Pistol start, and aim visibility. The profile asks for the synthetic body; first-person hands stay the shared gloved viewmodels.",
       "profile_body": "synthetic"
     },

@@ -10,7 +10,7 @@ photographic direction with a deliberately stylized black/red source.
 
 ## Goal and scope
 
-Nick selected Premium for fragr, configured `meshy` in the ignored `.env` and
+Nick selected Premium for Local Exception, configured `meshy` in the ignored `.env` and
 requested live API credit checks in the developer tool. The free balance probe
 returned HTTP 200 and 3,100 credits. Build a reusable native account checker and
 bounded image-to-3D and humanoid-rigging path within `tools/spritegen`.
@@ -96,9 +96,9 @@ The root ignored dotenv accepts `meshy=<key>` or `MESHY_API_KEY=<key>`. Duplicat
 aliases with conflicting values are refused. From the repository root:
 
 ```sh
-cargo run -p fragr-spritegen --locked -- meshy-check --required-credits 150
-cargo run -p fragr-spritegen --locked -- meshy-check --out art/raw/meshy-pilot-20261003 --required-credits 35 --report .agents/meshy-balance.json
-cargo run -p fragr-spritegen --locked -- meshy-gen --spec .agents/meshy-models.json --max-credits 150 --max-spend-usd 3
+cargo run -p localexception-spritegen --locked -- meshy-check --required-credits 150
+cargo run -p localexception-spritegen --locked -- meshy-check --out art/raw/meshy-pilot-20261003 --required-credits 35 --report .agents/meshy-balance.json
+cargo run -p localexception-spritegen --locked -- meshy-gen --spec .agents/meshy-models.json --max-credits 150 --max-spend-usd 3
 ```
 
 `meshy-gen --max-credits` accepts 1 to 1,900 since 2026-10-23 (`MAX_CREDITS`,

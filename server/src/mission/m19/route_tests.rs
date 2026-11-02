@@ -219,15 +219,15 @@ pub(super) fn run_route(difficulty: CampaignDifficulty, seed: u64) -> RouteRepor
             action.left = (session.state.tick / 20).is_multiple_of(2);
             action.right = !action.left;
         }
-        let every = std::env::var("FRAGR_M19_TRACE_EVERY")
+        let every = std::env::var("LOCALEXCEPTION_M19_TRACE_EVERY")
             .ok()
             .and_then(|v| v.parse::<u64>().ok())
             .unwrap_or(100);
-        let window = std::env::var("FRAGR_M19_TRACE_FROM")
+        let window = std::env::var("LOCALEXCEPTION_M19_TRACE_FROM")
             .ok()
             .and_then(|v| v.parse::<u64>().ok())
             .unwrap_or(0);
-        if std::env::var_os("FRAGR_M19_ROUTE_TRACE").is_some()
+        if std::env::var_os("LOCALEXCEPTION_M19_ROUTE_TRACE").is_some()
             && session.state.tick >= window
             && session.state.tick.is_multiple_of(every)
         {
@@ -295,9 +295,9 @@ pub(super) fn run_route(difficulty: CampaignDifficulty, seed: u64) -> RouteRepor
 }
 
 #[test]
-#[ignore = "diagnostic: FRAGR_M19_ROUTE_TRACE=1 cargo test m19_route_trace -- --ignored"]
+#[ignore = "diagnostic: LOCALEXCEPTION_M19_ROUTE_TRACE=1 cargo test m19_route_trace -- --ignored"]
 fn m19_route_trace() {
-    let tier = match std::env::var("FRAGR_M19_TIER").as_deref() {
+    let tier = match std::env::var("LOCALEXCEPTION_M19_TIER").as_deref() {
         Ok("assisted") => CampaignDifficulty::Assisted,
         Ok("severe") => CampaignDifficulty::Severe,
         _ => CampaignDifficulty::Standard,
@@ -306,7 +306,7 @@ fn m19_route_trace() {
 }
 
 #[test]
-#[ignore = "seed survey: cargo test -p fragr-server --lib seed_survey -- --ignored --nocapture"]
+#[ignore = "seed survey: cargo test -p localexception-server --lib seed_survey -- --ignored --nocapture"]
 fn m19_planned_works_seed_survey() {
     crate::mission::route_skill::survey("M19 Planned Works, Standard", 10..26, |seed| {
         let report = run_route(CampaignDifficulty::Standard, seed);
@@ -366,12 +366,12 @@ fn free_local_controller_completes_planned_works_on_every_tier() {
             let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("../client/golden/m19_native.json");
             let bytes = serde_json::to_string(&report.native).unwrap() + "\n";
-            if std::env::var_os("FRAGR_UPDATE_M19_NATIVE").is_some() {
+            if std::env::var_os("LOCALEXCEPTION_UPDATE_M19_NATIVE").is_some() {
                 std::fs::write(&path, &bytes).unwrap();
             }
             assert!(
                 std::fs::read_to_string(path).unwrap() == bytes,
-                "client/golden/m19_native.json is stale: rerun with FRAGR_UPDATE_M19_NATIVE=1"
+                "client/golden/m19_native.json is stale: rerun with LOCALEXCEPTION_UPDATE_M19_NATIVE=1"
             );
         }
     }

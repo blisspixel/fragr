@@ -26,10 +26,10 @@ static func completed_ship() -> Dictionary:
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
 	settings_path = "user://m11-local-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", settings_path)
-	set_meta("fragr_records_path", "user://m11-records-%d" % OS.get_process_id())
+	set_meta("localexception_settings_path", settings_path)
+	set_meta("localexception_records_path", "user://m11-records-%d" % OS.get_process_id())
 	run_directory = ProjectSettings.globalize_path("user://m11-run-%d" % OS.get_process_id())
-	OS.set_environment("FRAGR_RUN_DIR", run_directory)
+	OS.set_environment("LOCALEXCEPTION_RUN_DIR", run_directory)
 	_run.call_deferred()
 
 func _finalize() -> void:
@@ -42,7 +42,7 @@ func _finalize() -> void:
 		for filename: String in DirAccess.get_files_at(run_directory):
 			DirAccess.remove_absolute(run_directory.path_join(filename))
 		DirAccess.remove_absolute(run_directory)
-	OS.unset_environment("FRAGR_RUN_DIR")
+	OS.unset_environment("LOCALEXCEPTION_RUN_DIR")
 
 func _check(value: bool, message: String) -> void:
 	if not value:
@@ -88,7 +88,7 @@ func _walk(game: Node, route: Array) -> bool:
 	return next == route.size()
 
 func _run() -> void:
-	var preferences: FragrSettings = FragrSettings.new(settings_path)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	preferences.set_value("video", "display_mode", 0)
 	_check(preferences.save_to_disk() == OK, "isolated settings")
 	_check(DirAccess.make_dir_recursive_absolute(run_directory) == OK, "isolated run directory")

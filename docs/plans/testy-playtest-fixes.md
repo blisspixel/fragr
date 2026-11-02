@@ -12,7 +12,7 @@
 | Round start/end in adapter protocol | **Fixed** (shipped with MCP Prison / events work). |
 | Junk-act silent success (unknown keys / bad `weapon_swap` overwrite sticky state) | **This PR** - `deny_unknown_fields` on `Action`, MCP act allowlist, `isError` schema errors. |
 | Observe vs README round fields | Treat as verified/shipped unless Testy reopens. |
-| Window title "fragr Client" | **Fixed**. |
+| Window title "Local Exception Client" | **Fixed**. |
 | Speak rate-limit silent success toast | **Fixed** (MCP `isError` + server Error unicast). Testy Prison fixed. |
 
 Remaining soft prisons: call them honestly; do not paper over.
@@ -21,7 +21,7 @@ Remaining soft prisons: call them honestly; do not paper over.
 
 1. **MCP events buffer incomplete:** Agent-adapter drops join/leave and round events (round_start, round_end) even though server emits them
 2. **Observe vs README mismatch:** Live observe output thinner than agent-adapter README promises
-3. **Window title fixed:** Godot project now shows "fragr Client"
+3. **Window title fixed:** Godot project now shows "Local Exception Client"
 4. **Junk-act silent success:** Unknown `act` fields ignored; sticky Action not protected (Testy soft prison). Cleared in junk-act/HUD PR.
 
 ## Root Causes
@@ -43,7 +43,7 @@ Join/leave events: server does not currently emit these as explicit events. Serv
 
 ### Issue 3: Godot project name
 
-Client application name has been updated to "fragr Client" in `client/project.godot`.
+Client application name has been updated to "Local Exception Client" in `client/project.godot`.
 
 ## Implementation Plan
 
@@ -103,7 +103,7 @@ If fields are missing in output, fix server snapshot generation. If present, ens
 
 **File:** `client/project.godot`
 
-Line 13: Application name updated to `config/name="fragr Client"`
+Line 13: Application name updated to `config/name="localexception Client"`
 
 ## Verification
 
@@ -121,7 +121,7 @@ Line 13: Application name updated to `config/name="fragr Client"`
    - Verify get_events returns round_start, round_end events
    - Verify observe returns round_state, round_time_left, frag_limit
    - Check that join/leave events appear when bots connect/disconnect
-   - Open Godot client, verify window title shows "fragr Client"
+   - Open Godot client, verify window title shows "Local Exception Client"
 
 3. **Test coverage:**
    - Add test cases for round event parsing in agent-adapter/src/main.rs tests
@@ -133,7 +133,7 @@ Line 13: Application name updated to `config/name="fragr Client"`
 - Testy can see join/leave events in get_events/recent_events
 - Testy can see round_start/round_end events in get_events/recent_events
 - observe output matches agent-adapter README examples (round_state, round_time_left, frag_limit present)
-- Godot window title shows "fragr Client"
+- Godot window title shows "Local Exception Client"
 - All cargo checks green
 - Zero Cursor/Claude/Codex attribution
 - No emoji, no em/en dashes

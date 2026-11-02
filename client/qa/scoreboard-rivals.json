@@ -1,5 +1,5 @@
 {
-  "comment": "Rival marks on the held board after a real podium story (#536): a joined human plays five rule bots on Larak Lot, the first match with ordinary aim and trigger input and the second standing open, short frag limits, two matches in a row on one server process. The server's session head-to-head book (podium.story) names the nemesis and the fighters the human leads or trails; the board keeps that book into the next match. Run with FRAGR_QA_MAP=1 FRAGR_QA_MODE=ffa FRAGR_QA_BOTS=5 FRAGR_QA_FRAG_LIMIT=8 FRAGR_QA_SEED=42 FRAGR_QA_MANIFEST=res://qa/scoreboard-rivals.json.",
+  "comment": "Rival marks on the held board after a real podium story (#536): a joined human plays five rule bots on Larak Lot, the first match with ordinary aim and trigger input and the second standing open, short frag limits, two matches in a row on one server process. The server's session head-to-head book (podium.story) names the nemesis and the fighters the human leads or trails; the board keeps that book into the next match. Run with LOCALEXCEPTION_QA_MAP=1 LOCALEXCEPTION_QA_MODE=ffa LOCALEXCEPTION_QA_BOTS=5 LOCALEXCEPTION_QA_FRAG_LIMIT=8 LOCALEXCEPTION_QA_SEED=42 LOCALEXCEPTION_QA_MANIFEST=res://qa/scoreboard-rivals.json.",
   "width": 1280,
   "height": 800,
   "states": [

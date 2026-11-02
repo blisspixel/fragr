@@ -14,7 +14,7 @@ func _initialize() -> void:
 	set_meta("fragr_automated", true)
 	_dir = "user://test-auto-tune-%d" % OS.get_process_id()
 	DirAccess.make_dir_recursive_absolute(_dir)
-	set_meta("fragr_benchmark_dir", _dir.path_join("results"))
+	set_meta("localexception_benchmark_dir", _dir.path_join("results"))
 	call_deferred("_run")
 
 func _check(condition: bool, message: String) -> void:
@@ -207,7 +207,7 @@ func _governor() -> void:
 	_check(floor.next_step().is_empty(), "nothing is left to lower at Potato once effects are halved")
 	FrameGovernor.clear()
 	_check(RenderQuality.reductions.is_empty(), "a re-tune or new session clears every step")
-	var preferences: FragrSettings = FragrSettings.new(_dir.path_join("governor.cfg"))
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(_dir.path_join("governor.cfg"))
 	_check(FrameGovernor.allowed(preferences), "the valve is on by default")
 	preferences.set_value("video", "pinned", ["quality"])
 	_check(not FrameGovernor.allowed(preferences), "a pinned tier is never governed")
@@ -221,7 +221,7 @@ func _governor() -> void:
 
 func _settings_round_trip() -> void:
 	var path: String = _dir.path_join("settings.cfg")
-	var preferences: FragrSettings = FragrSettings.new(path)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	_check(preferences.get_value("video", "quality") == RenderQuality.MEDIUM and preferences.get_value("video", "auto") == true
 		and preferences.get_value("video", "target_fps") == 60 and preferences.get_value("video", "render_scale") == 100
 		and (preferences.get_value("video", "pinned") as Array).is_empty() and (preferences.get_value("video", "tune") as Dictionary).is_empty(), "defaults: Medium, auto on, 60 target, no pins, no tune")
@@ -239,7 +239,7 @@ func _settings_round_trip() -> void:
 	preferences.set_value("video", "quality", RenderQuality.HIGH)
 	preferences.set_value("video", "render_scale", 125)
 	_check(preferences.save_to_disk() == OK, "auto settings save")
-	var loaded: FragrSettings = FragrSettings.new(path)
+	var loaded: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	loaded.load_from_disk()
 	_check(not loaded.video_refused and loaded.get_value("video", "quality") == RenderQuality.HIGH and loaded.get_value("video", "render_scale") == 125
 		and loaded.get_value("video", "target_fps") == 144 and loaded.pinned("quality") and loaded.get_value("video", "tune") == record, "tier, scale, target, pins and the tune record survive a restart")
@@ -247,13 +247,13 @@ func _settings_round_trip() -> void:
 	var old: ConfigFile = ConfigFile.new()
 	old.set_value("video", "quality", 1)
 	old.set_value("video", "vertical_fov", 90.0)
-	old.set_value("meta", "controls_layout", FragrSettings.CONTROLS_LAYOUT)
+	old.set_value("meta", "controls_layout", LocalExceptionSettings.CONTROLS_LAYOUT)
 	old.save(path)
 	loaded.load_from_disk()
 	_check(loaded.video_refused and loaded.get_value("video", "quality") == RenderQuality.MEDIUM and is_equal_approx(float(loaded.get_value("video", "vertical_fov")), 90.0), "an old preset index is refused to auto; other video choices stay")
 	# Pins come from hand changes; Reset to auto clears them and puts the tune back.
-	var before: FragrSettings = FragrSettings.new(path)
-	var draft: FragrSettings = before.draft()
+	var before: LocalExceptionSettings = LocalExceptionSettings.new(path)
+	var draft: LocalExceptionSettings = before.draft()
 	draft.set_value("video", "quality", RenderQuality.LOW)
 	draft.set_value("video", "vertical_fov", 80.0)
 	draft.pin_changes(before)
@@ -279,11 +279,11 @@ func _deck_and_power() -> void:
 	_check(HardwareProfile.deck_profile(60, "ac", 70.0)["target"] == 60 and HardwareProfile.deck_profile(60, "ac", 60.0)["target"] == 40, "60 on AC only when the 1% low is 66 or more")
 	_check(HardwareProfile.deck_profile(40, "ac", 70.0)["target"] == 40, "a 40 Hz panel stays at 40 even on AC")
 	_check(HardwareProfile.deck_profile(90, "battery", 50.0)["target"] == 45 and HardwareProfile.deck_profile(40, "battery", 30.0, 60)["target"] == 60, "OLED at 90 Hz is 45; the player's 60 wins")
-	var preferences: FragrSettings = FragrSettings.new(_dir.path_join("deck.cfg"))
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(_dir.path_join("deck.cfg"))
 	var tune: AutoTune = AutoTune.for_settings(preferences, deck, Vector2i(1280, 800), "battery")
 	_check(tune.max_tier == RenderQuality.HIGH and tune.target == 40 and is_equal_approx(tune.threshold, 44.0) and tune.seed_tier <= RenderQuality.LOW and tune.fragile, "the Deck tunes to 40 (44 with headroom), never Ultra, from Low")
 	var record: Dictionary = AutoTune.make_record({"tier": 1, "target": 40}, deck, PackedStringArray(), "measured", "battery", profile)
-	var applied: FragrSettings = preferences.draft()
+	var applied: LocalExceptionSettings = preferences.draft()
 	AutoTune.apply_record(applied, record)
 	_check(applied.get_value("video", "fps_cap") == 40 and applied.get_value("video", "vsync") == true, "the Deck profile sets the cap and V-Sync")
 	_check(HardwareProfile.seed({"adapter": "AMD Radeon 780M Graphics"})["tier"] == RenderQuality.MEDIUM and HardwareProfile.seed({"adapter": "llvmpipe"})["tier"] == RenderQuality.POTATO
@@ -325,7 +325,7 @@ func _records_and_triggers() -> void:
 
 func _headless_run() -> void:
 	var path: String = _dir.path_join("run.cfg")
-	var preferences: FragrSettings = FragrSettings.new(path)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	preferences.set_value("video", "pixel_scale", 0)
 	var run: BenchmarkRun = BenchmarkRun.new()
 	run.preferences = preferences
@@ -368,10 +368,10 @@ func _headless_run() -> void:
 
 func _first_launch() -> void:
 	var path: String = _dir.path_join("first.cfg")
-	set_meta("fragr_settings_path", path)
-	set_meta(&"fragr_tune_offer_force", true)
+	set_meta("localexception_settings_path", path)
+	set_meta(&"localexception_tune_offer_force", true)
 	var menu: Control = load("res://scenes/boot_menu.tscn").instantiate()
-	menu.set("_settings", FragrSettings.new(path))
+	menu.set("_settings", LocalExceptionSettings.new(path))
 	root.add_child(menu)
 	await process_frame
 	await process_frame
@@ -382,15 +382,15 @@ func _first_launch() -> void:
 	if skip != null:
 		skip.pressed.emit()
 	await process_frame
-	var saved: FragrSettings = FragrSettings.new(path)
+	var saved: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	saved.load_from_disk()
 	_check((saved.get_value("video", "tune") as Dictionary).get("source") == "lookup" and menu.find_child("TuneOfferCard", true, false) == null, "Skip applies the hardware guess and closes the card")
-	_check(has_meta(&"fragr_tune_offered"), "the card shows once per session")
-	remove_meta(&"fragr_tune_offer_force")
+	_check(has_meta(&"localexception_tune_offered"), "the card shows once per session")
+	remove_meta(&"localexception_tune_offer_force")
 	menu.queue_free()
 	await process_frame
 	var again: Control = load("res://scenes/boot_menu.tscn").instantiate()
-	again.set("_settings", FragrSettings.new(path))
+	again.set("_settings", LocalExceptionSettings.new(path))
 	root.add_child(again)
 	await process_frame
 	_check(again.find_child("TuneOfferCard", true, false) == null, "a saved Skip never shows the card again")

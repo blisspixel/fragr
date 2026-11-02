@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
-# Headless Godot checks for the client: import the project, parse every script,
-# run the harnesses. Godot can exit 0 with errors in its log, so the log lines
+# Headless Godot checks for the client: import, parse production scripts, and
+# parse/run every harness in one invocation. Godot can exit 0 with errors, so log lines
 # are the verdict. Set GODOT_BIN to a 4.7.2-stable binary, or have `godot` on PATH.
-# Shell substitutes can set FRAGR_CHECK_ENGINE_SHELL to their interpreter.
-# Build fragr-server --release --locked first; local campaign checks spawn it.
+# Shell substitutes can set LOCALEXCEPTION_CHECK_ENGINE_SHELL to their interpreter.
+# Build localexception-server --release --locked first; local campaign checks spawn it.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 GODOT="${GODOT_BIN:-godot}"
 # Native launch keeps the retained Child handle on the engine or its console
 # wrapper. Shell fixtures opt into an interpreter without an emulated exec.
 engine=("$GODOT")
-if [ -n "${FRAGR_CHECK_ENGINE_SHELL:-}" ]; then
-  engine=("$FRAGR_CHECK_ENGINE_SHELL" "$GODOT")
+if [ -n "${LOCALEXCEPTION_CHECK_ENGINE_SHELL:-}" ]; then
+  engine=("$LOCALEXCEPTION_CHECK_ENGINE_SHELL" "$GODOT")
 fi
-runner="${FRAGR_CHECK_PROCESS_BIN:-$PWD/target/debug/fragr-check-process}"
-if [ -z "${FRAGR_CHECK_PROCESS_BIN:-}" ]; then
-  cargo build -p fragr-playtest --bin fragr-check-process --locked || exit 1
+runner="${LOCALEXCEPTION_CHECK_PROCESS_BIN:-$PWD/target/debug/localexception-check-process}"
+if [ -z "${LOCALEXCEPTION_CHECK_PROCESS_BIN:-}" ]; then
+  cargo build -p localexception-playtest --bin localexception-check-process --locked || exit 1
   if [ -f "$runner.exe" ]; then runner="$runner.exe"; fi
 fi
 mkdir -p .agents
@@ -32,7 +32,7 @@ check() {
   check_number=$((check_number + 1))
   log="$logs/$check_number.log"
   echo "BEGIN $label ($log)"
-  "$runner" --timeout-ms "${FRAGR_CHECK_TIMEOUT_MS:-180000}" --output "$log" -- \
+  "$runner" --timeout-ms "${LOCALEXCEPTION_CHECK_TIMEOUT_MS:-180000}" --output "$log" -- \
     "${engine[@]}" --headless --path client "$@"
   status=$?
   out=$(cat "$log" 2>/dev/null)
@@ -60,6 +60,9 @@ check version "" --version || { echo "godot binary not found or failed (set GODO
 check import "" --import || { echo "Godot checks: FAIL (import)"; exit 1; }
 for script in client/scripts/*.gd; do
   name=$(basename "$script")
+  # The test_*.gd loop below parses and executes these same files. A separate
+  # parse-only process adds startup cost without checking another script.
+  case "$name" in test_*.gd) continue ;; esac
   check "$name" "" --check-only --script "res://scripts/$name"
 done
 check "campaign review parser" "" --check-only --script ../tools/review_campaign.gd

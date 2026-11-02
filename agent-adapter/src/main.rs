@@ -2,8 +2,8 @@ mod mcp;
 mod pads;
 
 use clap::{Parser, Subcommand};
-use fragr_server::protocol::{self as protocol, ClientMessage, Role, ServerMessage};
 use futures_util::{SinkExt, StreamExt};
+use localexception_server::protocol::{self as protocol, ClientMessage, Role, ServerMessage};
 use mcp::{handle_mcp_request, ingest_server_text, McpError, McpRequest, McpResponse, ToolState};
 use serde_json::Value;
 use std::io::{self, BufRead, Write};
@@ -13,21 +13,19 @@ use tokio_tungstenite::{
 };
 
 fn socket_config() -> WebSocketConfig {
-    #[allow(deprecated)]
-    WebSocketConfig {
-        max_message_size: Some(64 * 1024),
-        max_frame_size: Some(64 * 1024),
-        ..WebSocketConfig::default()
-    }
+    WebSocketConfig::default()
+        .read_buffer_size(8 * 1024)
+        .max_message_size(Some(64 * 1024))
+        .max_frame_size(Some(64 * 1024))
 }
 #[derive(Parser, Debug, PartialEq, Eq)]
-#[command(name = "fragr-agent-adapter")]
-#[command(about = "fragr agent adapter - MCP server and bot client")]
-#[command(version = env!("FRAGR_CLI_VERSION"))]
+#[command(name = "localexception-agent-adapter")]
+#[command(about = "Local Exception agent adapter - MCP server and bot client")]
+#[command(version = env!("LOCALEXCEPTION_CLI_VERSION"))]
 struct Args {
     /// Color mode for log output: auto, always, or never.
     #[arg(long, value_enum, default_value = "auto", global = true)]
-    color: fragr_server::logging::ColorChoice,
+    color: localexception_server::logging::ColorChoice,
 
     #[command(subcommand)]
     command: Commands,
@@ -40,7 +38,7 @@ enum Commands {
         #[arg(long, conflicts_with = "local")]
         server: Option<String>,
 
-        /// Use 127.0.0.1:6767 if it already answers schema 2, otherwise spawn fragr-server and stop it when stdin ends.
+        /// Use 127.0.0.1:6767 if it already answers schema 2, otherwise spawn localexception-server and stop it when stdin ends.
         #[arg(long)]
         local: bool,
 
@@ -56,7 +54,7 @@ enum Commands {
         #[arg(long, default_value = "ffa", requires = "local")]
         mode: String,
 
-        /// Display name sent in Hello. Falls back to FRAGR_AGENT_NAME, then "MCP Agent".
+        /// Display name sent in Hello. Falls back to LOCALEXCEPTION_AGENT_NAME, then "MCP Agent".
         #[arg(long)]
         name: Option<String>,
 
@@ -75,7 +73,7 @@ enum Commands {
         #[arg(long, default_value = "ws://127.0.0.1:6767")]
         server: String,
 
-        /// Display name sent in Hello. Falls back to FRAGR_AGENT_NAME, then "ScriptedBot".
+        /// Display name sent in Hello. Falls back to LOCALEXCEPTION_AGENT_NAME, then "ScriptedBot".
         #[arg(long)]
         name: Option<String>,
 
@@ -95,7 +93,10 @@ fn parse_body(value: &str) -> Result<protocol::BodyKind, String> {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
-    fragr_server::logging::init_logging_with_default("info,fragr_agent_adapter=debug", args.color);
+    localexception_server::logging::init_logging_with_default(
+        "info,localexception_agent_adapter=debug",
+        args.color,
+    );
 
     match args.command {
         Commands::Mcp {
@@ -138,7 +139,7 @@ fn resolve_agent_name(cli_name: Option<&str>, default: &str) -> String {
             return trimmed.to_string();
         }
     }
-    if let Ok(env_name) = std::env::var("FRAGR_AGENT_NAME") {
+    if let Ok(env_name) = std::env::var("LOCALEXCEPTION_AGENT_NAME") {
         let env_trimmed = env_name.trim();
         if !env_trimmed.is_empty() {
             return env_trimmed.to_string();
@@ -184,7 +185,7 @@ async fn mcp_connect_and_hello(
     };
     let hello = booth_or_fighter_hello(name, body, dress, watch);
     ws_sink
-        .send(Message::Text(serde_json::to_string(&hello)?))
+        .send(Message::Text(serde_json::to_string(&hello)?.into()))
         .await?;
 
     if let Some(Ok(Message::Text(text))) = ws_stream.next().await {
@@ -271,11 +272,11 @@ fn booth_or_fighter_hello(
         body: (!watch).then_some(body),
         dress: dress.filter(|_| !watch),
         seat: None,
-        gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
-        geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
+        gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
+        geometry_version: localexception_server::protocol::GEOMETRY_VERSION,
         role,
         name: name.to_string(),
-        ticket: fragr_server::join_ticket::ticket_for(role),
+        ticket: localexception_server::join_ticket::ticket_for(role),
         resume: None,
     }
 }
@@ -289,7 +290,7 @@ async fn mcp_leave_session(
             .sink
             .lock()
             .await
-            .send(Message::Text(r#"{"type":"leave"}"#.to_string()))
+            .send(Message::Text(r#"{"type":"leave"}"#.to_string().into()))
             .await;
         let _ = s.sink.lock().await.send(Message::Close(None)).await;
         s.recv_task.abort();
@@ -393,7 +394,7 @@ async fn apply_mcp_line(
             s.sink
                 .lock()
                 .await
-                .send(Message::Text(serde_json::to_string(&action_msg)?))
+                .send(Message::Text(serde_json::to_string(&action_msg)?.into()))
                 .await?;
         }
     }
@@ -405,9 +406,9 @@ async fn apply_mcp_line(
         s.sink
             .lock()
             .await
-            .send(Message::Text(serde_json::to_string(
-                &ClientMessage::MissionReady(ready),
-            )?))
+            .send(Message::Text(
+                serde_json::to_string(&ClientMessage::MissionReady(ready))?.into(),
+            ))
             .await?;
     }
 
@@ -418,9 +419,9 @@ async fn apply_mcp_line(
         s.sink
             .lock()
             .await
-            .send(Message::Text(serde_json::to_string(
-                &ClientMessage::MissionContinue(request),
-            )?))
+            .send(Message::Text(
+                serde_json::to_string(&ClientMessage::MissionContinue(request))?.into(),
+            ))
             .await?;
     }
 
@@ -430,7 +431,7 @@ async fn apply_mcp_line(
             s.sink
                 .lock()
                 .await
-                .send(Message::Text(serde_json::to_string(&speak_msg)?))
+                .send(Message::Text(serde_json::to_string(&speak_msg)?.into()))
                 .await?;
         }
     }
@@ -446,7 +447,7 @@ async fn apply_mcp_line(
 const DEFAULT_SERVER: &str = "ws://127.0.0.1:6767";
 const LOCAL_BIND: &str = "127.0.0.1:6767";
 
-/// Args for `fragr-server --ready-line`. Any arcade mode the dedicated server already accepts.
+/// Args for `localexception-server --ready-line`. Any arcade mode the dedicated server already accepts.
 fn local_server_args(bots: usize, map: &str, mode: &str, bind: &str) -> Vec<String> {
     vec![
         "--ready-line".to_string(),
@@ -509,22 +510,22 @@ async fn loopback_status_schema_two(addr: std::net::SocketAddr) -> bool {
     }
 }
 
-fn fragr_server_bin() -> std::io::Result<std::path::PathBuf> {
-    if let Some(explicit) = std::env::var_os("FRAGR_SERVER_BIN") {
+fn localexception_server_bin() -> std::io::Result<std::path::PathBuf> {
+    if let Some(explicit) = std::env::var_os("LOCALEXCEPTION_SERVER_BIN") {
         let path = std::path::PathBuf::from(explicit);
         if path.is_file() {
             return Ok(path);
         }
         return Err(std::io::Error::other(format!(
-            "FRAGR_SERVER_BIN is not a file ({})",
+            "LOCALEXCEPTION_SERVER_BIN is not a file ({})",
             path.display()
         )));
     }
     if let Some(path) = std::env::current_exe().ok().and_then(|exe| {
         let name = if cfg!(windows) {
-            "fragr-server.exe"
+            "localexception-server.exe"
         } else {
-            "fragr-server"
+            "localexception-server"
         };
         let path = exe.parent()?.join(name);
         path.is_file().then_some(path)
@@ -533,9 +534,9 @@ fn fragr_server_bin() -> std::io::Result<std::path::PathBuf> {
     }
     if let Some(path_var) = std::env::var_os("PATH") {
         let name = if cfg!(windows) {
-            "fragr-server.exe"
+            "localexception-server.exe"
         } else {
-            "fragr-server"
+            "localexception-server"
         };
         for dir in std::env::split_paths(&path_var) {
             let path = dir.join(name);
@@ -545,7 +546,7 @@ fn fragr_server_bin() -> std::io::Result<std::path::PathBuf> {
         }
     }
     Err(std::io::Error::other(
-        "fragr-server was not found beside fragr-agent-adapter or on PATH. Build both: cargo build -p fragr-server -p fragr-agent-adapter --release --locked. Or set FRAGR_SERVER_BIN.",
+        "localexception-server was not found beside localexception-agent-adapter or on PATH. Build both: cargo build -p localexception-server -p localexception-agent-adapter --release --locked. Or set LOCALEXCEPTION_SERVER_BIN.",
     ))
 }
 
@@ -557,7 +558,7 @@ impl LocalChild {
     async fn stop(mut self) {
         drop(self.child.stdin.take());
         match tokio::time::timeout(std::time::Duration::from_secs(3), self.child.wait()).await {
-            Ok(Ok(status)) => tracing::info!("local fragr-server exited: {status}"),
+            Ok(Ok(status)) => tracing::info!("local localexception-server exited: {status}"),
             _ => {
                 let _ = self.child.start_kill();
                 let _ = self.child.wait().await;
@@ -571,7 +572,7 @@ async fn spawn_local_server(
     map: &str,
     mode: &str,
 ) -> Result<(String, LocalChild), Box<dyn std::error::Error>> {
-    spawn_local_server_bin(&fragr_server_bin()?, bots, map, mode).await
+    spawn_local_server_bin(&localexception_server_bin()?, bots, map, mode).await
 }
 
 async fn spawn_local_server_bin(
@@ -590,12 +591,12 @@ async fn spawn_local_server_bin(
         .kill_on_drop(true);
     let mut child = command.spawn().map_err(|error| {
         std::io::Error::other(format!(
-            "could not spawn {} ({error}). Build both packages with cargo build -p fragr-server -p fragr-agent-adapter --release --locked",
+            "could not spawn {} ({error}). Build both packages with cargo build -p localexception-server -p localexception-agent-adapter --release --locked",
             bin.display()
         ))
     })?;
     let stdout = child.stdout.take().ok_or_else(|| {
-        std::io::Error::other("local fragr-server has no stdout for its ready line")
+        std::io::Error::other("local localexception-server has no stdout for its ready line")
     })?;
     let mut reader = tokio::io::BufReader::new(stdout);
     let read_line = async {
@@ -603,7 +604,7 @@ async fn spawn_local_server_bin(
         let n = reader.read_line(&mut line).await?;
         if n == 0 {
             return Err(std::io::Error::other(
-                "local fragr-server closed stdout before a ready line",
+                "local localexception-server closed stdout before a ready line",
             ));
         }
         std::io::Result::Ok(line)
@@ -617,7 +618,7 @@ async fn spawn_local_server_bin(
             let now = tokio::time::Instant::now();
             if now >= deadline {
                 return Err(std::io::Error::other(
-                    "local fragr-server did not print a ready line within 60s",
+                    "local localexception-server did not print a ready line within 60s",
                 )
                 .into());
             }
@@ -627,7 +628,7 @@ async fn spawn_local_server_bin(
                 _ = tokio::time::sleep(slice) => {
                     if let Some(status) = child.try_wait()? {
                         return Err(std::io::Error::other(format!(
-                            "local fragr-server exited before a ready line ({status})"
+                            "local localexception-server exited before a ready line ({status})"
                         ))
                         .into());
                     }
@@ -645,20 +646,20 @@ async fn spawn_local_server_bin(
             }
         }
     });
-    let ready: fragr_server::local::ArenaReady =
-        serde_json::from_str(line.trim()).map_err(|error| {
+    let ready: localexception_server::local::ArenaReady = serde_json::from_str(line.trim())
+        .map_err(|error| {
             std::io::Error::other(format!(
-                "local fragr-server ready line was not an arena record: {error}"
+                "local localexception-server ready line was not an arena record: {error}"
             ))
         })?;
     if ready.kind != "arena" || !loopback_ws_url(&ready.url) {
         return Err(std::io::Error::other(format!(
-            "local fragr-server ready line was not a loopback arena ({})",
+            "local localexception-server ready line was not a loopback arena ({})",
             ready.url
         ))
         .into());
     }
-    tracing::info!("local fragr-server ready at {}", ready.url);
+    tracing::info!("local localexception-server ready at {}", ready.url);
     Ok((ready.url, LocalChild { child }))
 }
 
@@ -741,15 +742,15 @@ async fn run_scripted_bot(
         body: Some(body),
         dress: None,
         seat: None,
-        gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
-        geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
+        gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
+        geometry_version: localexception_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
         name: name.clone(),
-        ticket: fragr_server::join_ticket::ticket_for(Role::Agent),
+        ticket: localexception_server::join_ticket::ticket_for(Role::Agent),
         resume: None,
     };
     ws_sink
-        .send(Message::Text(serde_json::to_string(&hello)?))
+        .send(Message::Text(serde_json::to_string(&hello)?.into()))
         .await?;
 
     let Some(Ok(Message::Text(text))) = ws_stream.next().await else {
@@ -769,8 +770,8 @@ async fn run_scripted_bot(
     let mut world = protocol::WorldReader::new();
     let mut loadout: Option<protocol::LoadoutState> = None;
     let mut navigation = None;
-    let mut navigator = fragr_server::navigation::Navigator::default();
-    let mut mission_client = fragr_server::mission::MissionClient::default();
+    let mut navigator = localexception_server::navigation::Navigator::default();
+    let mut mission_client = localexception_server::mission::MissionClient::default();
     let mut sabotage_map: Option<protocol::SabotageMap> = None;
     let mut action_tick = tokio::time::interval(std::time::Duration::from_millis(50));
     action_tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
@@ -783,11 +784,11 @@ async fn run_scripted_bot(
                         ServerMessage::Mission { tick, state } => {
                             mission_client.observe(tick, state).map_err(io::Error::other)?;
                             if let Some(request) = mission_client.continuation(Some(bot_id)) {
-                                ws_sink.send(Message::Text(serde_json::to_string(&ClientMessage::MissionContinue(request))?)).await?;
+                                ws_sink.send(Message::Text(serde_json::to_string(&ClientMessage::MissionContinue(request))?.into())).await?;
                             }
                             if let Some(ready) = mission_client.readiness(Some(bot_id)) {
                                 ws_sink.send(Message::Text(
-                                    serde_json::to_string(&ClientMessage::MissionReady(ready))?,
+                                    serde_json::to_string(&ClientMessage::MissionReady(ready))?.into(),
                                 )).await?;
                             }
                         }
@@ -825,9 +826,9 @@ async fn run_scripted_bot(
                             // The last stage binds its own pier geometry and clock.
                             mission_client.replace_map_with_m20(m20.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_epilogue(epilogue.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
-                            let arena = fragr_server::movement::Arena { half: half_extent, solids };
+                            let arena = localexception_server::movement::Arena { half: half_extent, solids };
                             navigation = Some(tokio::task::spawn_blocking(move || {
-                                fragr_server::navigation::Navigation::shared(arena)
+                                localexception_server::navigation::Navigation::shared(arena)
                             }).await?.map_err(io::Error::other)?);
                             navigator.clear();
                             last_snapshot = None;
@@ -863,7 +864,7 @@ async fn run_scripted_bot(
                     // enemy is close.
                     let sabotage = sabotage_map.as_ref().filter(|_| snapshot.sabotage.is_some());
                     if let Some(hold) = sabotage.and_then(|map| sabotage_hold(bot_id, snapshot, map)) {
-                        if ws_sink.send(Message::Text(serde_json::to_string(&ClientMessage::Action(hold))?)).await.is_err() {
+                        if ws_sink.send(Message::Text(serde_json::to_string(&ClientMessage::Action(hold))?.into())).await.is_err() {
                             tracing::info!("Bot disconnected: action send failed");
                             break;
                         }
@@ -876,13 +877,13 @@ async fn run_scripted_bot(
                     };
                     let wanted = sabotage
                         .filter(|_| !enemy_within(bot_id, snapshot, SABOTAGE_FIGHT_RANGE))
-                        .and_then(|map| fragr_server::sim::sabotage::controller::objective_action(bot_id, snapshot, map))
+                        .and_then(|map| localexception_server::sim::sabotage::controller::objective_action(bot_id, snapshot, map))
                         .unwrap_or(wanted);
-                    let wanted = fragr_server::inventory::control_action_with_target_filter(bot_id, snapshot, loadout.as_ref(), wanted, mission_client.state.is_some(), |mine, other| live_solids.as_deref().is_none_or(|solids| fighter_visible_in_solids(mine, other, solids)));
+                    let wanted = localexception_server::inventory::control_action_with_target_filter(bot_id, snapshot, loadout.as_ref(), wanted, mission_client.state.is_some(), |mine, other| live_solids.as_deref().is_none_or(|solids| fighter_visible_in_solids(mine, other, solids)));
                     let action = mission_client.steer_with_equipment(&mut navigator, world, bot_id, snapshot, wanted, loadout.as_ref());
                     let action_msg = ClientMessage::Action(action);
 
-                    if ws_sink.send(Message::Text(serde_json::to_string(&action_msg)?)).await.is_err() {
+                    if ws_sink.send(Message::Text(serde_json::to_string(&action_msg)?.into())).await.is_err() {
                         tracing::info!("Bot disconnected: action send failed");
                         break;
                     }
@@ -890,7 +891,7 @@ async fn run_scripted_bot(
                     if let Some(line) = maybe_bot_taunt(snapshot.tick, bot_id) {
                         let speak_msg = ClientMessage::Speak(protocol::Speak { text: line });
                         if ws_sink
-                            .send(Message::Text(serde_json::to_string(&speak_msg)?))
+                            .send(Message::Text(serde_json::to_string(&speak_msg)?.into()))
                             .await
                             .is_err()
                         {
@@ -915,7 +916,7 @@ fn sabotage_hold(
     snapshot: &protocol::Snapshot,
     map: &protocol::SabotageMap,
 ) -> Option<protocol::Action> {
-    use fragr_server::sim::sabotage::controller::{objective, Objective};
+    use localexception_server::sim::sabotage::controller::{objective, Objective};
     matches!(
         objective(bot_id, snapshot, map),
         Objective::Plant | Objective::Defuse
@@ -967,18 +968,19 @@ fn compute_bot_action(bot_id: uuid::Uuid, snapshot: &protocol::Snapshot) -> prot
 fn fighter_visible_in_solids(
     mine: &protocol::PlayerState,
     other: &protocol::PlayerState,
-    solids: &[fragr_server::movement::Solid],
+    solids: &[localexception_server::movement::Solid],
 ) -> bool {
-    fragr_server::combat::line_of_sight(
+    localexception_server::combat::line_of_sight(
         [
             mine.x,
-            mine.y - fragr_server::sim::PLAYER_FLOOR_Y + fragr_server::movement::EYE_HEIGHT,
+            mine.y - localexception_server::sim::PLAYER_FLOOR_Y
+                + localexception_server::movement::EYE_HEIGHT,
             mine.z,
         ],
         [
             other.x,
-            other.y - fragr_server::sim::PLAYER_FLOOR_Y
-                + fragr_server::combat::aim_height(other.campaign),
+            other.y - localexception_server::sim::PLAYER_FLOOR_Y
+                + localexception_server::combat::aim_height(other.campaign),
             other.z,
         ],
         solids,
@@ -1009,9 +1011,11 @@ fn compute_bot_action_filtered(
         let dz = target.z - bot.z;
         let dist = (dx * dx + dz * dz).sqrt();
         // A channeling Auditor comes first: break the repair before it lands.
-        let key = fragr_server::combat::engagement_key(target.campaign, dist);
+        let key = localexception_server::combat::engagement_key(target.campaign, dist);
 
-        if nearest_target.is_none() || fragr_server::combat::engagement_before(key, nearest_key) {
+        if nearest_target.is_none()
+            || localexception_server::combat::engagement_before(key, nearest_key)
+        {
             nearest_dist = dist;
             nearest_key = key;
             nearest_target = Some(target);
@@ -1170,8 +1174,8 @@ mod tests {
                         ..
                     }
                 ));
-                ws.send(Message::Text(serde_json::json!({"type":"welcome", "role":"agent", "player_id":uuid::Uuid::nil()}).to_string())).await.unwrap();
-                ws.send(Message::Text(serde_json::json!({"type":"map_info", "map_id":1, "map_name":"Invalid", "half_extent":12.0, "solids":[], "geometry_version":version}).to_string())).await.unwrap();
+                ws.send(Message::Text(serde_json::json!({"type":"welcome", "role":"agent", "player_id":uuid::Uuid::nil()}).to_string().into())).await.unwrap();
+                ws.send(Message::Text(serde_json::json!({"type":"map_info", "map_id":1, "map_name":"Invalid", "half_extent":12.0, "solids":[], "geometry_version":version}).to_string().into())).await.unwrap();
                 let closed = tokio::time::timeout(std::time::Duration::from_secs(2), ws.next())
                     .await
                     .unwrap();
@@ -1447,7 +1451,7 @@ mod tests {
 
     #[test]
     fn a_joined_agent_observes_only_the_pads_it_has_seen() {
-        use fragr_server::sim::GameState;
+        use localexception_server::sim::GameState;
         let mut game = GameState::new();
         game.start_round();
         let me = uuid::Uuid::from_u128(77);
@@ -1457,7 +1461,7 @@ mod tests {
         let player = game.players.iter_mut().find(|p| p.id == me).unwrap();
         player.x = x - 10.0;
         player.z = z;
-        player.y = floor + fragr_server::sim::PLAYER_FLOOR_Y;
+        player.y = floor + localexception_server::sim::PLAYER_FLOOR_Y;
         player.yaw = std::f32::consts::PI;
         game.pickups[0].available = false;
         game.pickups[0].respawn_timer = Some(30);
@@ -1505,7 +1509,7 @@ mod tests {
         // caster can tell how far round it is.
         assert_eq!(
             round["booth"]["plate"]["clock"],
-            fragr_server::rules::PLATE_RESPAWN_TICKS
+            localexception_server::rules::PLATE_RESPAWN_TICKS
         );
 
         // A fighter's session drops booth facts even if one arrived.
@@ -1516,7 +1520,7 @@ mod tests {
 
     #[test]
     fn booth_facts_keep_the_newest_tick_and_drop_oversized_lists() {
-        use fragr_server::sim::GameState;
+        use localexception_server::sim::GameState;
         let mut game = GameState::new();
         game.start_round();
         let mut booth = mcp::ToolState::default();
@@ -1547,14 +1551,14 @@ mod tests {
         assert!(mcp::build_round_state_result(&booth)["booth"].is_null());
     }
 
-    fn facts_text(game: &fragr_server::sim::GameState) -> String {
+    fn facts_text(game: &localexception_server::sim::GameState) -> String {
         serde_json::to_string(&protocol::ServerMessage::SpectatorFacts(
             game.spectator_facts(),
         ))
         .unwrap()
     }
 
-    fn snapshot_text(game: &fragr_server::sim::GameState) -> String {
+    fn snapshot_text(game: &localexception_server::sim::GameState) -> String {
         serde_json::to_string(&protocol::ServerMessage::Snapshot(game.snapshot())).unwrap()
     }
 
@@ -2089,8 +2093,8 @@ mod tests {
             body: None,
             dress: None,
             seat: None,
-            gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
-            geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
+            gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
+            geometry_version: localexception_server::protocol::GEOMETRY_VERSION,
             role: protocol::Role::Agent,
             name: "TestAgent".to_string(),
 
@@ -2240,7 +2244,7 @@ mod tests {
     }
     #[test]
     fn test_resolve_agent_name_trims_and_defaults() {
-        std::env::remove_var("FRAGR_AGENT_NAME");
+        std::env::remove_var("LOCALEXCEPTION_AGENT_NAME");
         assert_eq!(
             resolve_agent_name(Some("  Clawbot  "), "MCP Agent"),
             "Clawbot"
@@ -2249,25 +2253,25 @@ mod tests {
         assert_eq!(resolve_agent_name(None, "MCP Agent"), "MCP Agent");
         assert_eq!(resolve_agent_name(None, "ScriptedBot"), "ScriptedBot");
 
-        std::env::set_var("FRAGR_AGENT_NAME", "EnvFox");
+        std::env::set_var("LOCALEXCEPTION_AGENT_NAME", "EnvFox");
         assert_eq!(resolve_agent_name(None, "MCP Agent"), "EnvFox");
         assert_eq!(
             resolve_agent_name(Some("Explicit"), "MCP Agent"),
             "Explicit"
         );
-        std::env::remove_var("FRAGR_AGENT_NAME");
+        std::env::remove_var("LOCALEXCEPTION_AGENT_NAME");
     }
 
     #[test]
     fn test_hello_uses_resolved_name() {
-        std::env::remove_var("FRAGR_AGENT_NAME");
+        std::env::remove_var("LOCALEXCEPTION_AGENT_NAME");
         let name = resolve_agent_name(Some("ArenaFox"), "MCP Agent");
         let hello = ClientMessage::Hello {
             body: None,
             dress: None,
             seat: None,
-            gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
-            geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
+            gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
+            geometry_version: localexception_server::protocol::GEOMETRY_VERSION,
             role: Role::Agent,
             name: name.clone(),
 
@@ -2281,7 +2285,7 @@ mod tests {
 
     #[test]
     fn test_adapter_parses_server_round_event_wire() {
-        // Exact shape produced by fragr-server ServerMessage::Event(RoundStart/End).
+        // Exact shape produced by localexception-server ServerMessage::Event(RoundStart/End).
         let start = r#"{"type":"event","event":"round_start","round_number":2,"frag_limit":10,"time_limit":180,"players":["Alpha","Bravo"],"previous_winner":"Alpha"}"#;
         let parsed: ServerMessage = serde_json::from_str(start).expect("round_start wire");
         match parsed {
@@ -2444,14 +2448,14 @@ mod tests {
         assert!(action.fire);
         assert!(!action.turn_left);
         assert!(!action.turn_right);
-        let cover = [fragr_server::movement::Solid::from_center(
+        let cover = [localexception_server::movement::Solid::from_center(
             2.5, 0.0, 0.5, 3.0,
         )];
         let blocked = compute_bot_action_filtered(bot_id, &snapshot, |mine, other| {
             fighter_visible_in_solids(mine, other, &cover)
         });
         assert!(!blocked.fire && blocked.look_at.is_none());
-        let moved_cover = [fragr_server::movement::Solid::from_center(
+        let moved_cover = [localexception_server::movement::Solid::from_center(
             2.5, 8.0, 0.5, 3.0,
         )];
         let exposed = compute_bot_action_filtered(bot_id, &snapshot, |mine, other| {
@@ -2471,7 +2475,7 @@ mod tests {
 
     #[test]
     fn observe_brief_names_the_target_compute_bot_action_would_shoot() {
-        use fragr_server::sim::GameState;
+        use localexception_server::sim::GameState;
         let mut sim = GameState::new();
         let me = uuid::Uuid::from_u128(1);
         let near = uuid::Uuid::from_u128(2);
@@ -2624,8 +2628,8 @@ mod tests {
 
     #[test]
     fn observe_gives_an_agent_no_more_than_a_human_fighter_receives() {
-        use fragr_server::interest::{redact, Sense};
-        use fragr_server::sim::GameState;
+        use localexception_server::interest::{redact, Sense};
+        use localexception_server::sim::GameState;
         let mut sim = GameState::new();
         let [me, seen, heard, hidden] = [1, 2, 3, 4].map(uuid::Uuid::from_u128);
         for (id, name) in [
@@ -2689,7 +2693,7 @@ mod tests {
 
     #[test]
     fn args_parse_mcp_defaults() {
-        let args = Args::try_parse_from(["fragr-agent-adapter", "mcp"]).expect("mcp");
+        let args = Args::try_parse_from(["localexception-agent-adapter", "mcp"]).expect("mcp");
         match args.command {
             Commands::Mcp {
                 server,
@@ -2712,8 +2716,9 @@ mod tests {
             }
             other => panic!("expected Mcp, got {other:?}"),
         }
-        let args = Args::try_parse_from(["fragr-agent-adapter", "mcp", "--local", "--watch"])
-            .expect("watch");
+        let args =
+            Args::try_parse_from(["localexception-agent-adapter", "mcp", "--local", "--watch"])
+                .expect("watch");
         assert!(matches!(args.command, Commands::Mcp { watch: true, .. }));
     }
 
@@ -2783,22 +2788,33 @@ mod tests {
 
     #[test]
     fn args_parse_color_choice() {
-        let args = Args::try_parse_from(["fragr-agent-adapter", "mcp"]).expect("default args");
-        assert_eq!(args.color, fragr_server::logging::ColorChoice::Auto);
+        let args =
+            Args::try_parse_from(["localexception-agent-adapter", "mcp"]).expect("default args");
+        assert_eq!(
+            args.color,
+            localexception_server::logging::ColorChoice::Auto
+        );
 
-        let args = Args::try_parse_from(["fragr-agent-adapter", "--color=always", "mcp"])
+        let args = Args::try_parse_from(["localexception-agent-adapter", "--color=always", "mcp"])
             .expect("color before subcommand");
-        assert_eq!(args.color, fragr_server::logging::ColorChoice::Always);
+        assert_eq!(
+            args.color,
+            localexception_server::logging::ColorChoice::Always
+        );
 
-        let args = Args::try_parse_from(["fragr-agent-adapter", "mcp", "--color", "never"])
-            .expect("color after subcommand");
-        assert_eq!(args.color, fragr_server::logging::ColorChoice::Never);
+        let args =
+            Args::try_parse_from(["localexception-agent-adapter", "mcp", "--color", "never"])
+                .expect("color after subcommand");
+        assert_eq!(
+            args.color,
+            localexception_server::logging::ColorChoice::Never
+        );
     }
 
     #[test]
     fn args_parse_mcp_local_and_rejects_an_explicit_server() {
         let args = Args::try_parse_from([
-            "fragr-agent-adapter",
+            "localexception-agent-adapter",
             "mcp",
             "--local",
             "--name",
@@ -2831,14 +2847,16 @@ mod tests {
             other => panic!("expected Mcp, got {other:?}"),
         }
         assert!(Args::try_parse_from([
-            "fragr-agent-adapter",
+            "localexception-agent-adapter",
             "mcp",
             "--local",
             "--server",
             "ws://127.0.0.1:6767"
         ])
         .is_err());
-        assert!(Args::try_parse_from(["fragr-agent-adapter", "mcp", "--map", "2"]).is_err());
+        assert!(
+            Args::try_parse_from(["localexception-agent-adapter", "mcp", "--map", "2"]).is_err()
+        );
     }
 
     #[test]
@@ -2890,7 +2908,8 @@ mod tests {
     /// It flushes one ready line and writes the marker only after stdin hits EOF.
     #[tokio::test]
     async fn local_spawn_keeps_the_stdin_lease_until_the_ready_line() {
-        let dir = std::env::temp_dir().join(format!("fragr-ready-lease-{}", std::process::id()));
+        let dir =
+            std::env::temp_dir().join(format!("localexception-ready-lease-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         let _cleanup = RemoveDir(dir.clone());
@@ -3044,7 +3063,7 @@ fn main() -> ExitCode {
     #[test]
     fn args_parse_scripted_bot_with_name() {
         let args = Args::try_parse_from([
-            "fragr-agent-adapter",
+            "localexception-agent-adapter",
             "scripted-bot",
             "--server",
             "ws://127.0.0.1:9999",
@@ -3085,7 +3104,7 @@ fn main() -> ExitCode {
                     "mode_name": "Scrap League",
                     "playlist": "Solo Scrap"
                 });
-                ws.send(Message::Text(welcome.to_string()))
+                ws.send(Message::Text(welcome.to_string().into()))
                     .await
                     .expect("welcome");
             } else {
@@ -3121,7 +3140,7 @@ fn main() -> ExitCode {
                         "host_line": "frequency contested",
                         "pickups": []
                     });
-                    let _ = ws.send(Message::Text(snapshot.to_string())).await;
+                    let _ = ws.send(Message::Text(snapshot.to_string().into())).await;
                     // Drain one client action/speak if any, then close.
                     let _ = tokio::time::timeout(std::time::Duration::from_millis(200), ws.next())
                         .await;
@@ -3206,11 +3225,11 @@ fn main() -> ExitCode {
     async fn mcp_observes_and_walks_the_loaded_campaign_blockout() {
         let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
         let (stop_tx, stop_rx) = tokio::sync::oneshot::channel();
-        let server = tokio::spawn(fragr_server::run::run_server(
-            fragr_server::run::ServerOptions {
+        let server = tokio::spawn(localexception_server::run::run_server(
+            localexception_server::run::ServerOptions {
                 bind: "127.0.0.1:0".into(),
                 bots: 0,
-                authored: Some(fragr_server::maps::AuthoredSource::File(
+                authored: Some(localexception_server::maps::AuthoredSource::File(
                     std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                         .join("../server/maps/m01-recall-notice.json"),
                 )),
@@ -3501,14 +3520,14 @@ fn main() -> ExitCode {
             let (stream, _) = listener.accept().await.unwrap();
             let mut ws = tokio_tungstenite::accept_async(stream).await.unwrap();
             ws.next().await.unwrap().unwrap();
-            let mut state = fragr_server::sim::GameState::new();
+            let mut state = localexception_server::sim::GameState::new();
             let bot = uuid::Uuid::from_u128(67);
             let target = uuid::Uuid::from_u128(68);
             state.add_player(bot, "Probe".into(), Role::Agent);
             state.add_player(target, "Target".into(), Role::Human);
             for (index, player) in state.players.iter_mut().enumerate() {
                 player.x = if index == 0 { 0.0 } else { 4.0 };
-                player.y = fragr_server::sim::PLAYER_FLOOR_Y;
+                player.y = localexception_server::sim::PLAYER_FLOOR_Y;
                 player.z = 0.0;
             }
             let welcome = ServerMessage::Welcome {
@@ -3521,9 +3540,11 @@ fn main() -> ExitCode {
                 duck: false,
                 fun_metrics: false,
             };
-            ws.send(Message::Text(serde_json::to_string(&welcome).unwrap()))
-                .await
-                .unwrap();
+            ws.send(Message::Text(
+                serde_json::to_string(&welcome).unwrap().into(),
+            ))
+            .await
+            .unwrap();
             let map = ServerMessage::MapInfo {
                 m20: None,
                 epilogue: None,
@@ -3557,11 +3578,11 @@ fn main() -> ExitCode {
                 map_name: "Raised fixture".into(),
                 half_extent: 12.0,
                 geometry_version: 2,
-                solids: vec![fragr_server::movement::Solid::from_center_volume(
+                solids: vec![localexception_server::movement::Solid::from_center_volume(
                     2.0, 0.0, 3.0, 3.0, 2.4, 3.0,
                 )],
             };
-            ws.send(Message::Text(serde_json::to_string(&map).unwrap()))
+            ws.send(Message::Text(serde_json::to_string(&map).unwrap().into()))
                 .await
                 .unwrap();
             // Map receipt starts blocking-pool topology preparation. Confirm
@@ -3571,7 +3592,9 @@ fn main() -> ExitCode {
             // bound only has to outlast connect and setup, which a loaded
             // runner can stretch past seconds (#494), so it is generous.
             ws.send(Message::Text(
-                serde_json::to_string(&ServerMessage::Snapshot(state.snapshot())).unwrap(),
+                serde_json::to_string(&ServerMessage::Snapshot(state.snapshot()))
+                    .unwrap()
+                    .into(),
             ))
             .await
             .unwrap();
@@ -3593,7 +3616,7 @@ fn main() -> ExitCode {
                     _ = &mut deadline => panic!("snapshot traffic starved the action clock"),
                     _ = snapshots.tick() => {
                         state.tick += 1;
-                        ws.send(Message::Text(serde_json::to_string(&ServerMessage::Snapshot(state.snapshot())).unwrap())).await.unwrap();
+                        ws.send(Message::Text(serde_json::to_string(&ServerMessage::Snapshot(state.snapshot())).unwrap().into())).await.unwrap();
                     }
                     message = ws.next() => {
                         let Some(Ok(Message::Text(text))) = message else { panic!("bot disconnected before playing") };
@@ -3632,7 +3655,7 @@ fn main() -> ExitCode {
     /// to the site, then a still held Use inside it; fight a close enemy.
     #[test]
     fn scripted_sabotage_walks_plants_and_fights_close_enemies() {
-        use fragr_server::sim::{GameState, MapKind, MatchConfig};
+        use localexception_server::sim::{GameState, MapKind, MatchConfig};
         let mut server = GameState::with_map(MapKind::Sector9, false);
         server.seed(3);
         server.apply_config(MatchConfig {
@@ -3640,9 +3663,13 @@ fn main() -> ExitCode {
             time_limit_ticks: None,
             boss_spawn_ticks: None,
             compliance_ping_ticks: None,
-            rules: fragr_server::rules::RuleSet::new(protocol::GameMode::Sabotage, &[], false)
-                .unwrap(),
-            sabotage: fragr_server::rules::SabotageConfig {
+            rules: localexception_server::rules::RuleSet::new(
+                protocol::GameMode::Sabotage,
+                &[],
+                false,
+            )
+            .unwrap(),
+            sabotage: localexception_server::rules::SabotageConfig {
                 muster_ticks: 2,
                 ..Default::default()
             },
@@ -3661,7 +3688,8 @@ fn main() -> ExitCode {
             "still in the yard"
         );
         let walk =
-            fragr_server::sim::sabotage::controller::objective_action(me, &snapshot, &map).unwrap();
+            localexception_server::sim::sabotage::controller::objective_action(me, &snapshot, &map)
+                .unwrap();
         assert!(walk.forward && walk.look_at.is_some());
         let site = map.sites[0].center;
         let mine = snapshot.players.iter_mut().find(|p| p.id == me).unwrap();
@@ -3700,14 +3728,14 @@ fn main() -> ExitCode {
             let (stream, _) = listener.accept().await.unwrap();
             let mut ws = tokio_tungstenite::accept_async(stream).await.unwrap();
             ws.next().await.unwrap().unwrap();
-            let mut state = fragr_server::sim::GameState::new();
+            let mut state = localexception_server::sim::GameState::new();
             let bot = uuid::Uuid::from_u128(71);
             let target = uuid::Uuid::from_u128(72);
             state.add_player(bot, "Probe".into(), Role::Agent);
             state.add_player(target, "Target".into(), Role::Human);
             for (index, player) in state.players.iter_mut().enumerate() {
                 player.x = if index == 0 { 0.0 } else { 4.0 };
-                player.y = fragr_server::sim::PLAYER_FLOOR_Y;
+                player.y = localexception_server::sim::PLAYER_FLOOR_Y;
                 player.z = 0.0;
             }
             let welcome = ServerMessage::Welcome {
@@ -3720,9 +3748,11 @@ fn main() -> ExitCode {
                 duck: false,
                 fun_metrics: false,
             };
-            ws.send(Message::Text(serde_json::to_string(&welcome).unwrap()))
-                .await
-                .unwrap();
+            ws.send(Message::Text(
+                serde_json::to_string(&welcome).unwrap().into(),
+            ))
+            .await
+            .unwrap();
             let map = ServerMessage::MapInfo {
                 m20: None,
                 epilogue: None,
@@ -3756,15 +3786,17 @@ fn main() -> ExitCode {
                 map_name: "Ping fixture".into(),
                 half_extent: 12.0,
                 geometry_version: 2,
-                solids: vec![fragr_server::movement::Solid::from_center_volume(
+                solids: vec![localexception_server::movement::Solid::from_center_volume(
                     2.0, 0.0, 3.0, 3.0, 2.4, 3.0,
                 )],
             };
-            ws.send(Message::Text(serde_json::to_string(&map).unwrap()))
+            ws.send(Message::Text(serde_json::to_string(&map).unwrap().into()))
                 .await
                 .unwrap();
             ws.send(Message::Text(
-                serde_json::to_string(&ServerMessage::Snapshot(state.snapshot())).unwrap(),
+                serde_json::to_string(&ServerMessage::Snapshot(state.snapshot()))
+                    .unwrap()
+                    .into(),
             ))
             .await
             .unwrap();
@@ -3788,9 +3820,11 @@ fn main() -> ExitCode {
             })
             .await
             .expect("scripted bot never became ready");
-            ws.send(Message::Ping(b"fragr".to_vec())).await.unwrap();
-            ws.send(Message::Pong(Vec::new())).await.unwrap();
-            ws.send(Message::Binary(Vec::new())).await.unwrap();
+            ws.send(Message::Ping(b"localexception".to_vec().into()))
+                .await
+                .unwrap();
+            ws.send(Message::Pong(Vec::new().into())).await.unwrap();
+            ws.send(Message::Binary(Vec::new().into())).await.unwrap();
             let deadline = tokio::time::sleep(std::time::Duration::from_secs(4));
             tokio::pin!(deadline);
             let mut saw_pong = false;
@@ -3806,7 +3840,7 @@ fn main() -> ExitCode {
                                     break;
                                 }
                             }
-                            Some(Ok(Message::Pong(payload))) => { saw_pong |= payload == b"fragr"; }
+                            Some(Ok(Message::Pong(payload))) => { saw_pong |= payload.as_ref() == b"localexception"; }
                             Some(Ok(Message::Ping(_))) => {}
                             other => panic!("bot disconnected after ping: {other:?}"),
                         }

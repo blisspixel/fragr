@@ -7,7 +7,7 @@ var settings_path: String
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
 	settings_path = "user://opening-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", settings_path)
+	set_meta("localexception_settings_path", settings_path)
 	call_deferred("_run")
 
 func _finalize() -> void:
@@ -98,11 +98,11 @@ func _run() -> void:
 	menu._replay_opening()
 	await process_frame
 	_expect(is_instance_valid(menu._opening), "menu reuses the opening presenter")
-	_expect(menu._local_match.state == LocalMatch.State.IDLE and not has_meta("fragr_boot"), "replay launches no game session")
+	_expect(menu._local_match.state == LocalMatch.State.IDLE and not has_meta("localexception_boot"), "replay launches no game session")
 	await _key(KEY_ESCAPE, true)
 	await _key(KEY_ESCAPE, false)
 	_expect(not is_instance_valid(menu._opening) and menu._page == "practice", "Escape closes replay without dismissing its underlying menu")
-	_expect(menu._local_match.state == LocalMatch.State.IDLE and not has_meta("fragr_boot"), "closing replay mutates no game session")
+	_expect(menu._local_match.state == LocalMatch.State.IDLE and not has_meta("localexception_boot"), "closing replay mutates no game session")
 	menu.free()
 	await process_frame
 	await process_frame

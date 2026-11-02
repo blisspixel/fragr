@@ -1,5 +1,5 @@
 {
-  "comment": "Lighting and look review on Larak Lot: glow on the lamps and the LARAK sign, the haze settled in the Pit, the sodium Toll canopy, and the first-person muzzle light from the Pistol every life starts with. Run with FRAGR_QA_MAP=1 FRAGR_QA_BOTS=6 FRAGR_QA_MANIFEST=res://qa/look.json and a renderer and preset. Compare each still with the same view in larak_lot.json; motion is the fire strips.",
+  "comment": "Lighting and look review on Larak Lot: glow on the lamps and the LARAK sign, the haze settled in the Pit, the sodium Toll canopy, and the first-person muzzle light from the Pistol every life starts with. Run with LOCALEXCEPTION_QA_MAP=1 LOCALEXCEPTION_QA_BOTS=6 LOCALEXCEPTION_QA_MANIFEST=res://qa/look.json and a renderer and preset. Compare each still with the same view in larak_lot.json; motion is the fire strips.",
   "width": 1280,
   "height": 720,
   "states": [

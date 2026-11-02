@@ -659,7 +659,10 @@ mod tests {
     }
 
     fn temp_path(name: &str) -> PathBuf {
-        std::env::temp_dir().join(format!("fragr-brain-{name}-{}.json", std::process::id()))
+        std::env::temp_dir().join(format!(
+            "localexception-brain-{name}-{}.json",
+            std::process::id()
+        ))
     }
 
     #[test]

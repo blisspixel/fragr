@@ -37,11 +37,11 @@ generation.
 
 ## Local evidence
 
-- `cargo test -p fragr-brain --locked --quiet`: 70 library and 7 CLI tests passed.
+- `cargo test -p localexception-brain --locked --quiet`: 70 library and 7 CLI tests passed.
 - `tools/godot_check.sh`: passed after the release server build completed, and
   again after the final camera and receipt edits. The first overlapping run
   failed two local-launch harnesses while that binary was still building.
-- `FRAGR_WATCH_SECONDS=10 bash tools/qa_watch.sh
+- `LOCALEXCEPTION_WATCH_SECONDS=10 bash tools/qa_watch.sh
   .agents/watch/hardened-smoke`: eight first-person frames and a paired
   server ID, advancing ticks, free-rule actions and $0 spend. The PNG sequence
   was inspected, including the pistol and objective view.

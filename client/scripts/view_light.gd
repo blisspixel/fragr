@@ -44,7 +44,7 @@ const FLASHES: Dictionary[String, Dictionary] = {
 	"rail": {"shot": "Rail", "energy": 5.0, "range": 10.0, "seconds": 0.12},
 	"arc": {"shot": "Arc", "energy": 2.6, "range": 6.5, "seconds": 0.05},
 }
-## Accessibility "screen flashes": Full, Reduced, Off (FragrSettings order).
+## Accessibility "screen flashes": Full, Reduced, Off (LocalExceptionSettings order).
 ## The muzzle light changes the whole near view, so it follows that choice.
 const FLASH_SCALE: Array[float] = [1.0, 0.6, 0.0]
 ## The pulse holds full brightness for its first 1 - 1/FLASH_HOLD (40 percent)

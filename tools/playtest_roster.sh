@@ -5,12 +5,12 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
 OUT="${1:-.agents/playtest/roster}"
 mkdir -p "$OUT" || exit 1
-cargo build -p fragr-playtest --release --locked || exit 1
+cargo build -p localexception-playtest --release --locked || exit 1
 failed=0
 while read -r map agents seed; do
   report="$OUT/map${map}-seed${seed}.json"
   log="$OUT/map${map}-seed${seed}.log"
-  "$ROOT/target/release/fragr-playtest" --map "$map" --agents "$agents" \
+  "$ROOT/target/release/localexception-playtest" --map "$map" --agents "$agents" \
     --seed "$seed" --tiers reflex,planner --rounds 1 --frag-limit 8 \
     --time-limit-seconds 60 --max-seconds 200 --assert --report "$report" >"$log" 2>&1 || failed=1
   cat "$log"

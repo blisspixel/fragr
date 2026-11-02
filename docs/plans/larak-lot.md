@@ -193,7 +193,7 @@ than seconds. The Bridge's north edge sits 2.6 m off the Gallery lip (2 m at
 jump carries; the bot walk is the rule
 bots' own navigator steering one body through the real 20 Hz tick, with stairs,
 collision and body avoidance. Printed by
-`cargo test -p fragr-server --lib larak_bot_timing_table -- --ignored --nocapture`.
+`cargo test -p localexception-server --lib larak_bot_timing_table -- --ignored --nocapture`.
 
 | Route | Lower bound | Bot walk | Gate |
 |---|---|---|---|
@@ -367,7 +367,7 @@ release) passes and is deterministic; p99 tick budget use is 1.3%.
    machine, `WORLD_LARAK_ODDS` on the kiosk's end slates. One pay machine
    still glows PLEASE PAY; the rest are dark. The booths carry their own cut
    seals. No server solid changed. `tools/preview_larak_lot.gd` gained a
-   `prop_` view per prop and `FRAGR_LARAK_VIEWS` to render a subset.
+   `prop_` view per prop and `LOCALEXCEPTION_LARAK_VIEWS` to render a subset.
 10. Surfaces, pads and decals (wave 4): see
     [Wave 4](#wave-4-surfaces-pads-and-decals). The flat grey slabs with
     procedural panel joints became class tiles at one texel density, every

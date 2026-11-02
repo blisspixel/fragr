@@ -217,7 +217,7 @@ msgid "RUN_ABANDONED"
 msgstr "This run was abandoned. You can start a new run."
 
 msgid "RUN_INCOMPATIBLE"
-msgstr "This save is from a different build of fragr and can't be continued. Starting a new run replaces it."
+msgstr "This save is from a different build of Local Exception and can't be continued. Starting a new run replaces it."
 
 msgid "RUN_CORRUPT"
 msgstr "This save is damaged and can't be read. Starting a new run replaces it."
@@ -247,7 +247,7 @@ msgid "LOCAL_SERVER_STOPPING"
 msgstr "CLOSING LOCAL GAME"
 
 msgid "LOCAL_SERVER_MISSING"
-msgstr "Local game server is missing. Reinstall the complete game.\nSource checkout: build fragr-server, then try again."
+msgstr "Local game server is missing. Reinstall the complete game.\nSource checkout: build localexception-server, then try again."
 
 msgid "LOCAL_SERVER_START_FAILED"
 msgstr "Could not start the local game. Check the server executable's permissions and try again."

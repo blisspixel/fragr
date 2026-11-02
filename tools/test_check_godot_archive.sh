@@ -19,10 +19,10 @@ else
 fi
 
 printf '%s  sample.bin\n' "$hash" > "$tmp/SHA512-SUMS.txt"
-FRAGR_GODOT_SUMS="$tmp/SHA512-SUMS.txt" bash "$here/check_godot_archive.sh" "$tmp/sample.bin" sample.bin
+LOCALEXCEPTION_GODOT_SUMS="$tmp/SHA512-SUMS.txt" bash "$here/check_godot_archive.sh" "$tmp/sample.bin" sample.bin
 
 printf 'x' >> "$tmp/sample.bin"
-if FRAGR_GODOT_SUMS="$tmp/SHA512-SUMS.txt" bash "$here/check_godot_archive.sh" "$tmp/sample.bin" sample.bin; then
+if LOCALEXCEPTION_GODOT_SUMS="$tmp/SHA512-SUMS.txt" bash "$here/check_godot_archive.sh" "$tmp/sample.bin" sample.bin; then
   echo "tampered archive was accepted" >&2
   exit 1
 fi

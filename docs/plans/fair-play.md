@@ -33,7 +33,7 @@ check every five seconds and apply to connected peers too. Callsigns are not
 ban identities. Optional join tickets protect fighter admission, while
 spectators are not ticketed. Never log tickets or resume tokens.
 
-Run `fragr-server --ban-list bans.txt`. One valid entry is
+Run `localexception-server --ban-list bans.txt`. One valid entry is
 `192.0.2.8 expires=2026-10-11T12:00:00Z reason=repeated abuse`.
 On a dedicated arcade match, `--console` can append the connected address
 of one uniquely named person to that same file and drop them now. The ban
@@ -56,7 +56,7 @@ what its fighter could perceive (`server/src/interest.rs`; shapes in
 it cannot see arrives `heard` at a rough place or `hidden` with no place,
 and an agent's MCP `observe` reads the same filtered socket. The margins
 that keep peeks from popping in still send some bodies a wall away
-(measured by `fragr-playtest --interest-survey`, docs/BENCHMARK.md), and
+(measured by `localexception-playtest --interest-survey`, docs/BENCHMARK.md), and
 shot results, projectiles, pickups and events still reach every fighter,
 so gunfire and pickup chimes place a shooter. Spectators keep the whole
 world and can relay it; spectator delay and replay review are follow-ups,

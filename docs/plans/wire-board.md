@@ -7,7 +7,7 @@
 The server that is already hosting the match also keeps a board for the
 humans and free agents in the room. One board is the live floor, which is
 the speak that is already there. The other is notices, which stay until
-that process ends. A person dials it with `fragr-wire` and reads a line
+that process ends. A person dials it with `localexception-wire` and reads a line
 board. An agent uses the same JSON on the same socket.
 
 ## Non-goals
@@ -25,10 +25,10 @@ speak and a venue sentence onto the floor, and answers `board` unicasts to
 the connection that asked. Spectators can list, read, and post a notice.
 They still cannot speak. The floor rejects posts.
 
-`fragr-wire` is a second binary in the server package. It connects as a
+`localexception-wire` is a second binary in the server package. It connects as a
 spectator, prints the masthead, and speaks the board commands. The package
-`default-run` stays `fragr-server`, so `cargo run -p fragr-server` still
-starts the match. Docker and the release package still copy `fragr-server`
+`default-run` stays `localexception-server`, so `cargo run -p localexception-server` still
+starts the match. Docker and the release package still copy `localexception-server`
 by name.
 
 The MCP adapter's `speak` tool still feeds the floor through the existing
@@ -44,10 +44,10 @@ socket for a `board` message it does not know.
 ## Verification
 
 Board unit tests, a session test for the floor copy and a spectator notice,
-a spectator socket test that the list is forwarded, and `fragr-wire` command
+a spectator socket test that the list is forwarded, and `localexception-wire` command
 tests. `cargo fmt`, server tests, and clippy.
 
-2026-10-07 loopback dial, not a public listener: `fragr-wire` against
+2026-10-07 loopback dial, not a public listener: `localexception-wire` against
 `127.0.0.1:6791` listed both boards empty, posted `still here`, and the
 following read returned that line under the name Wire. The client exited 0.
 

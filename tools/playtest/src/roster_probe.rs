@@ -1,16 +1,16 @@
 //! Planner reach on a floor with dropped guns: the regression tests for the
 //! wave 11 roster stall (a planner leaning on cover at a gun it could not
 //! walk to), and the offline stall probe that found it (ignored; run with
-//! `cargo test -p fragr-playtest --release --lib probe_planner_stalls --
+//! `cargo test -p localexception-playtest --release --lib probe_planner_stalls --
 //! --ignored --nocapture`, `PROBE_SEEDS=1,2,3` to narrow, `PROBE_MAP` and
 //! `PROBE_AGENTS` for another roster case). The probe steers each agent
 //! through the same loadout controller and navigator as a roster client and
 //! counts stalls with the roster's own rule, so what it finds is what the
 //! roster gate trips on.
 use super::*;
-use fragr_server::net::GameCommand;
-use fragr_server::protocol::{BodyKind, Role, ServerMessage};
-use fragr_server::sim::MapKind;
+use localexception_server::net::GameCommand;
+use localexception_server::protocol::{BodyKind, Role, ServerMessage};
+use localexception_server::sim::MapKind;
 
 #[test]
 #[ignore]
@@ -32,17 +32,19 @@ fn probe_planner_stalls_on_directive_17() {
     // `PROBE_RAW=1` drives the bare policy instead.
     let wire = std::env::var("PROBE_RAW").is_err();
     let tiers = [Policy::Reflex, Policy::Planner];
-    let world = fragr_server::navigation::Navigation::shared(fragr_server::movement::Arena {
-        half: map.half_extent(),
-        solids: map.solids(),
-    })
+    let world = localexception_server::navigation::Navigation::shared(
+        localexception_server::movement::Arena {
+            half: map.half_extent(),
+            solids: map.solids(),
+        },
+    )
     .expect("navigation");
     let mut stalls = 0;
     for seed in seeds {
-        let mut session = fragr_server::session::GameSession::with_map(map, false);
+        let mut session = localexception_server::session::GameSession::with_map(map, false);
         session.state.use_replay_ids();
         session.state.seed(seed);
-        let cfg = fragr_server::sim::MatchConfig {
+        let cfg = localexception_server::sim::MatchConfig {
             frag_limit: Some(8),
             time_limit_ticks: Some(20 * 60),
             ..Default::default()
@@ -67,8 +69,8 @@ fn probe_planner_stalls_on_directive_17() {
         let mut steering: std::collections::HashMap<
             Uuid,
             (
-                fragr_server::navigation::Navigator,
-                fragr_server::mission::MissionClient,
+                localexception_server::navigation::Navigator,
+                localexception_server::mission::MissionClient,
             ),
         > = Default::default();
         // The harness's own stall rule: under `IDLE_EPSILON` a snapshot,
@@ -106,7 +108,7 @@ fn probe_planner_stalls_on_directive_17() {
                     .find(|p| p.id == *id)
                     .and_then(|p| p.inventory.state(*id, p.weapon, snapshot.tick));
                 let controlled = if wire {
-                    fragr_server::inventory::control_action_with_target_filter(
+                    localexception_server::inventory::control_action_with_target_filter(
                         *id,
                         &snapshot,
                         loadout.as_ref(),
@@ -216,8 +218,8 @@ fn probe_planner_stalls_on_directive_17() {
 
 /// A lone planner on Directive 17's north corridor, south of the cover block
 /// at (0, -38), with nothing on the floor but what a test adds.
-fn lone_planner() -> (fragr_server::sim::GameState, Uuid, Arena) {
-    let mut state = fragr_server::sim::GameState::with_map(MapKind::Directive17, false);
+fn lone_planner() -> (localexception_server::sim::GameState, Uuid, Arena) {
+    let mut state = localexception_server::sim::GameState::with_map(MapKind::Directive17, false);
     state.start_round();
     state.pickups.clear();
     let id = Uuid::from_u128(77);
@@ -225,7 +227,7 @@ fn lone_planner() -> (fragr_server::sim::GameState, Uuid, Arena) {
     let me = state.players.iter_mut().find(|p| p.id == id).unwrap();
     me.x = 0.0;
     me.z = -42.0;
-    me.y = fragr_server::sim::PLAYER_FLOOR_Y;
+    me.y = localexception_server::sim::PLAYER_FLOOR_Y;
     let arena = Arena {
         solids: MapKind::Directive17.solids(),
         half_extent: MapKind::Directive17.half_extent(),
@@ -233,11 +235,11 @@ fn lone_planner() -> (fragr_server::sim::GameState, Uuid, Arena) {
     (state, id, arena)
 }
 
-fn drop_at(state: &mut fragr_server::sim::GameState, x: f32, z: f32, floor: f32) {
+fn drop_at(state: &mut localexception_server::sim::GameState, x: f32, z: f32, floor: f32) {
     let serial = state.dropped_guns.len() as u32 + 1;
     state
         .dropped_guns
-        .push(fragr_server::sim::drops::DroppedGun {
+        .push(localexception_server::sim::drops::DroppedGun {
             serial,
             weapon: WeaponType::Scatter,
             rounds: 6,
@@ -288,7 +290,7 @@ fn a_planner_never_walks_at_a_dropped_gun_it_cannot_reach_straight() {
 #[test]
 fn a_planner_strafes_round_cover_on_the_way_to_a_pad() {
     let (mut state, id, arena) = lone_planner();
-    let mut full = fragr_server::sim::GameState::with_map(MapKind::Directive17, false);
+    let mut full = localexception_server::sim::GameState::with_map(MapKind::Directive17, false);
     full.start_round();
     state.pickups = full
         .pickups
@@ -318,7 +320,7 @@ fn a_planner_strafes_round_cover_on_the_way_to_a_pad() {
 
 #[test]
 fn a_fighter_slides_along_a_kerb_it_can_see_over() {
-    let mut state = fragr_server::sim::GameState::new();
+    let mut state = localexception_server::sim::GameState::new();
     state.start_round();
     let (me, foe) = (Uuid::from_u128(1), Uuid::from_u128(2));
     state.add_player(me, "reflex-1".into(), Role::Agent);
@@ -327,10 +329,10 @@ fn a_fighter_slides_along_a_kerb_it_can_see_over() {
         let p = state.players.iter_mut().find(|p| p.id == id).unwrap();
         p.x = 0.0;
         p.z = z;
-        p.y = fragr_server::sim::PLAYER_FLOOR_Y;
+        p.y = localexception_server::sim::PLAYER_FLOOR_Y;
     }
     // Knee high across the lane, well under the eye line.
-    let kerb = fragr_server::movement::Solid::from_center_top(0.0, 1.5, 3.0, 0.2, 0.6);
+    let kerb = localexception_server::movement::Solid::from_center_top(0.0, 1.5, 3.0, 0.2, 0.6);
     let open = Arena {
         solids: Vec::new(),
         half_extent: 25.0,

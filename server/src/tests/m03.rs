@@ -544,7 +544,7 @@ async fn live_m03_refuses_retired_readers_and_current_reader_receives_geometry_b
     ] {
         for role in ["human", "agent", "spectator"] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-            socket.send(Message::Text(json!({"type":"hello","role":role,"name":"ServiceProbe","gameplay_version":version,"geometry_version":crate::protocol::GEOMETRY_VERSION}).to_string())).await.unwrap();
+            socket.send(Message::Text(json!({"type":"hello","role":role,"name":"ServiceProbe","gameplay_version":version,"geometry_version":crate::protocol::GEOMETRY_VERSION}).to_string().into())).await.unwrap();
             tokio::time::timeout(Duration::from_secs(5), async {
                 let (mut map, mut welcome, mut mission, mut snapshot) =
                     (false, false, false, false);
@@ -555,13 +555,13 @@ async fn live_m03_refuses_retired_readers_and_current_reader_receives_geometry_b
                         continue;
                     };
                     let value: serde_json::Value = frames.read_value(&text).unwrap();
-                    if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
+                    if version < crate::protocol::GAMEPLAY_VERSION {
                         assert_eq!(value["type"], "error", "old reader received game state");
                         assert_eq!(value["code"], "unsupported_gameplay");
-                        assert!(value["message"].as_str().unwrap().contains(&format!(
-                            "version {}",
-                            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
-                        )));
+                        assert!(value["message"]
+                            .as_str()
+                            .unwrap()
+                            .contains(&format!("version {}", crate::protocol::GAMEPLAY_VERSION)));
                         break;
                     }
                     match value["type"].as_str().unwrap() {

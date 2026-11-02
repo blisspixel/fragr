@@ -11,7 +11,7 @@ impl Drop for Scratch {
 #[test]
 fn absolute_credentials_keep_account_hold_when_cli_runs_elsewhere() {
     let root = Scratch(std::env::temp_dir().join(format!(
-        "fragr-model-carry-cli-{}-{}", std::process::id(),
+        "localexception-model-carry-cli-{}-{}", std::process::id(),
         std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()
     )));
     let account = root.0.join("account");
@@ -21,7 +21,7 @@ fn absolute_credentials_keep_account_hold_when_cli_runs_elsewhere() {
     let credential = account.join(".env");
     std::fs::write(&credential, "meshy=test-only-no-network-key\n").unwrap();
     let invoke = |args: &[&str]| {
-        Command::new(env!("CARGO_BIN_EXE_fragr-spritegen"))
+        Command::new(env!("CARGO_BIN_EXE_localexception-spritegen"))
             .current_dir(&elsewhere)
             .arg("--env-file")
             .arg(&credential)

@@ -11,7 +11,7 @@ var output: String
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
 	path = "user://m05-presentation-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", path)
+	set_meta("localexception_settings_path", path)
 	output = ProjectSettings.globalize_path("res://../.agents/m05-client-buildout-20260930")
 	_run.call_deferred()
 
@@ -31,7 +31,7 @@ func _capture(label: String) -> void:
 	_check(root.get_texture().get_image().save_png(output.path_join(label + ".png")) == OK, "isolated framebuffer capture saved")
 
 func _run() -> void:
-	var prefs: FragrSettings = FragrSettings.new(path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	prefs.set_value("video", "display_mode", 0)
 	prefs.set_value("video", "resolution_height", 720)
 	_check(prefs.save_to_disk() == OK, "isolated preferences saved")

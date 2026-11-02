@@ -2,12 +2,12 @@
 
 **Status:** fun metrics are implemented and off by default ([#529](https://github.com/blisspixel/fragr/issues/529)). The project receives nothing from anyone, and the only records are on your own machine and in a server's console.
 
-The Union keeps a file on everyone, forever, in triplicate. fragr keeps a tally
+The Union keeps a file on everyone, forever, in triplicate. Local Exception keeps a tally
 of how often the Rifle wins, only if the host asks it to, and shreds even that
 after 67 days.
 
 This is the whole policy. It applies to the game, the server, the agent adapter,
-the example brain and any server the fragr project itself ever hosts.
+the example brain and any server the Local Exception project itself ever hosts.
 
 ## The game never phones home
 
@@ -23,7 +23,7 @@ the example brain and any server the fragr project itself ever hosts.
 
 A running server prints an operational log to its own console so its host can
 run it: who joined by callsign, rounds and frags, and the address of a
-connection it refused (for flood and abuse defence). fragr does not write that
+connection it refused (for flood and abuse defence). Local Exception does not write that
 log to disk or send it anywhere; a host who saves their console output owns it.
 Join tickets and resume tokens are never logged, and `/status` never shows an
 address, callsign, id or token. Fun metrics never read the console log.
@@ -54,7 +54,7 @@ When they are on:
   and in its `/status` answer, which the multiplayer page reads out before you
   join.
 - **It stays on the host's disk.** One file per match, named only by the day,
-  in `fun-metrics/` under the host's run directory (`FRAGR_RUN_DIR`, or the
+  in `fun-metrics/` under the host's run directory (`LOCALEXCEPTION_RUN_DIR`, or the
   platform's user data folder). A match still running when the host stops
   the server (Ctrl+C or SIGTERM on a dedicated server, the game ending a
   desktop host) is filed too, marked `finished: false`; a server killed
@@ -107,15 +107,15 @@ health in microseconds. `fighters_peak` and `bots_peak` are head counts, the
 most fighters and the most rule bots at once.
 
 To read a host's files as the same tables the bot survey and the
-[1.0 bar](ROADMAP.md#the-10-bar) use, run `fragr-server --fun-summary` from a
+[1.0 bar](ROADMAP.md#the-10-bar) use, run `localexception-server --fun-summary` from a
 release package (it reads the host's own folder; name another folder after
-the flag), or `cargo run -p fragr-playtest --release -- --fun-summary <folder>`
+the flag), or `cargo run -p localexception-playtest --release -- --fun-summary <folder>`
 from a checkout. Both print from the same code, read only and send nothing
 ([hosting guide](HOSTING.md#fun-metrics)).
 
 ## If the project hosts a server
 
-Any server the fragr project runs follows the same rules, with fun metrics
+Any server the Local Exception project runs follows the same rules, with fun metrics
 announced in the welcome and shredded on the same 67-day clock. The aggregated
 numbers may be published to explain a balance change; they contain nothing
 about any person by construction.

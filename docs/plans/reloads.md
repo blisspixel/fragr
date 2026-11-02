@@ -37,8 +37,8 @@ Finite bag, checked 2026-10-06:
 
 - `an_arcade_human_spends_a_finite_bag_and_reloads_from_what_is_left`, `an_armed_weapon_only_arsenal_reloads_without_a_finite_bag`, `a_reload_press_blocks_fire_until_the_magazine_is_full_again`, `an_armed_arcade_human_restocks_from_the_weapon_pad`, `a_show_change_reseeds_an_armed_humans_bag`, `a_human_magazine_survives_the_next_sabotage_round`, plus the older `human_magazines_share_one_pool_and_reload_moves_rounds_without_adding_any` and the two unlimited-arsenal tests that stay unarmed.
 - Godot `test_equipment`: PASS. The zero-pool corner stays the magazine number. A finite bag reads `20|60`, `6|18` and `4|12`.
-- `cargo fmt --all` and `cargo clippy -p fragr-server --all-targets --locked -- -D warnings`.
-- `cargo test -p fragr-server --lib --locked` reported 1063 passed, 11 failed, 3 ignored. The failures are two M02 route stalls, repeater and M10 admission text, three scatter-damage assertions, the heavy burst, the long sniper lane, and one shot-trace kill. They name the head band or gameplay 37. This bag change does not touch that code, and the 11 were not bisected.
+- `cargo fmt --all` and `cargo clippy -p localexception-server --all-targets --locked -- -D warnings`.
+- `cargo test -p localexception-server --lib --locked` reported 1063 passed, 11 failed, 3 ignored. The failures are two M02 route stalls, repeater and M10 admission text, three scatter-damage assertions, the heavy burst, the long sniper lane, and one shot-trace kill. They name the head band or gameplay 37. This bag change does not touch that code, and the 11 were not bisected.
 
 Magazine pass, earlier the same day, not re-run as a set for the bag:
 

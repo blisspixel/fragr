@@ -28,9 +28,9 @@ func _until(predicate: Callable, seconds: float) -> bool:
 	return false
 
 func _run() -> void:
-	directory = OS.get_environment("FRAGR_QA_DIR")
+	directory = OS.get_environment("LOCALEXCEPTION_QA_DIR")
 	if directory.is_empty() or DisplayServer.get_name() == "headless":
-		push_error("qa_benchmark requires a rendered window and FRAGR_QA_DIR for isolated evidence")
+		push_error("qa_benchmark requires a rendered window and LOCALEXCEPTION_QA_DIR for isolated evidence")
 		quit(1)
 		return
 	DirAccess.make_dir_recursive_absolute(directory)
@@ -38,12 +38,12 @@ func _run() -> void:
 		await _preview_results()
 		return
 	var settings_path: String = directory.path_join("settings.cfg")
-	set_meta("fragr_settings_path", settings_path)
-	set_meta("fragr_records_path", directory.path_join("records"))
-	set_meta("fragr_benchmark_dir", directory.path_join("results"))
-	set_meta("fragr_server_book_path", directory.path_join("servers.cfg"))
-	OS.set_environment("FRAGR_RUN_DIR", directory.path_join("runs"))
-	var preferences: FragrSettings = FragrSettings.new(settings_path)
+	set_meta("localexception_settings_path", settings_path)
+	set_meta("localexception_records_path", directory.path_join("records"))
+	set_meta("localexception_benchmark_dir", directory.path_join("results"))
+	set_meta("localexception_server_book_path", directory.path_join("servers.cfg"))
+	OS.set_environment("LOCALEXCEPTION_RUN_DIR", directory.path_join("runs"))
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	preferences.set_value("video", "display_mode", 0)
 	preferences.set_value("video", "quality", RenderQuality.MEDIUM)
 	preferences.set_value("video", "fps_cap", 45)
@@ -177,9 +177,9 @@ func _preview_results() -> void:
 		push_error("qa_benchmark: results preview requires a completed saved run")
 		quit(1)
 		return
-	set_meta("fragr_settings_path", directory.path_join("preview-settings.cfg"))
-	set_meta("fragr_records_path", directory.path_join("preview-records"))
-	set_meta("fragr_server_book_path", directory.path_join("preview-servers.cfg"))
+	set_meta("localexception_settings_path", directory.path_join("preview-settings.cfg"))
+	set_meta("localexception_records_path", directory.path_join("preview-records"))
+	set_meta("localexception_server_book_path", directory.path_join("preview-servers.cfg"))
 	var port: SubViewport = SubViewport.new()
 	port.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	port.size_2d_override_stretch = true
@@ -200,7 +200,7 @@ func _preview_results() -> void:
 		_check_inside(port, menu.find_child("CompareBenchmark", true, false) as Control, tag + " compare button")
 		menu.queue_free()
 		await process_frame
-		for style: Array in [["s100", HudStyle.new()], ["s150-large", HudStyle.new(1.5, FragrSettings.TEXT_LARGE)]]:
+		for style: Array in [["s100", HudStyle.new()], ["s150-large", HudStyle.new(1.5, LocalExceptionSettings.TEXT_LARGE)]]:
 			var counter: PerformanceOverlay = PerformanceOverlay.new()
 			port.add_child(counter)
 			counter.set_mode(PerformanceOverlay.DETAIL)

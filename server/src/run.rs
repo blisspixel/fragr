@@ -1,4 +1,4 @@
-//! The authoritative tick loop, shared by the `fragr-server` binary and by
+//! The authoritative tick loop, shared by the `localexception-server` binary and by
 //! in-process harnesses such as the playtest tool. Binding on port 0 and the
 //! `ready` channel let a caller learn the real address; `shutdown` ends the loop.
 
@@ -486,7 +486,7 @@ async fn run_server_impl(
             .unwrap_or_else(crate::protocol::legacy_geometry_version)
     };
     // Discovery equipment delivers the private loadout, whose weapons now
-    // include the Shiv. Full-arsenal arcade maps keep older readers.
+    // include the Shiv. The delivery mode is independent of client version.
     let discovery =
         session.state.map.equipment_policy() == crate::protocol::EquipmentPolicy::Discovery;
     // Sides, lives and the golden Railgun need a client that renders them.
@@ -494,104 +494,10 @@ async fn run_server_impl(
         .match_config
         .as_ref()
         .is_some_and(|config| !config.rules.is_plain());
-    let has_jammer = session.state.map.encounters().iter().any(|encounter| {
-        encounter
-            .enemies
-            .iter()
-            .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Jammer)
-    });
-    let has_notary = session.state.map.encounters().iter().any(|encounter| {
-        encounter
-            .enemies
-            .iter()
-            .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Notary)
-    });
-    let required_gameplay = if let Some(mission) = session.state.map.campaign_mission_id() {
-        mission.gameplay_version()
-    } else if session.state.map.requires_surveyor_contract() {
-        crate::protocol::M20_GAMEPLAY_VERSION
-    } else if session.state.map.requires_article_blade_contract() {
-        crate::protocol::BLADE_GAMEPLAY_VERSION
-    } else if session.state.map.m14_geometry().is_some() {
-        crate::protocol::M14_GAMEPLAY_VERSION
-    } else if session.state.map.walker_geometry().is_some() {
-        crate::protocol::WALKER_GAMEPLAY_VERSION
-    } else if map == MapKind::LowWater || rotate {
-        crate::protocol::LOW_WATER_SABOTAGE_GAMEPLAY_VERSION
-    } else if session.state.map.m13_geometry().is_some() {
-        crate::protocol::M13_GAMEPLAY_VERSION
-    } else if session.state.map.m12_geometry().is_some() {
-        crate::protocol::M12_GAMEPLAY_VERSION
-    } else if session.state.map.is_campaign() || session.state.map.requires_assessor_contract() {
-        crate::protocol::ASSESSOR_GAMEPLAY_VERSION
-    } else if session.state.map.requires_arc_contract() {
-        crate::protocol::ARC_GAMEPLAY_VERSION
-    } else if session.state.map.has_authored_vehicles() {
-        crate::protocol::VEHICLE_GAMEPLAY_VERSION
-    } else if session.state.map.requires_m11_contract() {
-        crate::protocol::M11_GAMEPLAY_VERSION
-    } else if session.state.map.requires_m10_contract() {
-        crate::protocol::M10_GAMEPLAY_VERSION
-    } else if session.state.map.requires_repeater_contract() {
-        crate::protocol::REPEATER_GAMEPLAY_VERSION
-    } else if session.state.map.requires_enforcer_contract() {
-        crate::protocol::M09_GAMEPLAY_VERSION
-    } else if session.state.map.campaign_mission_id()
-        == Some(crate::protocol::MissionId::CustodianOfRecord)
-    {
-        crate::protocol::M08_GAMEPLAY_VERSION
-    } else if session.state.map.campaign_mission_id()
-        == Some(crate::protocol::MissionId::DeclaredGoods)
-    {
-        crate::protocol::M07_GAMEPLAY_VERSION
-    } else if session.state.map.requires_sniper_contract() {
-        crate::protocol::ZONES_GAMEPLAY_VERSION
-    } else if session.state.map.has_custody_devices() {
-        crate::protocol::CUSTODY_GAMEPLAY_VERSION
-    } else if session.state.map.campaign_mission_id()
-        == Some(crate::protocol::MissionId::PortOfEntry)
-    {
-        crate::protocol::M06_GAMEPLAY_VERSION
-    } else if discovery || has_notary || session.state.map.campaign_mission_id().is_some() {
-        crate::protocol::M05_GAMEPLAY_VERSION
-    } else if has_jammer {
-        crate::protocol::JAMMER_GAMEPLAY_VERSION
-    } else if playlist {
-        // Replaced for a shared room below. The Sabotage floor alone would
-        // still let an older client into the opening free-for-all.
-        crate::protocol::SABOTAGE_GAMEPLAY_VERSION
-    } else if options
-        .match_config
-        .as_ref()
-        .is_some_and(|config| config.rules.mode() == crate::protocol::GameMode::Sabotage)
-    {
-        crate::protocol::SABOTAGE_GAMEPLAY_VERSION
-    } else if options
-        .match_config
-        .as_ref()
-        .is_some_and(|config| config.rules.mode() == crate::protocol::GameMode::Ctf)
-    {
-        crate::protocol::CTF_GAMEPLAY_VERSION
-    } else if discovery || twisted {
-        crate::protocol::RULES_GAMEPLAY_VERSION
-    } else if session.state.map.has_encounters() {
-        crate::protocol::CAMPAIGN_GAMEPLAY_VERSION
-    } else {
-        match session.state.map.equipment_policy() {
-            crate::protocol::EquipmentPolicy::FullArsenal => 1,
-            crate::protocol::EquipmentPolicy::Discovery => {
-                crate::protocol::DISCOVERY_GAMEPLAY_VERSION
-            }
-        }
-    };
-    // One contract in a shared room. Campaign missions keep the floor above.
-    // Every hello still refuses a version this binary does not implement.
+    // Every production door speaks one current gameplay contract. Content
+    // capabilities describe map features, not compatibility with older builds.
+    let required_gameplay = crate::protocol::GAMEPLAY_VERSION;
     let shared_room = !options.campaign_run && !session.state.map.is_campaign();
-    let required_gameplay = if shared_room {
-        crate::protocol::GAMEPLAY_VERSION
-    } else {
-        required_gameplay
-    };
     let required_geometry = if shared_room {
         crate::protocol::GEOMETRY_VERSION
     } else {
@@ -720,7 +626,7 @@ async fn run_server_impl(
     }
     if let Some(style) = options.overview {
         let facts = crate::operator::ReadyFacts {
-            version: env!("FRAGR_CLI_VERSION").to_string(),
+            version: env!("LOCALEXCEPTION_CLI_VERSION").to_string(),
             map: session.state.map.name().to_string(),
             rules: if session.state.map.is_authored() {
                 "Campaign".to_string()
@@ -1330,7 +1236,7 @@ mod head_to_head_tests {
     #[test]
     fn a_changed_book_is_saved_once_and_a_failed_save_warns_once() {
         let directory = std::env::temp_dir().join(format!(
-            "fragr-run-book-{}-{}",
+            "localexception-run-book-{}-{}",
             std::process::id(),
             uuid::Uuid::new_v4()
         ));
@@ -1376,8 +1282,10 @@ mod durable_run_tests {
 
     #[test]
     fn one_run_file_opens_new_resumes_locks_and_writes_only_changes() {
-        let directory =
-            std::env::temp_dir().join(format!("fragr-durable-run-{}", uuid::Uuid::new_v4()));
+        let directory = std::env::temp_dir().join(format!(
+            "localexception-durable-run-{}",
+            uuid::Uuid::new_v4()
+        ));
         let mut m02 = session(MissionId::PersonsUnknown);
         assert_eq!(
             refusal(DurableRun::open(&mut m02, &directory, true, None)),

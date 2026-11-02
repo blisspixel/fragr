@@ -1,5 +1,5 @@
 {
-  "comment": "The booth on Larak Lot: a watcher's panel of power pads, the Custody Plate and runs from the server's spectator-only facts; the director cutting the follow camera; nameplates with Silkscreen callsigns, the true behaviour chip and a pixel health bar that geometry never cuts; the Tab board with rank, callsign, frags, deaths and ping, watched and then joined. Run with FRAGR_QA_MAP=1 FRAGR_QA_BOTS=6 FRAGR_QA_MANIFEST=res://qa/booth.json. Presentation only; no player pose injection.",
+  "comment": "The booth on Larak Lot: a watcher's panel of power pads, the Custody Plate and runs from the server's spectator-only facts; the director cutting the follow camera; nameplates with Silkscreen callsigns, the true behaviour chip and a pixel health bar that geometry never cuts; the Tab board with rank, callsign, frags, deaths and ping, watched and then joined. Run with LOCALEXCEPTION_QA_MAP=1 LOCALEXCEPTION_QA_BOTS=6 LOCALEXCEPTION_QA_MANIFEST=res://qa/booth.json. Presentation only; no player pose injection.",
   "width": 1280,
   "height": 720,
   "states": [

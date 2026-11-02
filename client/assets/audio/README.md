@@ -2,7 +2,7 @@
 
 Two pipelines feed this directory. Every file is an ordinary asset the client loads by name; nothing here calls a network at runtime.
 
-## Generated with `fragr-audiogen` (ElevenLabs, developer-only)
+## Generated with `localexception-audiogen` (ElevenLabs, developer-only)
 
 Sound effects and music produced by `tools/audiogen` (see `tools/audiogen/README.md`). Provenance for each generated file lives in `audiogen-manifest.json` next to it: prompt, model, format, duration, channel count, byte size, generation time. Regenerate with the batch specs under `tools/audiogen/specs/`.
 
@@ -10,15 +10,15 @@ Generated files are owned by the project under the ElevenLabs terms for the acco
 
 ## Campaign score
 
-An optional ambient score for the campaign, generated with `fragr-audiogen` from `tools/audiogen/specs/campaign-score-20261030.json` (ElevenLabs `music_v2_5`, instrumental). `score/slots.json` lists every slot: one bed per level and the epilogue (`l01` to `l20`, `epilogue`, by mission id) and the story cues (`cue-l02`, `cue-l05`, `cue-l17`, `cue-l20` in their scene's `music` field; `cue-l18` after the turn in Level 18's square and `cue-l19` at Latch's choice in Level 19). Each slot ships two takes, `score/<slot>/a.mp3` and `b.mp3`, with manifest entries `score/<slot>/a` and `b`, until Nick picks one while playing.
+An optional ambient score for the campaign, generated with `localexception-audiogen` from `tools/audiogen/specs/campaign-score-20261030.json` (ElevenLabs `music_v2_5`, instrumental). `score/slots.json` lists every slot: one bed per level and the epilogue (`l01` to `l20`, `epilogue`, by mission id) and the story cues (`cue-l02`, `cue-l05`, `cue-l17`, `cue-l20` in their scene's `music` field; `cue-l18` after the turn in Level 18's square and `cue-l19` at Latch's choice in Level 19). Each slot ships two takes, `score/<slot>/a.mp3` and `b.mp3`, with manifest entries `score/<slot>/a` and `b`, until Nick picks one while playing.
 
 The beds are 160 seconds and the cues 45 to 80 seconds, encoded by the service as `mp3_44100_64`: 64 kbps stereo is about 0.48 MB a minute, half the 128 kbps used for radio songs, and the beds are slow, quiet pads mixed well under a station, where the lower rate costs little. `campaign_score.gd` plays the bed on the Radio bus (the Music volume) 7 dB under a station, overlaps its own loop by six seconds so there is no seam, dips under the Host, barks and heavy fighting, and rests during story pages and while the radio is on a station. Settings: `[score] enabled` and `[score] takes` (slot to `a` or `b`). A missing take falls back to the other; a slot with neither is silent.
 
-After playtesting, `fragr-audiogen score-picks` prints the picks from the game's settings file and `fragr-audiogen score-prune --apply` deletes every unpicked take with its `.import` file and manifest entry (see `tools/audiogen/README.md`).
+After playtesting, `localexception-audiogen score-picks` prints the picks from the game's settings file and `localexception-audiogen score-prune --apply` deletes every unpicked take with its `.import` file and manifest entry (see `tools/audiogen/README.md`).
 
 ## Benchmark jingle
 
-Crackpot's certificate, played once when a benchmark run completes, generated from `tools/audiogen/specs/benchmark-jingle-20261031.json` (ElevenLabs `music_v2_5`, with vocals, `mp3_44100_128`). Three lyrics, two takes each: `jingle/benchmark/1a.mp3` to `3b.mp3`, manifest entries `jingle/benchmark/<take>`. `benchmark_jingle.gd` plays the picked take on the Announcer bus, levelled per take to -18 LUFS from its measured loudness, and never while the Announcer setting is Off. Setting: `[audio] benchmark_jingle` (default `1a`). `fragr-audiogen jingle-prune --apply` keeps only the pick.
+Crackpot's certificate, played once when a benchmark run completes, generated from `tools/audiogen/specs/benchmark-jingle-20261031.json` (ElevenLabs `music_v2_5`, with vocals, `mp3_44100_128`). Three lyrics, two takes each: `jingle/benchmark/1a.mp3` to `3b.mp3`, manifest entries `jingle/benchmark/<take>`. `benchmark_jingle.gd` plays the picked take on the Announcer bus, levelled per take to -18 LUFS from its measured loudness, and never while the Announcer setting is Off. Setting: `[audio] benchmark_jingle` (default `1a`). `localexception-audiogen jingle-prune --apply` keeps only the pick.
 
 ## Earlier procedural set (retired)
 
@@ -136,12 +136,12 @@ the sound pass plan ranks them.
 
 ## Footsteps
 
-Running steps, landings and jump push-offs for every walking fighter, generated with `fragr-audiogen` from `tools/audiogen/specs/footsteps-20261031.json` (ElevenLabs `eleven_text_to_sound_v2`, 154 credits). Three floor sets follow the map's registered surface kits (`footstep_surface.gd`): `concrete`, `metal` (service steel, lift panel) and `tile` (enamel, records tile, inspection glass); a map without kits is concrete. Each set has three step variants and a landing; one jump serves every floor.
+Running steps, landings and jump push-offs for every walking fighter, generated with `localexception-audiogen` from `tools/audiogen/specs/footsteps-20261031.json` (ElevenLabs `eleven_text_to_sound_v2`, 154 credits). Three floor sets follow the map's registered surface kits (`footstep_surface.gd`): `concrete`, `metal` (service steel, lift panel) and `tile` (enamel, records tile, inspection glass); a map without kits is concrete. Each set has three step variants and a landing; one jump serves every floor.
 
 Both takes ship, `footsteps/a/` and `footsteps/b/`, until Nick picks one by ear: the match menu's Footsteps button switches every fighter's feet at once and saves `[footsteps] take` (`a` by default). Prune the unpicked folder and its manifest entries by hand afterwards; the score's prune command does not cover footsteps.
 
-Every clip was levelled after generation with `fragr-audiogen loudness --level-to -18 --peak-ceiling -1`: summed to mono (the game places it at the fighter's feet, so a baked stereo image would fight the panning) and scaled so its loudest 400 ms block reads -18 LUFS unless that would take its true peak over -1 dBTP. The levelled clips read -18.0 to -25.5 LUFS; the manifest titles say so. Range, rolloff and direction are measured by `client/scripts/test_footsteps.gd`.
+Every clip was levelled after generation with `localexception-audiogen loudness --level-to -18 --peak-ceiling -1`: summed to mono (the game places it at the fighter's feet, so a baked stereo image would fight the panning) and scaled so its loudest 400 ms block reads -18 LUFS unless that would take its true peak over -1 dBTP. The levelled clips read -18.0 to -25.5 LUFS; the manifest titles say so. Range, rolloff and direction are measured by `client/scripts/test_footsteps.gd`.
 
 ## Mix and loudness
 
-The Master bus opens with a hard limiter (`default_bus_layout.tres`: +3 dB pre-gain, -1.5 dB ceiling, so true peak stays at or under -1 dBTP). The gameplay target is -23 to -18 LUFS integrated (`docs/plans/fun-craft-targets.md` row 19). Measure a QA tour capture with `cargo run -p fragr-audiogen -- loudness --check <capture>.wav`; `client/qa/mix-loudness.json` (joined human in a fight) and `client/qa/mix-watch.json` (watched match) record one each. Combat near the listener ducks the radio and the campaign score through one rule, `combat_duck.gd` (`client/scripts/test_combat_duck.gd`).
+The Master bus opens with a hard limiter (`default_bus_layout.tres`: +3 dB pre-gain, -1.5 dB ceiling, so true peak stays at or under -1 dBTP). The gameplay target is -23 to -18 LUFS integrated (`docs/plans/fun-craft-targets.md` row 19). Measure a QA tour capture with `cargo run -p localexception-audiogen -- loudness --check <capture>.wav`; `client/qa/mix-loudness.json` (joined human in a fight) and `client/qa/mix-watch.json` (watched match) record one each. Combat near the listener ducks the radio and the campaign score through one rule, `combat_duck.gd` (`client/scripts/test_combat_duck.gd`).

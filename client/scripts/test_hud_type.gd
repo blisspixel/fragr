@@ -64,7 +64,7 @@ func _run() -> void:
 	game.camera = camera
 
 	# First run: the play legend shows once, fades, and never comes back.
-	var settings := FragrSettings.new("user://test-hud-type-%d.cfg" % OS.get_process_id())
+	var settings := LocalExceptionSettings.new("user://test-hud-type-%d.cfg" % OS.get_process_id())
 	hud.apply_preferences(settings)
 	_check(hud.controls_hint_pending, "a fresh install owes the fighter one controls hint")
 	var shown: Array[int] = []
@@ -86,7 +86,7 @@ func _run() -> void:
 	hud.set_mode("PLAYING")
 	hud._process(0.0)
 	_check(hud.regions.hints.text.is_empty() and shown.size() == 1, "a later join keeps the status bar clear of developer hints")
-	var seen := FragrSettings.new("user://test-hud-type-seen-%d.cfg" % OS.get_process_id())
+	var seen := LocalExceptionSettings.new("user://test-hud-type-seen-%d.cfg" % OS.get_process_id())
 	seen.set_value("gameplay", "controls_hint_seen", true)
 	hud.controls_hint_pending = true
 	hud.apply_preferences(seen)

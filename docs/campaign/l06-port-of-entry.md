@@ -220,7 +220,7 @@ fresh-player pacing and GPU performance.
 ## Combat readability in the dressed hall (wave 16)
 
 `client/qa/m06_combat_review.gd` runs the ordinary-input route above
-(`FRAGR_QA_SCRIPT=res://qa/m06_combat_review.gd` with `tools/qa_tour.sh`) and,
+(`LOCALEXCEPTION_QA_SCRIPT=res://qa/m06_combat_review.gd` with `tools/qa_tour.sh`) and,
 from the player's own view, photographs each Turret and Heavy Sweeper at rest
 and past 80 percent of its windup, and every Railgun beam at three ages, each
 with a pixel-scale crop. Observations only; the route and its gates are the
@@ -247,7 +247,7 @@ tour's. On seed 42 the whole route passed to the transit departure.
 - **Heavy Sweeper.** The loading and exit Heavies read black with red lamps
   against the bone walls in both halls.
 
-The free local agent (`fragr-brain play --provider local`, seed 42, Standard)
+The free local agent (`localexception-brain play --provider local`, seed 42, Standard)
 cleared every group and departed in about 85 seconds with full observations;
-that is authoring evidence. `fragr-playtest --campaign-survey` has no Level 6
+that is authoring evidence. `localexception-playtest --campaign-survey` has no Level 6
 scenario, so there is no limited-perception survey of this level yet.

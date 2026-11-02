@@ -410,7 +410,7 @@ fn launch_authority_every_group_clears_on_foot_with_present_absent_and_destroyed
 }
 
 #[test]
-#[ignore = "seed survey: cargo test -p fragr-server --lib seed_survey -- --ignored --nocapture"]
+#[ignore = "seed survey: cargo test -p localexception-server --lib seed_survey -- --ignored --nocapture"]
 fn launch_authority_seed_survey() {
     crate::mission::route_skill::survey(
         "Launch Authority on foot",

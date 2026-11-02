@@ -107,7 +107,8 @@ fn local_exception_promotes_from_planned_works_without_a_refill() {
         );
     }
     // The survival result survives a restart through the locked store.
-    let directory = std::env::temp_dir().join(format!("fragr-m20-save-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-m20-save-{}", Uuid::new_v4()));
     let store = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
     store.save(&victory).unwrap();
     drop(store);
@@ -339,11 +340,12 @@ async fn open_still_here(
                 role: Role::Human,
                 name: "Still here".into(),
                 geometry_version: crate::protocol::GEOMETRY_VERSION,
-                gameplay_version: crate::protocol::STILL_HERE_GAMEPLAY_VERSION,
+                gameplay_version: crate::protocol::GAMEPLAY_VERSION,
                 ticket: None,
                 resume: None,
             })
-            .unwrap(),
+            .unwrap()
+            .into(),
         ))
         .await
         .unwrap();
@@ -375,7 +377,8 @@ async fn open_still_here(
 #[tokio::test]
 async fn the_saved_survival_opens_still_here_read_only() {
     let hashes = CAMPAIGN_MISSIONS.map(AuthoredSource::bundled_content_sha256);
-    let directory = std::env::temp_dir().join(format!("fragr-still-here-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-still-here-{}", Uuid::new_v4()));
     let victory = bundled_victory();
     let store = RunStore::open_with_hashes(&directory, hashes).unwrap();
     store.save(&victory).unwrap();
@@ -592,7 +595,7 @@ async fn one_hp_at_the_reprieve_records_once_and_replays_without_spending() {
                 );
             }
             let directory =
-                std::env::temp_dir().join(format!("fragr-threshold-{}", Uuid::new_v4()));
+                std::env::temp_dir().join(format!("localexception-threshold-{}", Uuid::new_v4()));
             let store = RunStore::open_with_hashes(&directory, hashes).unwrap();
             store.save(&victory).unwrap();
             drop(store);
@@ -724,13 +727,13 @@ fn the_pier_and_the_refuge_agree_on_who_came() {
 }
 
 /// Live review only: writes a real survival run with every rescue to
-/// `FRAGR_QA_SURVIVAL_RUN_DIR`, so a desktop child can open the fullest
+/// `LOCALEXCEPTION_QA_SURVIVAL_RUN_DIR`, so a desktop child can open the fullest
 /// refuge with `--local-mission still_here --run-mode resume`. Run with
-/// `cargo test -p fragr-server -- --ignored write_survival_run_for_review`.
+/// `cargo test -p localexception-server -- --ignored write_survival_run_for_review`.
 #[test]
 #[ignore = "writes a review fixture outside the repository on request"]
 fn write_survival_run_for_review() {
-    let Some(directory) = std::env::var_os("FRAGR_QA_SURVIVAL_RUN_DIR") else {
+    let Some(directory) = std::env::var_os("LOCALEXCEPTION_QA_SURVIVAL_RUN_DIR") else {
         return;
     };
     let hashes = CAMPAIGN_MISSIONS.map(AuthoredSource::bundled_content_sha256);

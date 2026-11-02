@@ -1,5 +1,5 @@
 {
-  "comment": "Lighting and look review in Recall Notice: fixture glow over bone enamel, warm service lamps, and the first-person muzzle light from the Tack in the street and the bay. Run with FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json FRAGR_QA_BOTS=0 FRAGR_QA_MANIFEST=res://qa/m01-look.json and a renderer and preset. Compare the stills with the same rooms in m01-golden.json.",
+  "comment": "Lighting and look review in Recall Notice: fixture glow over bone enamel, warm service lamps, and the first-person muzzle light from the Tack in the street and the bay. Run with LOCALEXCEPTION_QA_MAP_FILE=server/maps/m01-recall-notice.json LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MANIFEST=res://qa/m01-look.json and a renderer and preset. Compare the stills with the same rooms in m01-golden.json.",
   "width": 1280,
   "height": 720,
   "states": [

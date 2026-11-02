@@ -52,7 +52,7 @@ variety and repeated voluntary play in the acceptance review. Existing
 automated routes prove recorded behavior; fresh-player and mixed-human LAN
 sessions still decide whether the game is fun.
 
-## Where fragr is today
+## Where Local Exception is today
 
 Being honest about the gap:
 
@@ -483,7 +483,7 @@ lighting, populated rooms and played comparison remain the production work.
 
 ### Meshy account check
 
-Nick subsequently selected Premium for fragr ($40 per month, $20 for the first
+Nick subsequently selected Premium for Local Exception ($40 per month, $20 for the first
 month) and configured the `meshy` credential entry in the ignored `.env`.
 The [documented balance endpoint](https://docs.meshy.ai/en/api/balance) returned
 HTTP 200 and 3,100 available API credits on 2026-10-03. A one-off read-only check

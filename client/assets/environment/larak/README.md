@@ -16,7 +16,7 @@ nearest sampling and no mipmaps.
 Each class tile is 64 x 64, a 4 m repeat, prepared by
 `tools/prepare_surface_tiles.gd` in recipe mode from one Higgsfield seed
 (`tools/spritegen/specs/d-larak-surfaces-*-20261025.json`, marketing-studio
-image, medium 1k) native-reduced to 128 px by `fragr-spritegen reduce`. The
+image, medium 1k) native-reduced to 128 px by `localexception-spritegen reduce`. The
 recipe, `tools/larak_surfaces_20261025.json`, locks each tile to a five-step
 ramp of `docs/palette.json` keys and two-key blends (lore-gate P10, pending
 Nick) by luminance rank, with one broad field step, so the classes stay quiet

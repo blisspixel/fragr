@@ -397,7 +397,7 @@ async fn live_jammer_admission_rejects_old_roles_and_sends_geometry_before_snaps
             socket.send(Message::Text(json!({
                 "type":"hello", "role":role, "name":"PulseProbe",
                 "gameplay_version":version, "geometry_version":crate::protocol::GEOMETRY_VERSION
-            }).to_string())).await.unwrap();
+            }).to_string().into())).await.unwrap();
             tokio::time::timeout(Duration::from_secs(5), async {
                 let mut saw_map = false;
                 let mut frames = crate::protocol::WorldReader::new();
@@ -408,16 +408,16 @@ async fn live_jammer_admission_rejects_old_roles_and_sends_geometry_before_snaps
                         continue;
                     };
                     let value: serde_json::Value = frames.read_value(&text).unwrap();
-                    if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
+                    if version < crate::protocol::GAMEPLAY_VERSION {
                         assert_eq!(
                             value["type"], "error",
                             "old actor reader received a game message"
                         );
                         assert_eq!(value["code"], "unsupported_gameplay");
-                        assert!(value["message"].as_str().unwrap().contains(&format!(
-                            "version {}",
-                            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
-                        )));
+                        assert!(value["message"]
+                            .as_str()
+                            .unwrap()
+                            .contains(&format!("version {}", crate::protocol::GAMEPLAY_VERSION)));
                         break;
                     }
                     match value["type"].as_str().unwrap() {
@@ -478,7 +478,7 @@ async fn current_rules_three_readers_join_m02() {
                 "type":"hello", "role":"human", "name":"Compatible",
                 "gameplay_version":crate::protocol::GAMEPLAY_VERSION, "geometry_version":crate::protocol::GEOMETRY_VERSION
             })
-            .to_string(),
+            .to_string().into(),
         ))
         .await
         .unwrap();

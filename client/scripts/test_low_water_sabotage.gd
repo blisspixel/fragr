@@ -4,7 +4,7 @@ var _failures: int = 0
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
-	set_meta("fragr_records_path", "")
+	set_meta("localexception_records_path", "")
 	call_deferred("_run")
 
 func _check(ok: bool, reason: String) -> void:
@@ -43,7 +43,7 @@ func _run() -> void:
 	world.set_layout({})
 	_check(world._sites.is_empty(), "changing maps retires both local site presenters")
 	var menu: Control = load("res://scenes/boot_menu.tscn").instantiate()
-	menu.set("_settings", FragrSettings.new("user://test-low-water-%d.cfg" % OS.get_process_id()))
+	menu.set("_settings", LocalExceptionSettings.new("user://test-low-water-%d.cfg" % OS.get_process_id()))
 	root.add_child(menu)
 	await process_frame
 	menu._host_settings["mode"] = "sabotage"

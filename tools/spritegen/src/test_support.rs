@@ -8,7 +8,7 @@ impl TestDir {
         static NEXT: AtomicU64 = AtomicU64::new(0);
         loop {
             let path = std::env::temp_dir().join(format!(
-                "fragr-receipt-test-{}-{}",
+                "localexception-receipt-test-{}-{}",
                 std::process::id(),
                 NEXT.fetch_add(1, Ordering::Relaxed)
             ));

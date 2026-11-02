@@ -4,11 +4,11 @@ Status: **in flight** (this PR)
 
 ## Goal
 
-Make the three-rung agent ladder unmistakable in the skill card and front-door README, and wire an observe-only stance chip so `fragr-brain` shows up beside rule bots on the HUD.
+Make the three-rung agent ladder unmistakable in the skill card and front-door README, and wire an observe-only stance chip so `localexception-brain` shows up beside rule bots on the HUD.
 
 1. Server rule bots (Aggressive / Defensive / Flanker / Balanced)
 2. MCP BYO via agent-adapter
-3. fragr-brain (Jev / local + 20 Hz controller; paid only with `--max-spend-usd`)
+3. localexception-brain (Jev / local + 20 Hz controller; paid only with `--max-spend-usd`)
 
 ## Non-goals
 

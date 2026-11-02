@@ -34,7 +34,7 @@ static func slot_path(kind: String, variant: int) -> String:
 ## Voice a `host_reaction` when the announcer setting allows it and the slot
 ## has a recording. Returns whether a clip started.
 func speak(data: Dictionary, announcer: int) -> bool:
-	if announcer == FragrSettings.ANNOUNCER_OFF or not MatchRules.reaction_big(data):
+	if announcer == LocalExceptionSettings.ANNOUNCER_OFF or not MatchRules.reaction_big(data):
 		return false
 	var kind: String = MatchRules.reaction_kind(data)
 	var variant: int = MatchRules.reaction_variant(data)

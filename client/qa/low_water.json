@@ -1,5 +1,5 @@
 {
-  "comment": "Low Water live review: a real server on map 8 with rule bots, from eye height in the trench chicane, on both Sabotage approaches and both overwatch decks, a follow camera strip and a joined first-person fighter. Run with FRAGR_QA_MAP=8 FRAGR_QA_BOTS=8 FRAGR_QA_MODE=tdm FRAGR_QA_MANIFEST=res://qa/low_water.json. Camera placement is presentation only; no player pose injection.",
+  "comment": "Low Water live review: a real server on map 8 with rule bots, from eye height in the trench chicane, on both Sabotage approaches and both overwatch decks, a follow camera strip and a joined first-person fighter. Run with LOCALEXCEPTION_QA_MAP=8 LOCALEXCEPTION_QA_BOTS=8 LOCALEXCEPTION_QA_MODE=tdm LOCALEXCEPTION_QA_MANIFEST=res://qa/low_water.json. Camera placement is presentation only; no player pose injection.",
   "width": 1280,
   "height": 720,
   "states": [

@@ -7,7 +7,7 @@
 A player downloads one zip for Windows, Linux or macOS from a GitHub release,
 unpacks it, and gets a game that can start the local campaign without a
 checkout or a toolchain. Each zip holds the exported Godot client with a
-matching `fragr-server` beside the game executable, where
+matching `localexception-server` beside the game executable, where
 `client/scripts/local_match.gd` already looks for it. The game has its own icon
 instead of the Godot mark.
 
@@ -43,15 +43,15 @@ instead of the Godot mark.
   start never finished. It now attaches on the next frame and reuses the
   pending owner until then. Harness runs did not catch this because they load
   the boot menu after startup.
-- **Install check.** `fragr --headless -- --check-install` boots the real main
-  scene, resolves `fragr-server` through `LocalMatch`, asks it for a run
-  preview, prints `fragr install check: PASS` or a failure line, and exits 0 or
+- **Install check.** `localexception --headless -- --check-install` boots the real main
+  scene, resolves `localexception-server` through `LocalMatch`, asks it for a run
+  preview, prints `localexception install check: PASS` or a failure line, and exits 0 or
   1. An exported build must find the server in its own directory.
   `client/scripts/test_install_check.gd` covers the pending owner, a missing
   server and a real answer.
 - **Release workflow.** `.github/workflows/release.yml` runs on `v*` tags,
   manual dispatch, and pull requests that touch packaging files.
-  - `server`: `fragr-server --release --locked` on ubuntu-22.04 (glibc 2.35
+  - `server`: `localexception-server --release --locked` on ubuntu-22.04 (glibc 2.35
     floor), windows-2025, and macos-26 (aarch64 and x86_64 joined with `lipo`,
     x86_64 targeting macOS 10.13).
   - `client`: Godot 4.7.2-stable for Linux plus the official
@@ -61,17 +61,17 @@ instead of the Godot mark.
     `macos.zip` and `version.txt` are kept and cached. On a tag the preset
     versions are stamped from the tag. All three presets export with a clean log.
   - `package`: per platform on its own runner, place the server beside the
-    game (inside `Contents/MacOS` for the app), add license files (fragr,
+    game (inside `Contents/MacOS` for the app), add license files (Local Exception,
     both font OFLs, Godot's `LICENSE.txt` and `COPYRIGHT.txt`), zip, then
-    unpack the zip into a fresh directory and smoke it: `fragr-server --help`,
+    unpack the zip into a fresh directory and smoke it: `localexception-server --help`,
     a 200 tick `--bench`, and the exported game's `--check-install` with an
-    empty `FRAGR_RUN_DIR`. Windows also saves the executable's icon as evidence.
+    empty `LOCALEXCEPTION_RUN_DIR`. Windows also saves the executable's icon as evidence.
   - `publish` (tags only): attach the zips and `SHA256SUMS.txt` to the tag's
     release, creating a draft release if none exists yet.
-- **Third-party notices.** `tools/licenses` (`fragr-licenses`, Rust, clap and
+- **Third-party notices.** `tools/licenses` (`localexception-licenses`, Rust, clap and
   serde_json only) runs `cargo metadata --locked --filter-platform <target>`
   for each target a package covers (both Apple targets for the universal
-  build), walks the normal (linked) dependencies of `fragr-server`, and writes
+  build), walks the normal (linked) dependencies of `localexception-server`, and writes
   `THIRD_PARTY_LICENSES.txt`: every registry crate with its SPDX expression and
   the LICENSE, LICENCE, COPYING, COPYRIGHT, NOTICE and UNLICENSE files at the
   top of its source, plus a declared `license-file`. A crate with no such file
@@ -85,15 +85,15 @@ instead of the Godot mark.
   are not linked into the binary and are not listed. Every zip carries the
   file under `licenses/`, and the smoke fails if any notice file is missing or
   empty.
-- **Name.** The project was named "fragr Client", which named the macOS bundle
-  (`fragr Client.app`), the window title and Godot's user folder. It is now
-  `fragr`, so the app is `fragr.app` with `Contents/MacOS/fragr`. Renaming
+- **Name.** The project was named "Local Exception Client", which named the macOS bundle
+  (`localexception Client.app`), the window title and Godot's user folder. It is now
+  `localexception`, so the app is `Local Exception.app` with `Contents/MacOS/localexception`. Renaming
   moves the `user://` folder, which holds `settings.cfg` and the service
   record (`service-record.0.json`, `.1.json`). `user_data_migration.gd` copies
-  those from the sibling `fragr Client` folder on the first boot when the new
+  those from the sibling `localexception Client` folder on the first boot when the new
   folder has none of them, and leaves the old files in place. Harness runs with
   isolated settings or records skip it. Server run files are unaffected: they
-  live under the OS data directory's `fragr/runs`, not `user://`.
+  live under the OS data directory's `localexception/runs`, not `user://`.
 - **macOS signing.** The app is ad-hoc signed after the server is placed inside
   it, because Apple Silicon will not run unsigned code and adding a file breaks
   the export's seal. It is not notarized, so Gatekeeper blocks the first open;
@@ -114,12 +114,12 @@ why the smoke uses a user argument handled by the boot menu.
 - `tools/godot_check.sh` and `tools/test_godot_check.sh` on Windows with Godot
   4.7.2-stable.
 - Local exports on Windows of all three presets. The Windows executable,
-  with `fragr-server.exe` copied beside it, passed `--check-install`, and
+  with `localexception-server.exe` copied beside it, passed `--check-install`, and
   without the server it failed with exit 1. The main scene run from the editor
   binary failed the same check before the attach fix (preview timed out) and
   passed after it.
 - Icon previews under `.agents/icon/` (16, 32, 256 px, and the icon pulled out
-  of the exported `fragr.exe`), inspected by eye.
+  of the exported `localexception.exe`), inspected by eye.
 - `actionlint` on both workflows.
 - The release workflow on the pull request: results recorded below.
 
@@ -134,7 +134,7 @@ No paid service is called.
   steps.
 - Each zip unpacks and its bundled server answers the exported game's install
   check on a hosted runner of that platform.
-- The executable, the running window, and the macOS app use the fragr icon.
+- The executable, the running window, and the macOS app use the Local Exception icon.
 - The README says how to download, unpack and open each package, including
   the macOS Gatekeeper step, and what the packages do not yet prove.
 
@@ -149,7 +149,7 @@ No paid service is called.
 Local, 2026-09-24, Windows 11, Godot 4.7.2-stable: `tools/godot_check.sh`
 PASS (including `test_install_check`), `tools/test_godot_check.sh` PASS,
 `actionlint` clean. All three presets exported. The Windows executable with
-`fragr-server.exe` beside it passed `--check-install`, and exited 1 without it.
+`localexception-server.exe` beside it passed `--check-install`, and exited 1 without it.
 
 Release workflow on [#233](https://github.com/blisspixel/fragr/pull/233),
 [run 36015674280](https://github.com/blisspixel/fragr/actions/runs/36015674280),
@@ -162,23 +162,23 @@ all jobs green, `publish` skipped as intended for a pull request:
 | macos-universal | 645 MB | `lipo`: x86_64 and arm64 | macos-26 (arm64): `codesign --verify --deep --strict` valid, `--help`, bench, install check PASS |
 
 Each install check line named the server inside the unpacked package
-directory (`Contents/MacOS/fragr-server` for the app) and reported `missing`
+directory (`Contents/MacOS/localexception-server` for the app) and reported `missing`
 for the empty run directory. The icon pulled from the Linux-exported
-`fragr.exe` on the Windows runner is the fragr mark. No tag or release was
+`localexception.exe` on the Windows runner is the Local Exception mark. No tag or release was
 created.
 
 After the notices and the rename, and rebased onto #235,
 [run 36021684935](https://github.com/blisspixel/fragr/actions/runs/36021684935)
-was green again. `fragr-licenses` resolved 94 crates for Linux and macOS
+was green again. `localexception-licenses` resolved 94 crates for Linux and macOS
 (universal) and 95 for Windows against the allowlist; each unpacked zip carried
 all six notice files, and the macOS install check ran from
-`fragr.app/Contents/MacOS/fragr` and found `fragr-server` beside it. Locally,
+`Local Exception.app/Contents/MacOS/Local Exception` and found `localexception-server` beside it. Locally,
 setting `MIT` off the allowlist made the tool list every blocked crate and exit 1.
 
 ### Package size
 
 Each zip is about 620 MB because of the committed radio library. Measured on
-2026-09-24 from the Windows export (`fragr.exe` 694 MB with the pack embedded):
+2026-09-24 from the Windows export (`localexception.exe` 694 MB with the pack embedded):
 
 | Part | Size |
 |---|---|
@@ -188,7 +188,7 @@ Each zip is about 620 MB because of the committed radio library. Measured on
 | everything else in `client/` (UI, factions, sprites, scripts, scenes; imported) | about 9 MB |
 | Godot release template: Windows, Linux | 104 MB, 70 MB |
 | Godot release template: macOS universal | 162 MB |
-| `fragr-server` (Windows build, uncompressed) | 5 MB |
+| `localexception-server` (Windows build, uncompressed) | 5 MB |
 
 MP3 does not compress further in a zip, so the zips are close to the unpacked
 size. No content was removed.

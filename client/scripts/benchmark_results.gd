@@ -25,7 +25,7 @@ var _details_button: Button
 var _scroll: ScrollContainer
 var _notice: Label
 ## The player's settings; the results load them when the run did not pass them.
-var preferences: FragrSettings = null
+var preferences: LocalExceptionSettings = null
 ## Crackpot's certificate, sung once when a completed run reaches this screen.
 var jingle: BenchmarkJingle = null
 ## How many times the completion itself started the jingle (0 or 1).
@@ -125,7 +125,7 @@ func _ready() -> void:
 ## focus never leaves that row and up and down keep scrolling the figures.
 func _build_jingle(header: HBoxContainer) -> void:
 	if preferences == null:
-		preferences = FragrSettings.for_tree(get_tree())
+		preferences = LocalExceptionSettings.for_tree(get_tree())
 		preferences.load_from_disk()
 	var row: HBoxContainer = HBoxContainer.new()
 	row.name = "Jingle"
@@ -156,7 +156,7 @@ func _show_jingle(take: String) -> void:
 	if _jingle_pick != null:
 		_jingle_pick.text = "JINGLE " + BenchmarkJingle.label(take)
 	var text: String = "\"%s\"" % BenchmarkJingle.lyric(take)
-	if preferences.announcer() == FragrSettings.ANNOUNCER_OFF:
+	if preferences.announcer() == LocalExceptionSettings.ANNOUNCER_OFF:
 		text += " Silent while the Announcer is Off in Settings."
 	_caption.text = text
 
@@ -175,7 +175,7 @@ func _next_jingle() -> void:
 
 ## Save a take and sing it (silent while the Announcer is Off).
 func pick_jingle(take: String) -> void:
-	var candidate: FragrSettings = preferences.draft()
+	var candidate: LocalExceptionSettings = preferences.draft()
 	candidate.set_value(BenchmarkJingle.SETTINGS_SECTION, BenchmarkJingle.SETTINGS_KEY, take)
 	if preferences.commit(candidate) != OK:
 		_notice.text = "The jingle pick could not be saved."
@@ -188,7 +188,7 @@ func _try_compatibility() -> void:
 	var tuned: Dictionary = report.get("auto_tune", {})
 	var record: Dictionary = (preferences.get_value("video", "tune") as Dictionary).duplicate(true)
 	record["compat_trial"] = {"forward_low_1": float(tuned.get("result", {}).get("low_1_count_fps", 0.0))}
-	var candidate: FragrSettings = preferences.draft()
+	var candidate: LocalExceptionSettings = preferences.draft()
 	candidate.set_value("video", "tune", record)
 	if preferences.commit(candidate) != OK or RendererOverride.write("gl_compatibility") != OK:
 		_notice.text = "The renderer choice could not be saved."
@@ -506,7 +506,7 @@ func _save_line() -> String:
 ## Plain text for the clipboard: the run, the system and each preset's four figures.
 func summary_text() -> String:
 	var lines: PackedStringArray = PackedStringArray()
-	lines.append("fragr %s, %s UTC" % ["auto settings" if report.get("auto_tune") is Dictionary else "benchmark", str(report.get("created_utc", "")).replace("T", " ")])
+	lines.append("localexception %s, %s UTC" % ["auto settings" if report.get("auto_tune") is Dictionary else "benchmark", str(report.get("created_utc", "")).replace("T", " ")])
 	if report.get("auto_tune") is Dictionary:
 		for line: Variant in (report["auto_tune"] as Dictionary).get("lines", []):
 			lines.append(str(line))

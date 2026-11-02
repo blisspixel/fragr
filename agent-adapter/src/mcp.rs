@@ -2,7 +2,7 @@
 //! (and initialize / tools/list).
 //! Kept free of stdin/WebSocket I/O so behavioral unit tests can cover the real tool paths.
 
-use fragr_server::protocol::{self as protocol, Action, Speak};
+use localexception_server::protocol::{self as protocol, Action, Speak};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
@@ -47,7 +47,7 @@ pub struct ToolState {
     pub last_snapshot: Option<Value>,
     pub loadout: Option<protocol::LoadoutState>,
     pub record: Option<protocol::PlayerRecord>,
-    pub mission: fragr_server::mission::MissionClient,
+    pub mission: localexception_server::mission::MissionClient,
     pub recent_events: Vec<Value>,
     pub player_id: Option<Uuid>,
     /// Tick of last MCP speak that was accepted for send (rate-limit honesty).
@@ -55,7 +55,7 @@ pub struct ToolState {
     /// True after Welcome / successful join; false after leave or before join.
     pub connected: bool,
     pub connection_error: Option<ConnectionError>,
-    /// Display name from `--name` / `FRAGR_AGENT_NAME` (join reuses when args omit name).
+    /// Display name from `--name` / `LOCALEXCEPTION_AGENT_NAME` (join reuses when args omit name).
     pub default_name: String,
     /// Name used for the current joined session.
     pub session_name: Option<String>,
@@ -812,7 +812,7 @@ pub fn build_round_state_result(state: &ToolState) -> Value {
 /// The shared Sabotage controller's advice for this agent, and the callout it
 /// stands in. Both are Null outside a Sabotage round.
 fn sabotage_guidance(state: &ToolState, me: Option<&Value>, layout: &Value) -> (Value, Value) {
-    use fragr_server::sim::sabotage::controller::{objective, Objective};
+    use localexception_server::sim::sabotage::controller::{objective, Objective};
     let (Some(id), Some(snapshot)) = (state.player_id, state.last_snapshot.as_ref()) else {
         return (Value::Null, Value::Null);
     };
@@ -934,7 +934,7 @@ fn tools_list_body() -> Value {
             },
             {
                 "name": "join",
-                "description": "Join the arena as an agent (Hello/Welcome). Optional name reuses --name / FRAGR_AGENT_NAME when omitted. Idempotent if already joined.",
+                "description": "Join the arena as an agent (Hello/Welcome). Optional name reuses --name / LOCALEXCEPTION_AGENT_NAME when omitted. Idempotent if already joined.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -1199,13 +1199,13 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
                 hp: other.hp,
                 weapon: other.weapon.clone(),
                 campaign: campaign_token(other.campaign),
-                key: fragr_server::combat::engagement_key(other.campaign, dist),
+                key: localexception_server::combat::engagement_key(other.campaign, dist),
             });
         }
         threats.sort_by(|a, b| {
-            if fragr_server::combat::engagement_before(a.key, b.key) {
+            if localexception_server::combat::engagement_before(a.key, b.key) {
                 std::cmp::Ordering::Less
-            } else if fragr_server::combat::engagement_before(b.key, a.key) {
+            } else if localexception_server::combat::engagement_before(b.key, a.key) {
                 std::cmp::Ordering::Greater
             } else {
                 a.id.cmp(&b.id)
@@ -1456,8 +1456,8 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
                     "tools": {}
                 },
                 "serverInfo": {
-                    "name": "fragr-agent-adapter",
-                    "version": env!("FRAGR_CLI_VERSION")
+                    "name": "localexception-agent-adapter",
+                    "version": env!("LOCALEXCEPTION_CLI_VERSION")
                 }
             })),
             error: None,
@@ -1836,7 +1836,7 @@ fn walker_observation_matches_map(snapshot: &protocol::Snapshot, map: Option<&Va
             let Some(solid) = solids.get(index) else {
                 return false;
             };
-            let Ok(solid) = fragr_server::movement::Solid::deserialize(solid) else {
+            let Ok(solid) = localexception_server::movement::Solid::deserialize(solid) else {
                 return false;
             };
             let moved = geometry.translated(solid, walker.feet);
@@ -1947,7 +1947,11 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             sabotage,
             water_regions,
         }) => {
-            fragr_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version)?;
+            localexception_server::protocol::validate_map_geometry(
+                half_extent,
+                &solids,
+                geometry_version,
+            )?;
             protocol::validate_water_regions(&water_regions, half_extent)?;
             if let Some(blade) = &article_blade {
                 blade.validate()?;
@@ -2308,11 +2312,11 @@ mod mcp_tests {
 
     #[test]
     fn walker_observation_requires_its_current_registered_world() {
-        let map = fragr_server::maps::AuthoredMap::read(
+        let map = localexception_server::maps::AuthoredMap::read(
             include_bytes!("../../server/maps/test/walker_foundation_development.json").as_slice(),
         )
         .unwrap();
-        let sim = fragr_server::sim::GameState::with_authored_map(map);
+        let sim = localexception_server::sim::GameState::with_authored_map(map);
         let map_text = serde_json::to_string(&sim.map_info()).unwrap();
         let mut snapshot = sim.snapshot();
         let wire = |snapshot: &protocol::Snapshot| {
@@ -2374,7 +2378,7 @@ mod mcp_tests {
             "a different map cannot reuse these solids"
         );
 
-        let ordinary = fragr_server::sim::GameState::new();
+        let ordinary = localexception_server::sim::GameState::new();
         ingest_server_text(
             &mut state,
             &serde_json::to_string(&ordinary.map_info()).unwrap(),
@@ -2445,8 +2449,8 @@ mod mcp_tests {
 
     #[test]
     fn vehicle_observation_preserves_water_and_rejects_invalid_facts() {
-        let mut sim = fragr_server::sim::GameState::with_map(
-            fragr_server::sim::MapKind::HoldfastAtoll,
+        let mut sim = localexception_server::sim::GameState::with_map(
+            localexception_server::sim::MapKind::HoldfastAtoll,
             false,
         );
         sim.start_round();
@@ -2486,10 +2490,12 @@ mod mcp_tests {
 
     #[test]
     fn m04_bundled_wire_observe_tools_and_clinic_handoff_share_the_contract() {
-        let map = fragr_server::maps::AuthoredSource::Mission(protocol::MissionId::NoticeToVacate)
-            .load()
-            .unwrap();
-        let mut sim = fragr_server::sim::GameState::with_authored_map(map);
+        let map = localexception_server::maps::AuthoredSource::Mission(
+            protocol::MissionId::NoticeToVacate,
+        )
+        .load()
+        .unwrap();
+        let mut sim = localexception_server::sim::GameState::with_authored_map(map);
         sim.enable_campaign_run().unwrap();
         let id = Uuid::from_u128(104);
         sim.add_player(id, "Town partner".into(), protocol::Role::Agent);
@@ -2527,7 +2533,7 @@ mod mcp_tests {
         assert_eq!(observed["mission"]["m04"], mission_wire["state"]["m04"]);
         assert_eq!(
             observed["mission"]["rules"],
-            serde_json::json!({"difficulty":"standard","revision":fragr_server::protocol::CAMPAIGN_RULES_REVISION})
+            serde_json::json!({"difficulty":"standard","revision":localexception_server::protocol::CAMPAIGN_RULES_REVISION})
         );
         let tools = handle_mcp_request(req("tools/list", None), &mut state)
             .response
@@ -2576,7 +2582,7 @@ mod mcp_tests {
             weapon_swap: Some(protocol::WeaponType::Flechette),
             ..Default::default()
         };
-        let mut navigator = fragr_server::navigation::Navigator::default();
+        let mut navigator = localexception_server::navigation::Navigator::default();
         assert_eq!(
             handoff
                 .mission
@@ -2674,12 +2680,12 @@ mod mcp_tests {
 
     #[test]
     fn custody_range_observation_carries_placed_mines_and_auditor_budgets() {
-        let map = fragr_server::maps::AuthoredMap::load(
+        let map = localexception_server::maps::AuthoredMap::load(
             &std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("../server/maps/test/custody-range.json"),
         )
         .unwrap();
-        let mut sim = fragr_server::sim::GameState::with_authored_map(map);
+        let mut sim = localexception_server::sim::GameState::with_authored_map(map);
         let id = Uuid::from_u128(92);
         sim.add_player(id, "Free agent".into(), protocol::Role::Agent);
         let mut state = ToolState {
@@ -2725,7 +2731,7 @@ mod mcp_tests {
 
     #[test]
     fn observe_full_carries_a_jumping_fighter_as_airborne_and_omits_it_grounded() {
-        let mut sim = fragr_server::sim::GameState::new();
+        let mut sim = localexception_server::sim::GameState::new();
         sim.start_round();
         let id = Uuid::from_u128(93);
         sim.add_player(id, "Hopper".into(), protocol::Role::Agent);
@@ -2762,7 +2768,7 @@ mod mcp_tests {
     fn observe_full_keeps_a_heard_shot_cut_as_the_server_sent_it() {
         // Gameplay 67: a shot from a rival the fighter only hears arrives cut
         // to where the rival sounds; observe passes it on as received.
-        let mut sim = fragr_server::sim::GameState::new();
+        let mut sim = localexception_server::sim::GameState::new();
         sim.start_round();
         let (me, rival) = (Uuid::from_u128(96), Uuid::from_u128(97));
         sim.add_player(me, "Me".into(), protocol::Role::Agent);
@@ -2774,7 +2780,7 @@ mod mcp_tests {
         };
         ingest_server_text(&mut state, &serde_json::to_string(&sim.map_info()).unwrap()).unwrap();
         let mut snapshot = sim.snapshot();
-        let heard = fragr_server::interest::coarsen(
+        let heard = localexception_server::interest::coarsen(
             &protocol::ShotResult {
                 sense: None,
                 shooter_id: rival,
@@ -2810,13 +2816,13 @@ mod mcp_tests {
 
     #[test]
     fn observe_full_names_the_zone_a_shot_struck_and_omits_it_on_a_miss() {
-        let mut sim = fragr_server::sim::GameState::new();
+        let mut sim = localexception_server::sim::GameState::new();
         sim.start_round();
         sim.pickups.clear();
         let (shooter, target) = (Uuid::from_u128(94), Uuid::from_u128(95));
         sim.add_player(shooter, "Shooter".into(), protocol::Role::Agent);
         sim.add_player(target, "Target".into(), protocol::Role::Agent);
-        let floor = fragr_server::sim::PLAYER_FLOOR_Y;
+        let floor = localexception_server::sim::PLAYER_FLOOR_Y;
         for (index, x) in [(0, 0.0), (1, 8.0)] {
             let p = &mut sim.players[index];
             [p.x, p.y, p.z] = [x, floor, 0.0];
@@ -2884,7 +2890,7 @@ mod mcp_tests {
                 assert!(validate_act_arguments(&arguments.into()).is_err());
             }
         }
-        let mut sim = fragr_server::sim::GameState::new();
+        let mut sim = localexception_server::sim::GameState::new();
         sim.start_round();
         let id = Uuid::from_u128(93);
         sim.add_player(id, "Free agent".into(), protocol::Role::Agent);
@@ -2929,12 +2935,12 @@ mod mcp_tests {
 
     #[test]
     fn m02_observation_readiness_and_panel_validation_share_the_server_contract() {
-        let map = fragr_server::maps::AuthoredMap::load(
+        let map = localexception_server::maps::AuthoredMap::load(
             &std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("../server/maps/test/m02-wire-fixture.json"),
         )
         .unwrap();
-        let mut sim = fragr_server::sim::GameState::with_authored_map(map);
+        let mut sim = localexception_server::sim::GameState::with_authored_map(map);
         let id = Uuid::from_u128(91);
         sim.add_player(id, "Free agent".into(), protocol::Role::Agent);
         let mut state = ToolState {
@@ -3061,10 +3067,11 @@ mod mcp_tests {
 
     #[test]
     fn m06_observation_retains_geometry_and_rejects_invented_carried_passengers() {
-        let map = fragr_server::maps::AuthoredSource::Mission(protocol::MissionId::PortOfEntry)
-            .load()
-            .unwrap();
-        let mut sim = fragr_server::sim::GameState::with_authored_map(map);
+        let map =
+            localexception_server::maps::AuthoredSource::Mission(protocol::MissionId::PortOfEntry)
+                .load()
+                .unwrap();
+        let mut sim = localexception_server::sim::GameState::with_authored_map(map);
         let id = Uuid::new_v4();
         sim.add_player(id, "Port reader".into(), protocol::Role::Agent);
         let mut state = ToolState {
@@ -3104,10 +3111,11 @@ mod mcp_tests {
 
     #[test]
     fn continue_tool_requires_current_dead_owner_and_server_confirmation() {
-        let map = fragr_server::maps::AuthoredSource::Mission(protocol::MissionId::RecallNotice)
-            .load()
-            .unwrap();
-        let mut sim = fragr_server::sim::GameState::with_authored_map(map);
+        let map =
+            localexception_server::maps::AuthoredSource::Mission(protocol::MissionId::RecallNotice)
+                .load()
+                .unwrap();
+        let mut sim = localexception_server::sim::GameState::with_authored_map(map);
         sim.enable_campaign_run().unwrap();
         let id = Uuid::new_v4();
         sim.add_player(id, "Runner".into(), protocol::Role::Agent);
@@ -3193,13 +3201,13 @@ mod mcp_tests {
 
     #[test]
     fn mission_observe_and_use_share_the_server_contract() {
-        let map = fragr_server::maps::AuthoredMap::load(
+        let map = localexception_server::maps::AuthoredMap::load(
             &std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("../server/maps/m01-recall-notice.json"),
         )
         .unwrap();
-        let mut sim = fragr_server::sim::GameState::with_authored_map(map);
-        sim.set_campaign_difficulty(fragr_server::protocol::CampaignDifficulty::Assisted)
+        let mut sim = localexception_server::sim::GameState::with_authored_map(map);
+        sim.set_campaign_difficulty(localexception_server::protocol::CampaignDifficulty::Assisted)
             .unwrap();
         let id = Uuid::from_u128(1);
         sim.add_player(id, "Partner".into(), protocol::Role::Agent);
@@ -3223,7 +3231,7 @@ mod mcp_tests {
         assert_eq!(observed["mission"]["phase"], "briefing");
         assert_eq!(
             observed["mission"]["rules"],
-            serde_json::json!({"difficulty":"assisted","revision":fragr_server::protocol::CAMPAIGN_RULES_REVISION})
+            serde_json::json!({"difficulty":"assisted","revision":localexception_server::protocol::CAMPAIGN_RULES_REVISION})
         );
         assert_eq!(observed["mission"]["party"][0]["ready"], false);
         assert_eq!(observed["mission"]["party"][0]["id"], id.to_string());
@@ -3315,7 +3323,7 @@ mod mcp_tests {
                 .place_mine
         );
         assert!(ingest_server_text(&mut state, r#"{"type":"mission","state":[]}"#).is_err());
-        let legacy = fragr_server::sim::GameState::new().map_info();
+        let legacy = localexception_server::sim::GameState::new().map_info();
         ingest_server_text(&mut state, &serde_json::to_string(&legacy).unwrap()).unwrap();
         assert!(state.mission.state.is_none());
         assert!(ingest_server_text(
@@ -3327,10 +3335,12 @@ mod mcp_tests {
 
     #[test]
     fn m11_map_and_mission_use_the_existing_observation_connection() {
-        let map = fragr_server::maps::AuthoredSource::Mission(protocol::MissionId::RightOfSearch)
-            .load()
-            .unwrap();
-        let sim = fragr_server::sim::GameState::with_authored_map(map);
+        let map = localexception_server::maps::AuthoredSource::Mission(
+            protocol::MissionId::RightOfSearch,
+        )
+        .load()
+        .unwrap();
+        let sim = localexception_server::sim::GameState::with_authored_map(map);
         let mut state = ToolState::default();
         ingest_server_text(&mut state, &serde_json::to_string(&sim.map_info()).unwrap()).unwrap();
         let message = sim.mission_message().unwrap();
@@ -3543,7 +3553,7 @@ mod mcp_tests {
 
     #[test]
     fn brief_names_the_weapons_this_free_for_all_life_owns() {
-        use fragr_server::sim::GameState;
+        use localexception_server::sim::GameState;
         let id = Uuid::from_u128(5);
         let mut game = GameState::new();
         game.add_player(id, "Agent".into(), protocol::Role::Agent);
@@ -3576,7 +3586,7 @@ mod mcp_tests {
 
     #[test]
     fn private_equipment_reaches_observation_and_invalid_updates_preserve_it() {
-        use fragr_server::inventory::Inventory;
+        use localexception_server::inventory::Inventory;
         use protocol::{EquipmentPolicy, WeaponType};
         let id = Uuid::nil();
         let mut state = ToolState {
@@ -3944,7 +3954,7 @@ mod mcp_tests {
         assert_eq!(result["podium"]["vote"]["leader"], 4);
         assert_eq!(result["podium"]["story"][0]["nemesis"], "Aunt Linda");
         // The wire type reads the same podium.
-        let wire: fragr_server::protocol::Podium =
+        let wire: localexception_server::protocol::Podium =
             serde_json::from_value(result["podium"].clone()).unwrap();
         assert_eq!(wire.vote.unwrap().options.len(), 2);
     }
@@ -4014,7 +4024,7 @@ mod mcp_tests {
 
     #[test]
     fn a_found_shiv_reaches_observation_and_its_secret_event_is_kept() {
-        use fragr_server::inventory::Inventory;
+        use localexception_server::inventory::Inventory;
         use protocol::{EquipmentPolicy, GameEvent, WeaponType};
         let id = Uuid::nil();
         let mut state = ToolState {
@@ -4141,15 +4151,23 @@ mod mcp_tests {
     /// on the other side never hears it, and the booth hears both sides.
     #[test]
     fn a_side_call_reaches_only_the_sessions_the_server_sent_it_to() {
-        use fragr_server::net::GameCommand;
-        use fragr_server::session::{GameSession, Recipient};
-        let mut session = GameSession::with_map(fragr_server::sim::MapKind::Sector9, false);
+        use localexception_server::net::GameCommand;
+        use localexception_server::session::{GameSession, Recipient};
+        let mut session =
+            GameSession::with_map(localexception_server::sim::MapKind::Sector9, false);
         session.min_bots = 0;
-        session.state.apply_config(fragr_server::sim::MatchConfig {
-            rules: fragr_server::rules::RuleSet::new(protocol::GameMode::Ctf, &[], false).unwrap(),
-            capture_limit: Some(3),
-            ..Default::default()
-        });
+        session
+            .state
+            .apply_config(localexception_server::sim::MatchConfig {
+                rules: localexception_server::rules::RuleSet::new(
+                    protocol::GameMode::Ctf,
+                    &[],
+                    false,
+                )
+                .unwrap(),
+                capture_limit: Some(3),
+                ..Default::default()
+            });
         let seats: Vec<(Uuid, Uuid)> = (1..=2)
             .map(|n| (Uuid::from_u128(100 + n), Uuid::from_u128(n)))
             .collect();
@@ -4396,7 +4414,7 @@ mod mcp_tests {
         assert!(init.response.result.unwrap()["serverInfo"]["name"]
             .as_str()
             .unwrap()
-            .contains("fragr-agent-adapter"));
+            .contains("localexception-agent-adapter"));
 
         let list = handle_mcp_request(req("tools/list", None), &mut state);
         let list_result = list.response.result.unwrap();
@@ -4466,8 +4484,8 @@ mod mcp_tests {
             body: None,
             dress: None,
             seat: None,
-            gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
-            geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
+            gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
+            geometry_version: localexception_server::protocol::GEOMETRY_VERSION,
             role: protocol::Role::Agent,
             name: name.to_string(),
 
@@ -4998,13 +5016,13 @@ mod mcp_tests {
     /// the snapshot's side scores, and their own side and lives.
     #[test]
     fn round_state_reports_rules_teams_and_lives() {
-        let mut sim = fragr_server::sim::GameState::new();
-        sim.apply_config(fragr_server::sim::MatchConfig {
-            rules: fragr_server::rules::RuleSet::new(
-                fragr_server::protocol::GameMode::Tdm,
+        let mut sim = localexception_server::sim::GameState::new();
+        sim.apply_config(localexception_server::sim::MatchConfig {
+            rules: localexception_server::rules::RuleSet::new(
+                localexception_server::protocol::GameMode::Tdm,
                 &[
-                    fragr_server::protocol::Mutator::TwoLives,
-                    fragr_server::protocol::Mutator::RailOnly,
+                    localexception_server::protocol::Mutator::TwoLives,
+                    localexception_server::protocol::Mutator::RailOnly,
                 ],
                 false,
             )
@@ -5012,11 +5030,15 @@ mod mcp_tests {
             ..Default::default()
         });
         let me = Uuid::from_u128(7);
-        sim.add_player(me, "Probe".into(), fragr_server::protocol::Role::Agent);
+        sim.add_player(
+            me,
+            "Probe".into(),
+            localexception_server::protocol::Role::Agent,
+        );
         sim.add_player(
             Uuid::from_u128(8),
             "Rival".into(),
-            fragr_server::protocol::Role::Agent,
+            localexception_server::protocol::Role::Agent,
         );
         let mut state = ToolState {
             connected: true,
@@ -5024,7 +5046,7 @@ mod mcp_tests {
             ..Default::default()
         };
         ingest_server_text(&mut state, &serde_json::to_string(&sim.map_info()).unwrap()).unwrap();
-        let snapshot = fragr_server::protocol::ServerMessage::Snapshot(sim.snapshot());
+        let snapshot = localexception_server::protocol::ServerMessage::Snapshot(sim.snapshot());
         ingest_server_text(&mut state, &serde_json::to_string(&snapshot).unwrap()).unwrap();
         let out = handle_mcp_request(
             req(
@@ -5381,7 +5403,7 @@ mod mcp_tests {
     /// reads the wire, reach `round_state` with the shared controller's advice.
     #[test]
     fn sabotage_round_state_reports_sites_charge_and_the_objective() {
-        use fragr_server::sim::{GameState, MapKind, MatchConfig};
+        use localexception_server::sim::{GameState, MapKind, MatchConfig};
         let mut server = GameState::with_map(MapKind::Sector9, false);
         server.seed(3);
         server.apply_config(MatchConfig {
@@ -5389,9 +5411,13 @@ mod mcp_tests {
             time_limit_ticks: None,
             boss_spawn_ticks: None,
             compliance_ping_ticks: None,
-            rules: fragr_server::rules::RuleSet::new(protocol::GameMode::Sabotage, &[], false)
-                .unwrap(),
-            sabotage: fragr_server::rules::SabotageConfig {
+            rules: localexception_server::rules::RuleSet::new(
+                protocol::GameMode::Sabotage,
+                &[],
+                false,
+            )
+            .unwrap(),
+            sabotage: localexception_server::rules::SabotageConfig {
                 muster_ticks: 2,
                 ..Default::default()
             },

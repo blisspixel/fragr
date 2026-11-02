@@ -11,7 +11,7 @@ fi
 file=$1
 name=$2
 here=$(cd "$(dirname "$0")" && pwd)
-sums=${FRAGR_GODOT_SUMS:-$here/godot/SHA512-SUMS.txt}
+sums=${LOCALEXCEPTION_GODOT_SUMS:-$here/godot/SHA512-SUMS.txt}
 
 if [ ! -f "$file" ]; then
   echo "missing archive $file" >&2

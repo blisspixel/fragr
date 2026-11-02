@@ -4,7 +4,7 @@ var _failures: int = 0
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
-	set_meta("fragr_settings_path", "user://test-multiplayer-layout-%d.cfg" % OS.get_process_id())
+	set_meta("localexception_settings_path", "user://test-multiplayer-layout-%d.cfg" % OS.get_process_id())
 	_run.call_deferred()
 
 func _check(condition: bool, message: String) -> void:

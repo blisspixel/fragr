@@ -7,11 +7,11 @@ var _retiring_chimes: Array[WeakRef] = []
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
-	set_meta("fragr_settings_path", "user://m07-mission-%d.cfg" % OS.get_process_id())
+	set_meta("localexception_settings_path", "user://m07-mission-%d.cfg" % OS.get_process_id())
 	_run.call_deferred()
 
 func _finalize() -> void:
-	DirAccess.remove_absolute(ProjectSettings.globalize_path(str(get_meta("fragr_settings_path"))))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(str(get_meta("localexception_settings_path"))))
 
 func _check(value: bool, message: String) -> void:
 	if not value:

@@ -224,7 +224,7 @@ mod tests {
     }
 
     /// Release timing of the history at 64 fighters; run with
-    /// `cargo test -p fragr-server --release --lib rewind_cost -- --ignored --nocapture`.
+    /// `cargo test -p localexception-server --release --lib rewind_cost -- --ignored --nocapture`.
     #[test]
     #[ignore]
     fn rewind_cost_at_64_fighters() {

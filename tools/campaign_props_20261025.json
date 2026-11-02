@@ -29,7 +29,7 @@
    ],
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -40,7 +40,7 @@
      "keyed_sha256": "4ca64e25ec186f2ca822e67ebe871be52ce5f2c8b0daa34defce40a93f0ede87"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/m7c-bank-meshy-20261024.json",
@@ -93,7 +93,7 @@
    ],
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -104,7 +104,7 @@
      "keyed_sha256": "67cc78934d3c49763ef297577034a76fd664cea3412908b567fbadfe0db41573"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/m7b-bank-meshy-20261024.json",
@@ -135,7 +135,7 @@
    "placement": "Common Carrier bridge: two consoles side by side fill command_console (x 1.5..3.5, z -16.8..-16.0, y 7.6..8.5), screens aft toward the pilot's feet",
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -146,7 +146,7 @@
      "keyed_sha256": "ffb13e942c860b6cae58b2b6fd2ef76ab57ae9ee16e531e3d5027e58c4de01aa"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/m7a-bank-meshy-20261024.json",
@@ -177,7 +177,7 @@
    "placement": "Common Carrier crew deck: four units back to back, two along each face, fill the galley_counter island (x 4.5..7.3, z -5.8..-4.5, y 4.8..5.9)",
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -188,7 +188,7 @@
      "keyed_sha256": "2b6671a909ad0defdd9d34c3fce3a5fff29338e56574f096146cdf31491cf011"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/m7a-bank-meshy-20261024.json",
@@ -226,7 +226,7 @@
    ],
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -237,7 +237,7 @@
      "keyed_sha256": "7b764e13e4a9edfcdfb0ec25156c302b4720e0f8d8fb37c70775091a53105306"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/m7a-bank-meshy-20261024.json",
@@ -299,7 +299,7 @@
    ],
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -310,7 +310,7 @@
      "keyed_sha256": "d02aae584590a6942ef61c30cebc66869a9f66429d58e0bf41ac56a931ed7d7c"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/m7a-bank-meshy-20261024.json",
@@ -371,7 +371,7 @@
    ],
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -382,7 +382,7 @@
      "keyed_sha256": "53c78ee1e2fa7288a28aca5c55cdd0c2c5cc869ef2d8a50d72ecbd19a541e818"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/m7b-bank-meshy-20261024.json",
@@ -453,7 +453,7 @@
    ],
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -464,7 +464,7 @@
      "keyed_sha256": "0d9ee62b30ef5f6670f2cf7a11d8914a10fd93f90e5c3eaf5da24435e1e921a1"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/m6-canon-fixed-2k-meshy-20261023.json",
@@ -495,7 +495,7 @@
    "placement": "Planned Works concourse: the stretcher the Clerk and the coalition porter carry, canvas at 0.82 m",
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -506,7 +506,7 @@
      "keyed_sha256": "df70613ec4b3e2d4b9e11151d8b3b40f9c1e1114ff24b614492954a644bf91d5"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/m3b-m4-walker-l19-props-meshy-20261023.json",
@@ -537,7 +537,7 @@
    "placement": "Planned Works concourse: the household's cases stacked on the luggage cart and the cases people rest on",
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -548,7 +548,7 @@
      "keyed_sha256": "05940090352210dbba1de1a53fad5b089110704737c014aa8c604688df0ff6c8"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/m3b-m4-walker-l19-props-meshy-20261023.json",
@@ -579,7 +579,7 @@
    "placement": "Planned Works concourse: in the luggage cart stack and as a seat for one of the resting household",
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -590,7 +590,7 @@
      "keyed_sha256": "1c196cfcc1a54d1a30987050a500d56d6227d62cf6257372616e64164ed0fec8"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/m3b-m4-walker-l19-props-meshy-20261023.json",
@@ -621,7 +621,7 @@
    "placement": "Planned Works: the crate stacks in the market, the lane and the trench, each solid filled by a grid of crates",
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -632,7 +632,7 @@
      "keyed_sha256": "8dfe2ef2bb40f69b820f2498b1ff97124bcbc98e561eeb80b30917c5984e1560"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/m5-l20-props-meshy-20261023.json",

@@ -12,9 +12,9 @@
 pub mod host;
 
 use super::{soak, transport, Error};
-use fragr_server::protocol::{Action, ClientMessage, Role, ServerMessage};
-use fragr_server::sim::MapKind;
 use futures_util::{SinkExt, StreamExt};
+use localexception_server::protocol::{Action, ClientMessage, Role, ServerMessage};
+use localexception_server::sim::MapKind;
 use serde::Serialize;
 use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
@@ -149,8 +149,8 @@ pub struct TrafficReport {
     pub burst: u32,
     pub seed: u64,
     pub map: String,
-    pub build: fragr_server::protocol::BuildInfo,
-    pub environment: fragr_server::bench::BenchEnvironment,
+    pub build: localexception_server::protocol::BuildInfo,
+    pub environment: localexception_server::bench::BenchEnvironment,
     pub connected_fighters: usize,
     pub connected_spectators: usize,
     pub actions_sent: u64,
@@ -276,15 +276,15 @@ async fn seat_task(
         body: None,
         dress: None,
         seat: None,
-        gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
-        geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
+        gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
+        geometry_version: localexception_server::protocol::GEOMETRY_VERSION,
         role,
         name,
-        ticket: fragr_server::join_ticket::ticket_for(role),
+        ticket: localexception_server::join_ticket::ticket_for(role),
         resume: None,
     };
     sink.send(Message::Text(
-        serde_json::to_string(&hello).map_err(transport)?,
+        serde_json::to_string(&hello).map_err(transport)?.into(),
     ))
     .await
     .map_err(transport)?;
@@ -294,7 +294,7 @@ async fn seat_task(
         ..SeatResult::default()
     };
     let mut step = 0u32;
-    let mut world = fragr_server::protocol::WorldReader::new();
+    let mut world = localexception_server::protocol::WorldReader::new();
     let (period, per_send) = plan.cadence.unwrap_or((Duration::from_secs(3600), 0));
     let mut interval = tokio::time::interval(period);
     interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
@@ -311,7 +311,7 @@ async fn seat_task(
                 for _ in 0..per_send {
                     step = step.saturating_add(1);
                     let text = serde_json::to_string(&action(index, step)).map_err(transport)?;
-                    if sink.feed(Message::Text(text)).await.is_err() {
+                    if sink.feed(Message::Text(text.into())).await.is_err() {
                         result.disconnected = !*stop.borrow();
                         break;
                     }
@@ -365,7 +365,7 @@ async fn seat_task(
                     Ok(ServerMessage::Error { code, message }) if !result.welcomed => {
                         return Err(Error::Server(format!("{code}: {message}")));
                     }
-                    Err(fragr_server::protocol::delta::ReadError::Delta(error)) => {
+                    Err(localexception_server::protocol::delta::ReadError::Delta(error)) => {
                         return Err(Error::Server(error.to_string()));
                     }
                     _ => {}
@@ -666,8 +666,8 @@ async fn drive(
         burst: config.burst,
         seed: config.seed,
         map: config.map.name().to_string(),
-        build: fragr_server::metrics::build_info(),
-        environment: fragr_server::bench::BenchEnvironment::current(),
+        build: localexception_server::metrics::build_info(),
+        environment: localexception_server::bench::BenchEnvironment::current(),
         connected_fighters,
         connected_spectators,
         actions_sent: results.iter().map(|result| result.actions_sent).sum(),
@@ -692,8 +692,8 @@ async fn drive(
             .unwrap_or(0),
         health: end_status.as_ref().and_then(|status| {
             status.health.as_ref().map(|health| match health.status {
-                fragr_server::protocol::HealthState::Ok => "ok".to_string(),
-                fragr_server::protocol::HealthState::Degraded => "degraded".to_string(),
+                localexception_server::protocol::HealthState::Ok => "ok".to_string(),
+                localexception_server::protocol::HealthState::Degraded => "degraded".to_string(),
             })
         }),
         tick_p99_ms: ops.map(|ops| ops.tick.lifetime.p99_ms),
@@ -826,7 +826,8 @@ mod tests {
 
     #[tokio::test]
     async fn a_short_local_roster_moves_and_watches() {
-        let dir = std::env::temp_dir().join(format!("fragr-traffic-{}", std::process::id()));
+        let dir =
+            std::env::temp_dir().join(format!("localexception-traffic-{}", std::process::id()));
         let report_path = dir.join("traffic.json");
         let report = run(TrafficConfig {
             seconds: 2,

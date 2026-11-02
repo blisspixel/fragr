@@ -19,7 +19,7 @@ The 1.0 bar in [`../ROADMAP.md`](../ROADMAP.md) asks for first-person movement a
 - Stage 1 shipped: `Action` has absolute `yaw` and numbered `seq`; the server sends a separate human-only unicast `ack`, not embedded in a snapshot.
 - The [live movement step](live-movement-step.md), optional [full 3D movement Ack](movement-ack-v1.md) and [local pawn prediction](local-pawn-prediction.md) now provide bounded 20 Hz replay on WebSocket. The [continuous](websocket-moving-combat-probe.md) and [delayed-egress](websocket-delayed-egress.md) probes measure same-tick corrections and fallback behavior.
 - A later tick migration would convert tick-count fields (`respawn_in`, cooldowns, `duration_ticks`, the 160-tick linger) to seconds or milliseconds, with the tick rate stated in `Welcome`.
-- Each of these lands in `docs/protocol.md` in the same PR. The adapter reads the wire types from `fragr-server` (as the playtest harness and the brain do), so a wire change is edited once and the compiler finds every reader.
+- Each of these lands in `docs/protocol.md` in the same PR. The adapter reads the wire types from `localexception-server` (as the playtest harness and the brain do), so a wire change is edited once and the compiler finds every reader.
 
 ## Dependents of the tick change (stage 2)
 
@@ -147,7 +147,7 @@ Gamepad: radial deadzone 0.12 rescaled to a full range, exponent 1.8, yaw rate 2
 4. Timeline interpolation for others with snapshot velocity; the lerp removed.
 5. Lag compensation with `view_tick` and the bounded rewind.
 6. Gamepad curves and aim friction from the settings dictionary.
-7. A measured transport pilot after the WebSocket feel and bandwidth baseline. The older 2D `fragr-wire v1` sketch in `massive-arenas.md` is not the current 3D wire contract.
+7. A measured transport pilot after the WebSocket feel and bandwidth baseline. The older 2D `localexception-wire v1` sketch in `massive-arenas.md` is not the current 3D wire contract.
 
 ## Measurements
 

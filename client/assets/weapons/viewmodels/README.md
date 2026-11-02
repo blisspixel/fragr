@@ -25,7 +25,7 @@ frames are 241 by 180 RGBA on the full 4:3 canvas (`--no-trim`), palette-locked
 to `docs/palette.json`, so a gun's frames register without offsets. The fire
 frame shows for 0.08 s; the HUD's kick translation still applies on top.
 
-Preparation: `fragr-spritegen reduce --input <raw> --out <dir> --height 180
+Preparation: `localexception-spritegen reduce --input <raw> --out <dir> --height 180
 --no-trim --palette docs/palette.json --key ff00ff`. Prompts, request IDs,
 estimated costs and hashes are in `../../art-pass-20261002-manifest.json`; the
 specs are `tools/spritegen/specs/art-pass-20261002-*.json`. The Rifle's two

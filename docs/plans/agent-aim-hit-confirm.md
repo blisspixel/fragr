@@ -87,7 +87,7 @@ Do not reopen round_* shapes.
 |---|---|
 | `server` protocol + sim | LookAt on Action; apply yaw in tick; ShotResult on Snapshot; Hit event on damage |
 | `agent-adapter` protocol + mcp | Mirror types; validate `look_at`; tools/list schema; scripted bot uses `look_at.player_id` |
-| Docs | `docs/protocol.md`, adapter README, `docs/skills/fragr/SKILL.md`, this plan, plans tip priorities |
+| Docs | `docs/protocol.md`, adapter README, `docs/skills/localexception/SKILL.md`, this plan, plans tip priorities |
 
 ## Verification
 

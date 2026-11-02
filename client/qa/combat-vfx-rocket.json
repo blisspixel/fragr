@@ -1,5 +1,5 @@
 {
-  "comment": "Rocket effects in a live match on Larak Lot, first person, through ordinary input: the fighter takes the Rocket from the bottom of the Pit (the rocket-jump route from slot one), then from the Pit's north end fires into the Stack and into the Pit floor, and looks at the scorches. Run tools/qa_tour.sh with FRAGR_QA_MANIFEST=res://qa/combat-vfx-rocket.json, FRAGR_QA_MAP=1, FRAGR_QA_BOTS=0 and FRAGR_QA_NO_ROUND_EVENTS=1. The gun effects are res://qa/combat-vfx.json; the controlled lineup is client/qa/combat_vfx_review.gd. Inspection only; not a tour publish.",
+  "comment": "Rocket effects in a live match on Larak Lot, first person, through ordinary input: the fighter takes the Rocket from the bottom of the Pit (the rocket-jump route from slot one), then from the Pit's north end fires into the Stack and into the Pit floor, and looks at the scorches. Run tools/qa_tour.sh with LOCALEXCEPTION_QA_MANIFEST=res://qa/combat-vfx-rocket.json, LOCALEXCEPTION_QA_MAP=1, LOCALEXCEPTION_QA_BOTS=0 and LOCALEXCEPTION_QA_NO_ROUND_EVENTS=1. The gun effects are res://qa/combat-vfx.json; the controlled lineup is client/qa/combat_vfx_review.gd. Inspection only; not a tour publish.",
   "width": 1280,
   "height": 720,
   "states": [

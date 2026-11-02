@@ -33,7 +33,7 @@ func _run() -> void:
 	_check(PerformanceOverlay.format(PerformanceOverlay.OFF, summary).is_empty(), "off shows nothing")
 
 	var path: String = "user://test-performance-overlay-%d.cfg" % OS.get_process_id()
-	var preferences: FragrSettings = FragrSettings.new(path)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	_check(int(preferences.get_value("video", "show_fps")) == 0, "the counter is off by default")
 	var overlay: PerformanceOverlay = PerformanceOverlay.new()
 	overlay.preferences = preferences
@@ -50,7 +50,7 @@ func _run() -> void:
 		overlay.record(0.004)
 	_check(overlay.samples().size() == PerformanceOverlay.WINDOW_FRAMES, "the sample window is bounded")
 
-	var candidate: FragrSettings = preferences.draft()
+	var candidate: LocalExceptionSettings = preferences.draft()
 	candidate.set_value("video", "show_fps", 2)
 	_check(preferences.commit(candidate) == OK, "the settings store commits the counter mode")
 	_check(overlay.mode() == PerformanceOverlay.DETAIL and overlay.visible and overlay.is_processing(), "a committed mode reaches a live counter")
@@ -69,7 +69,7 @@ func _run() -> void:
 		await process_frame
 	_check(overlay.text().ends_with(" FPS"), "a live counter draws a frame rate within a few frames")
 
-	var console: FragrConsole = FragrConsole.new()
+	var console: LocalExceptionConsole = LocalExceptionConsole.new()
 	console.preferences = preferences
 	root.add_child(console)
 	console.run("cl_showfps 1")
@@ -79,7 +79,7 @@ func _run() -> void:
 	console.run("cl_showfps 5")
 	console.run("showfps nonsense")
 	_check(int(preferences.get_value("video", "show_fps")) == 0, "invalid console values leave the setting alone")
-	var reloaded: FragrSettings = FragrSettings.new(path)
+	var reloaded: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	reloaded.load_from_disk()
 	_check(int(reloaded.get_value("video", "show_fps")) == 0, "the console choice persists through the settings file")
 

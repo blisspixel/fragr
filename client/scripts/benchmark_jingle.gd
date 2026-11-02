@@ -14,7 +14,7 @@ class_name BenchmarkJingle
 ##
 ## Six takes ship (three lyrics, two takes each) until Nick picks one by ear on
 ## the results screen. The pick is saved as `[audio] benchmark_jingle`; then
-## `fragr-audiogen jingle-prune --apply` deletes the other five and the picker
+## `localexception-audiogen jingle-prune --apply` deletes the other five and the picker
 ## goes with them, with no code change.
 
 ## A clip started; carries the take and its length.
@@ -71,7 +71,7 @@ static func shipped_takes() -> Array[String]:
 
 
 ## The saved pick when it still ships, else the first take that does.
-static func chosen_take(settings: FragrSettings) -> String:
+static func chosen_take(settings: LocalExceptionSettings) -> String:
 	var saved: String = DEFAULT_TAKE if settings == null else clean_take(settings.get_value(SETTINGS_SECTION, SETTINGS_KEY))
 	var shipped: Array[String] = shipped_takes()
 	if saved in shipped or shipped.is_empty():
@@ -99,14 +99,14 @@ static func gain_db(chosen: String) -> float:
 ## Whether the certificate is sung: only for a completed run, never when the
 ## Announcer setting is Off. The bus volume handles everything in between.
 static func allowed(report: Dictionary, announcer: int) -> bool:
-	return announcer != FragrSettings.ANNOUNCER_OFF and str(report.get("state", "")) == "complete" \
+	return announcer != LocalExceptionSettings.ANNOUNCER_OFF and str(report.get("state", "")) == "complete" \
 		and report.get("runs") is Array and not (report["runs"] as Array).is_empty()
 
 
 ## Sing one take, cutting off any take already playing. Returns whether a clip
 ## started; a missing clip is silence.
 func sing(chosen: String, announcer: int) -> bool:
-	if announcer == FragrSettings.ANNOUNCER_OFF:
+	if announcer == LocalExceptionSettings.ANNOUNCER_OFF:
 		return false
 	var clip: AudioStream = _clip(take_path(chosen))
 	if clip == null:

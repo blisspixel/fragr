@@ -5,7 +5,7 @@ extends Panel
 ## frags. A team mode splits the sides into two blocks, the viewer's own side
 ## first (the Union first for a watcher), each under a header bar in its
 ## faction's look with the side's total and round wins, Counter-Strike's
-## board in fragr's colours. Objective modes add their own columns: Sabotage
+## board in localexception's colours. Objective modes add their own columns: Sabotage
 ## plants and defuses, flag captures and returns, Conquest captures. The
 ## round's best fighter carries an MVP mark, and the viewer's head-to-head
 ## book this session marks a nemesis and the fighters they lead or trail.

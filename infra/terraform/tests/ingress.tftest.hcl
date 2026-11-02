@@ -4,9 +4,9 @@ variables {
   project_id          = "example-proj"
   region              = "us-west1"
   zone                = "us-west1-a"
-  artifact_repository = "fragr-images"
+  artifact_repository = "localexception-images"
   image_sha256        = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-  join_secret_id      = "fragr-join-secret"
+  join_secret_id      = "localexception-join-secret"
   join_secret_version = "1"
 }
 

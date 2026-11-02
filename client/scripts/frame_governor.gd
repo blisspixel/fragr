@@ -31,10 +31,10 @@ var _window: PackedFloat32Array = PackedFloat32Array()
 var _window_seconds: float = 0.0
 
 ## Auto settings on, the in-match valve on, and the tier not pinned.
-static func allowed(preferences: FragrSettings) -> bool:
+static func allowed(preferences: LocalExceptionSettings) -> bool:
 	return bool(preferences.get_value("video", "auto")) and bool(preferences.get_value("video", "governor")) and not preferences.pinned("quality")
 
-static func for_settings(preferences: FragrSettings, current_renderer: String) -> FrameGovernor:
+static func for_settings(preferences: LocalExceptionSettings, current_renderer: String) -> FrameGovernor:
 	var governor: FrameGovernor = FrameGovernor.new()
 	governor.target = preferences.target_fps()
 	governor.enabled = allowed(preferences)

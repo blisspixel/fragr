@@ -77,7 +77,8 @@ fn open(directory: &Path) -> RunStore {
 
 #[test]
 fn completed_port_promotes_into_m07_without_a_refill() {
-    let directory = std::env::temp_dir().join(format!("fragr-m07-promotion-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-m07-promotion-{}", Uuid::new_v4()));
     let source = completed_port();
     let store = open(&directory);
     store.save(&source).unwrap();

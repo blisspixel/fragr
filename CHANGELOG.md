@@ -4,6 +4,21 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.2 - 2026-11-01
+
+- Rename the game to Local Exception, with matching desktop branding, packages,
+  Rust tools and `LOCALEXCEPTION_` configuration. The technical name is
+  `localexception`, matching the domains. Earlier releases keep their names.
+- Keep the original illustrated title art and its faction composition. The new
+  title version carries the same free human and agent opposite Union forces.
+- Require gameplay 68 on every game door; rename the paired join-ticket and
+  LAN discovery identifiers. Older builds receive an update refusal.
+- Store new desktop settings under the `localexception` user-data directory.
+  Earlier product data is not migrated or deleted.
+- Refresh all direct Rust dependencies to current stable releases, including
+  Tokio's I/O safety fix and the TLS certificate distrust updates. Align CI and
+  container builds on Rust 1.99.1 and use Debian 13 for the server image.
+
 ## v0.99.1 - 2026-11-01
 
 - Light every venue for Forward+, the renderer players get: Larak Lot's Pit

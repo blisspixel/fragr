@@ -34,7 +34,7 @@ class_name ArenaSky
 ## (shadows, contact shading, glow) stays in render_quality.gd.
 
 ## Registered practical lights join this group so quality can toggle shadows.
-const PRACTICAL_GROUP: StringName = &"fragr_practical_light"
+const PRACTICAL_GROUP: StringName = &"localexception_practical_light"
 ## The name of the view-attached readability fill under the camera.
 const VIEW_FILL: String = "ViewFill"
 ## Server-built world geometry renders on visual layer 2 only. The view fill

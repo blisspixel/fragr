@@ -1,9 +1,11 @@
 //! Market-only arbitration of already constrained ordinary key actions. This
 //! evaluator revision sees only the current delayed-visible floor strips.
 //! It neither remembers unseen hazards nor chooses a new navigation route.
-use fragr_server::movement::{Arena, MoveInput, MoveState, ACTOR_REFERENCE_SPEED, CONTACT_EPSILON};
-use fragr_server::protocol::{Action, PaverStripState, PlayerState, Snapshot};
-use fragr_server::sim::PLAYER_FLOOR_Y;
+use localexception_server::movement::{
+    Arena, MoveInput, MoveState, ACTOR_REFERENCE_SPEED, CONTACT_EPSILON,
+};
+use localexception_server::protocol::{Action, PaverStripState, PlayerState, Snapshot};
+use localexception_server::sim::PLAYER_FLOOR_Y;
 use serde::{Deserialize, Serialize};
 
 /// Which arbitration branch produced the final keys. Reported for diagnosis
@@ -82,7 +84,7 @@ fn feet(me: &PlayerState) -> [f32; 3] {
 
 fn project(me: &PlayerState, action: &Action, arena: &Arena) -> [f32; 3] {
     let from = feet(me);
-    let after = fragr_server::movement::live_step(
+    let after = localexception_server::movement::live_step(
         MoveState {
             x: from[0],
             y: from[1],

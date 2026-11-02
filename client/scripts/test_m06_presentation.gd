@@ -192,7 +192,7 @@ func _check_surface_tiles() -> void:
 
 func _check_environment_replacement() -> void:
 	var manager: Node = load("res://scripts/game_manager.gd").new()
-	manager.settings = FragrSettings.new()
+	manager.settings = LocalExceptionSettings.new()
 	var world: WorldEnvironment = WorldEnvironment.new()
 	manager.add_child(world)
 	manager._apply_arena_sky("Port of Entry")

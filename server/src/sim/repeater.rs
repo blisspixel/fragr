@@ -354,8 +354,10 @@ mod tests {
         use futures_util::{SinkExt, StreamExt};
         use std::time::Duration;
         use tokio_tungstenite::{connect_async, tungstenite::Message};
-        let directory =
-            std::env::temp_dir().join(format!("fragr-repeater-admission-{}", Uuid::new_v4()));
+        let directory = std::env::temp_dir().join(format!(
+            "localexception-repeater-admission-{}",
+            Uuid::new_v4()
+        ));
         std::fs::create_dir(&directory).unwrap();
         let path = directory.join("range.json");
         let bytes = serde_json::to_vec(&json!({
@@ -395,7 +397,7 @@ mod tests {
         ] {
             for role in ["human", "agent", "spectator"] {
                 let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-                socket.send(Message::Text(json!({"type":"hello","role":role,"name":"Reader","gameplay_version":version,"geometry_version":crate::protocol::GEOMETRY_VERSION}).to_string())).await.unwrap();
+                socket.send(Message::Text(json!({"type":"hello","role":role,"name":"Reader","gameplay_version":version,"geometry_version":crate::protocol::GEOMETRY_VERSION}).to_string().into())).await.unwrap();
                 tokio::time::timeout(Duration::from_secs(5), async {
                     let mut welcomed = false;
                     let mut mapped = false;

@@ -6,11 +6,11 @@
 //! fresh session before it is spent. This is earned-run evidence for one short
 //! window, never an M02 clear or campaign claim.
 use super::*;
-use fragr_server::local::{preview_run_in, RunPreview};
-use fragr_server::net::GameCommand;
-use fragr_server::protocol::{AmmoCount, WeaponType};
-use fragr_server::run::DurableRun;
-use fragr_server::session::Recipient;
+use localexception_server::local::{preview_run_in, RunPreview};
+use localexception_server::net::GameCommand;
+use localexception_server::protocol::{AmmoCount, WeaponType};
+use localexception_server::run::DurableRun;
+use localexception_server::session::Recipient;
 use std::path::{Path, PathBuf};
 
 /// Active M02 play after entry, summed across reopened attempts.
@@ -74,7 +74,7 @@ pub fn attempt_seed(seed: u64, run_id: Uuid, attempt: u32) -> u64 {
     if attempt <= 1 {
         seed
     } else {
-        fragr_server::mission::retry_seed(seed, run_id, attempt)
+        localexception_server::mission::retry_seed(seed, run_id, attempt)
     }
 }
 
@@ -135,7 +135,8 @@ struct Scratch(PathBuf);
 
 impl Scratch {
     fn new(label: &str) -> Result<Self, String> {
-        let path = std::env::temp_dir().join(format!("fragr-carry-{label}-{}", Uuid::new_v4()));
+        let path =
+            std::env::temp_dir().join(format!("localexception-carry-{label}-{}", Uuid::new_v4()));
         std::fs::create_dir_all(&path).map_err(|e| e.to_string())?;
         Ok(Self(path))
     }
@@ -178,7 +179,7 @@ fn persist(run: &mut DurableRun) -> impl FnMut(&GameSession) -> Result<(), Strin
 
 fn run_state(
     session: &GameSession,
-) -> Result<(u32, fragr_server::protocol::CampaignRunState), String> {
+) -> Result<(u32, localexception_server::protocol::CampaignRunState), String> {
     let state = session.state.mission_state().ok_or("mission vanished")?;
     Ok((state.attempt, state.run.ok_or("campaign run missing")?))
 }
@@ -582,8 +583,8 @@ pub(super) fn run(seeds: std::ops::Range<u64>, max_ticks: u64) -> Result<Report,
     }
     Ok(Report {
         schema: 3,
-        build: env!("FRAGR_CLI_VERSION"),
-        commit: env!("FRAGR_BUILD_COMMIT"),
+        build: env!("LOCALEXCEPTION_CLI_VERSION"),
+        commit: env!("LOCALEXCEPTION_BUILD_COMMIT"),
         observation: OBSERVATION,
         profiles: PROFILES,
         decision_hz: 20,
@@ -866,7 +867,7 @@ mod tests {
         assert_eq!(attempt_seed(42, run, 1), 42);
         assert_eq!(
             attempt_seed(42, run, 2),
-            fragr_server::mission::retry_seed(42, run, 2)
+            localexception_server::mission::retry_seed(42, run, 2)
         );
         assert_ne!(attempt_seed(42, run, 2), 42);
         assert_ne!(attempt_seed(42, run, 3), attempt_seed(42, run, 2));

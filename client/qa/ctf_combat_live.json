@@ -1,5 +1,5 @@
 {
-  "comment": "Live Sector 9 CTF carrier death-drop and scored result. Run with FRAGR_QA_MODE=ctf FRAGR_QA_MAP=4 FRAGR_QA_BOTS=4 FRAGR_QA_CAPTURE_LIMIT=1 FRAGR_QA_SEED=42.",
+  "comment": "Live Sector 9 CTF carrier death-drop and scored result. Run with LOCALEXCEPTION_QA_MODE=ctf LOCALEXCEPTION_QA_MAP=4 LOCALEXCEPTION_QA_BOTS=4 LOCALEXCEPTION_QA_CAPTURE_LIMIT=1 LOCALEXCEPTION_QA_SEED=42.",
   "width": 1280,
   "height": 720,
   "states": [

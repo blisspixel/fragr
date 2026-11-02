@@ -1,11 +1,11 @@
-use fragr_server::maps::{AuthoredMap, RuntimeMap};
-use fragr_server::movement::EYE_HEIGHT;
-use fragr_server::navigation::{NavigationGoal, Navigator, RouteStatus, SEARCH_LIMIT};
-use fragr_server::protocol::{
+use localexception_server::maps::{AuthoredMap, RuntimeMap};
+use localexception_server::movement::EYE_HEIGHT;
+use localexception_server::navigation::{NavigationGoal, Navigator, RouteStatus, SEARCH_LIMIT};
+use localexception_server::protocol::{
     Action, AmmoPool, CampaignActor, EnemyKind, LookAt, Role, WeaponType,
 };
-use fragr_server::session::GameSession;
-use fragr_server::sim::PLAYER_FLOOR_Y;
+use localexception_server::session::GameSession;
+use localexception_server::sim::PLAYER_FLOOR_Y;
 use std::collections::HashSet;
 use uuid::Uuid;
 
@@ -106,7 +106,7 @@ fn advance(
         let target = target.filter(|p| {
             fight
                 && feet[2] >= -7.5
-                && fragr_server::combat::line_of_sight(
+                && localexception_server::combat::line_of_sight(
                     eye,
                     [p.x, p.y - PLAYER_FLOOR_Y + 0.6, p.z],
                     &state.current_arena().solids,

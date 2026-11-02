@@ -65,7 +65,8 @@ fn late_campaign_promotion_carries_outcomes_and_refills_only_episode_v() {
         (MissionId::PeaceWithoutInterruption, "m16_outcome"),
         (MissionId::AllSystemsNormal, "m17_outcome"),
     ] {
-        let directory = std::env::temp_dir().join(format!("fragr-late-save-{}", Uuid::new_v4()));
+        let directory =
+            std::env::temp_dir().join(format!("localexception-late-save-{}", Uuid::new_v4()));
         let store = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
         store.save(&source).unwrap();
         let bytes = fs::read(directory.join(RUN_NAME)).unwrap();
@@ -352,8 +353,8 @@ fn exhausted_m18_and_m19_entries_stay_failed_and_refuse_still_here() {
                     );
                 }
                 assert_eq!(session.state.player_record(id).unwrap().total.deaths, 1);
-                let directory =
-                    std::env::temp_dir().join(format!("fragr-exhausted-wipe-{}", Uuid::new_v4()));
+                let directory = std::env::temp_dir()
+                    .join(format!("localexception-exhausted-wipe-{}", Uuid::new_v4()));
                 let store = RunStore::open_with_hashes(&directory, hashes).unwrap();
                 store.save(&failed).unwrap();
                 drop(store);
@@ -417,7 +418,7 @@ fn episode_iv_exit() -> serde_json::Value {
 
 /// A real M16 departure for the bundled maps: the earned outcome chain
 /// through Level 15, Level 16 entered and completed with the Episode IV kit,
-/// awaiting Level 17. Set FRAGR_TEST_RUN_FIXTURE_DIR to an unused absolute
+/// awaiting Level 17. Set LOCALEXCEPTION_TEST_RUN_FIXTURE_DIR to an unused absolute
 /// directory to retain it for the Level 17 capture route
 /// (tools/qa_m17_carried.sh).
 #[test]
@@ -468,9 +469,9 @@ fn m16_departure_fixture_carries_an_earned_kit_into_m17() {
         serde_json::to_value(&entry.equipment).unwrap()["weapons"],
         episode_iv_exit()["equipment"]["weapons"]
     );
-    let retained = std::env::var_os("FRAGR_TEST_RUN_FIXTURE_DIR");
+    let retained = std::env::var_os("LOCALEXCEPTION_TEST_RUN_FIXTURE_DIR");
     let directory = retained.as_ref().map_or_else(
-        || std::env::temp_dir().join(format!("fragr-m17-fixture-{}", Uuid::new_v4())),
+        || std::env::temp_dir().join(format!("localexception-m17-fixture-{}", Uuid::new_v4())),
         PathBuf::from,
     );
     let store = RunStore::open_with_hashes(&directory, hashes).unwrap();

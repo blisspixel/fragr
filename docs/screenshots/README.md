@@ -13,6 +13,18 @@ when its presentation changes; the remaining files stay as dated tour evidence.
 The project tour runs the engine binary. Packaged desktop games use the original
 game icon checked by the release workflow; these stills do not prove taskbar icons.
 
+## November 1, 2026 Local Exception rename
+
+The full publish tour passed 34 main states, two team states and Recall Notice
+arrival on Forward+, plus 34 Compatibility states, at 1280x720 on Linux with
+Godot 4.7.2-stable. The arena used two bots, seed 17 and no round events. The
+Compatibility first-person still needed one normal watch/join retry to find a
+clear fight; its health, visibility and unobstructed-HUD checks stayed intact.
+Inspected stills and effect frame sequences retain the existing art direction.
+The six menu stills now carry Local Exception; unchanged gameplay stills remain
+from their previous reviewed captures. This is rendered presentation evidence,
+not fresh-player or controller acceptance.
+
 ## October 25, 2026 wave 5 tour
 
 The combined build repeated the full publish tour on Linux/Vulkan, including

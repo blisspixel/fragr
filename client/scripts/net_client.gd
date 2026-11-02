@@ -46,7 +46,7 @@ extends Node
 # 52 connects Freedom of Movement and its connected ceremonial avenue;
 # 51 connects Civic Pressure Valve and its connected stadium bout;
 # 50 understands Article Blade melee, plinth lifecycle, eleven-column records and range contract;
-const GAMEPLAY_VERSION: int = 67
+const GAMEPLAY_VERSION: int = 68
 ## Desktop builds and SHA256SUMS.txt. Join does not fetch this URL.
 ## The join page can fetch a published archive after the player asks.
 const RELEASES_URL: String = "https://github.com/blisspixel/fragr/releases/latest"
@@ -90,10 +90,10 @@ var server_url = "ws://127.0.0.1:6767"
 
 func _init():
 	# Allow server URL override via environment variable for LAN or TLS hosts.
-	var env_server = OS.get_environment("FRAGR_SERVER")
+	var env_server = OS.get_environment("LOCALEXCEPTION_SERVER")
 	if env_server != "":
 		set_server_host(env_server)
-		print("Using server from FRAGR_SERVER: ", server_url)
+		print("Using server from LOCALEXCEPTION_SERVER: ", server_url)
 
 var role = "spectator"
 var player_name = "Spectator"
@@ -226,7 +226,7 @@ func join_ticket(for_role: String, secret: String, exp: int) -> String:
 	var key := secret.strip_edges().to_utf8_buffer()
 	if key.size() < 16 or key.size() > 256:
 		return ""
-	var payload := "fragr-join-v1\n%d\n%s" % [exp, for_role]
+	var payload := "localexception-join-v1\n%d\n%s" % [exp, for_role]
 	var ctx := HMACContext.new()
 	if ctx.start(HashingContext.HASH_SHA256, key) != OK:
 		return ""
@@ -245,7 +245,7 @@ func join_ticket_v2(for_role: String, secret: String, exp: int, nonce: String, a
 	var key := secret.strip_edges().to_utf8_buffer()
 	if key.size() < 16 or key.size() > 256 or audience.is_empty():
 		return ""
-	var payload := "fragr-join-v2\n%d\n%s\n%s\n%s" % [exp, for_role, nonce, audience]
+	var payload := "localexception-join-v2\n%d\n%s\n%s\n%s" % [exp, for_role, nonce, audience]
 	var ctx := HMACContext.new()
 	if ctx.start(HashingContext.HASH_SHA256, key) != OK or ctx.update(payload.to_utf8_buffer()) != OK:
 		return ""
@@ -326,7 +326,7 @@ func send_hello():
 	var ticket := ""
 	if ticket_transport_allowed(server_url):
 		var nonce := Crypto.new().generate_random_bytes(16).hex_encode()
-		ticket = join_ticket_v2(role, OS.get_environment("FRAGR_JOIN_SECRET"), int(Time.get_unix_time_from_system()) + 60, nonce, audience_for(server_url))
+		ticket = join_ticket_v2(role, OS.get_environment("LOCALEXCEPTION_JOIN_SECRET"), int(Time.get_unix_time_from_system()) + 60, nonce, audience_for(server_url))
 	if ticket != "":
 		hello["ticket"] = ticket
 	if role == "human" or role == "agent":

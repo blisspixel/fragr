@@ -1,7 +1,7 @@
 extends "res://scripts/qa_tour.gd"
 
 ## Real local M01 completion, using the existing unweakened ordinary-input
-## records route. Run with a framebuffer and FRAGR_QA_DIR set to isolated output.
+## records route. Run with a framebuffer and LOCALEXCEPTION_QA_DIR set to isolated output.
 var _owned: LocalMatch
 var _result_run_dir: String = ""
 var _result_settings: String = ""
@@ -9,20 +9,20 @@ var _result_settings: String = ""
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
 	_result_settings = "user://campaign-results-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", _result_settings)
-	set_meta("fragr_records_path", "")
+	set_meta("localexception_settings_path", _result_settings)
+	set_meta("localexception_records_path", "")
 	MouseCapture.release()
 	_run.call_deferred()
 
 func _run() -> void:
-	var output: String = OS.get_environment("FRAGR_QA_DIR")
+	var output: String = OS.get_environment("LOCALEXCEPTION_QA_DIR")
 	if not output.is_absolute_path():
-		push_error("campaign_results_live: absolute isolated FRAGR_QA_DIR required")
+		push_error("campaign_results_live: absolute isolated LOCALEXCEPTION_QA_DIR required")
 		quit(1)
 		return
 	_result_run_dir = output.path_join("run-%d" % OS.get_process_id())
-	OS.set_environment("FRAGR_RUN_DIR", _result_run_dir)
-	var preferences: FragrSettings = FragrSettings.new(_result_settings)
+	OS.set_environment("LOCALEXCEPTION_RUN_DIR", _result_run_dir)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(_result_settings)
 	preferences.set_value("video", "display_mode", 0)
 	if preferences.save_to_disk() != OK:
 		push_error("campaign_results_live: isolated settings could not be saved")
@@ -40,7 +40,7 @@ func _run() -> void:
 		push_error("campaign_results_live: owned campaign did not become ready")
 		quit(1)
 		return
-	set_meta("fragr_boot", {"mode": "campaign", "host": _owned.url, "run_mode": "new"})
+	set_meta("localexception_boot", {"mode": "campaign", "host": _owned.url, "run_mode": "new"})
 	await super._run()
 
 func _load_manifest() -> Dictionary:
@@ -93,6 +93,6 @@ func _retire_scene() -> void:
 func _finalize() -> void:
 	if is_instance_valid(_owned):
 		_owned.stop()
-	OS.unset_environment("FRAGR_RUN_DIR")
+	OS.unset_environment("LOCALEXCEPTION_RUN_DIR")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(_result_settings))
 	super._finalize()

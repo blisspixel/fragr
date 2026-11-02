@@ -1,7 +1,7 @@
 //! Isolated per-action attribution fixtures. Positions, health and strips are
 //! calibration inputs, not earned market play.
 use super::*;
-use fragr_server::protocol::{LoadoutState, WeaponType};
+use localexception_server::protocol::{LoadoutState, WeaponType};
 
 fn loadout(weapons: &[WeaponType], bullets: u16, shells: u16) -> LoadoutState {
     let mut loadout: LoadoutState = serde_json::from_value(serde_json::json!({

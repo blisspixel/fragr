@@ -74,9 +74,10 @@ func _run() -> void:
 		_check(recent_book.remember("198.51.100.%d" % (n + 1)), "a new host is recent")
 	_check(recent_book.recent.size() == ServerBook.MAX_RECENT and recent_book.recent[0] == "ws://198.51.100.20:6767",
 		"recent keeps the eight newest")
-	_check(ServerBook.beacon_port("FRAGR/1 6767\n".to_utf8_buffer()) == 6767, "beacon names 6767")
-	_check(ServerBook.beacon_port("FRAGR/1 1\n".to_utf8_buffer()) == 1, "beacon names port 1")
-	_check(ServerBook.beacon_port("FRAGR/1 65535\n".to_utf8_buffer()) == 65535, "beacon names the last port")
+	_check(ServerBook.beacon_port("LOCALEXCEPTION/1 6767\n".to_utf8_buffer()) == 6767, "beacon names 6767")
+	_check(ServerBook.beacon_port("FRAGR/1 6767\n".to_utf8_buffer()) == 0, "the prior product is not discovered as Local Exception")
+	_check(ServerBook.beacon_port("LOCALEXCEPTION/1 1\n".to_utf8_buffer()) == 1, "beacon names port 1")
+	_check(ServerBook.beacon_port("LOCALEXCEPTION/1 65535\n".to_utf8_buffer()) == 65535, "beacon names the last port")
 	var neighborhood: Array[String] = ServerBook.scan_targets([{"addresses": ["192.168.44.10", "::1", "127.0.0.1", "0.0.0.0", "224.0.0.1", "192.168.44.010", "192.0.2.10", "8.8.8.8", "169.254.169.254"]}], 6767)
 	_check(neighborhood[0] == "127.0.0.1:6767" and neighborhood.size() == 255 \
 		and "192.168.44.10:6767" in neighborhood and "192.168.44.1:6767" in neighborhood \
@@ -94,7 +95,7 @@ func _run() -> void:
 		"a beacon host is a private machine")
 	_check(ServerBook.busy_body({"schema_version": 2, "busy": true}) \
 		and not ServerBook.busy_body({"schema_version": 2}) and not ServerBook.busy_body({}),
-		"only a fragr busy body counts")
+		"only a localexception busy body counts")
 	_check(ServerBook.scan_targets([], 0) == ["127.0.0.1:6767"], "an empty adapter list still checks loopback on the game port")
 	_check(ServerBook.scan_targets([{"addresses": ["192.0.2.10"]}], 7777)[0] == "127.0.0.1:7777", "a typed port is the port that is scanned")
 	var wide: Array = []
@@ -107,7 +108,7 @@ func _run() -> void:
 	_check(ServerBook.probe_row(HTTPRequest.RESULT_SUCCESS, 200, answered, 12).contains("Arena Duel"), "a match line is a scan row")
 	_check(ServerBook.probe_row(HTTPRequest.RESULT_SUCCESS, 503, {}, 0) == TranslationServer.translate("JOIN_BUSY"), "a busy host is a scan row")
 	_check(ServerBook.probe_row(HTTPRequest.RESULT_CANT_CONNECT, 0, null, 0).is_empty(), "a closed port is not a scan row")
-	for bad: String in ["FRAGR/1 6767", "FRAGR/1 6767\nextra", "FRAGR/1 0\n", "FRAGR/1 06767\n", "fragr/1 6767\n", "GET /status\n", "FRAGR/1 65536\n", ""]:
+	for bad: String in ["LOCALEXCEPTION/1 6767", "LOCALEXCEPTION/1 6767\nextra", "LOCALEXCEPTION/1 0\n", "LOCALEXCEPTION/1 06767\n", "localexception/1 6767\n", "GET /status\n", "LOCALEXCEPTION/1 65536\n", ""]:
 		_check(ServerBook.beacon_port(bad.to_utf8_buffer()) == 0, "reject beacon " + bad)
 	for extra: String in [path, path + ".junk", path + ".cap", path + ".recent"]:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(extra))

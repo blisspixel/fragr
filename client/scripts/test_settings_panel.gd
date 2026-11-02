@@ -16,7 +16,7 @@ func _check(condition: bool, message: String) -> void:
 		_failures += 1
 		push_error("test_settings_panel: " + message)
 
-func _panel(preferences: FragrSettings) -> SettingsPanel:
+func _panel(preferences: LocalExceptionSettings) -> SettingsPanel:
 	var panel: SettingsPanel = SettingsPanel.new()
 	panel.preferences = preferences
 	panel.closed.connect(func() -> void: _closes += 1)
@@ -25,7 +25,7 @@ func _panel(preferences: FragrSettings) -> SettingsPanel:
 
 func _run() -> void:
 	var path: String = "user://test-panel-%d.cfg" % OS.get_process_id()
-	var preferences: FragrSettings = FragrSettings.new(path)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	preferences.apply_audio()
 	_check(is_equal_approx(db_to_linear(AudioServer.get_bus_volume_db(AudioServer.get_bus_index("Effects"))), 0.5), "fresh effects mix reaches its bus")
 	_check(is_equal_approx(db_to_linear(AudioServer.get_bus_volume_db(AudioServer.get_bus_index("Radio"))), 0.7), "fresh music mix reaches its bus")
@@ -87,7 +87,7 @@ func _run() -> void:
 	_check(preferences.fov() == 75, "draft must not change active preferences")
 	panel.save()
 	_check(_closes == 1, "successful save closes the panel")
-	var loaded: FragrSettings = FragrSettings.new(path)
+	var loaded: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	loaded.load_from_disk()
 	_check(loaded.fov() == 85 and loaded.get_value("video", "fps_cap") == 120, "display settings survive a fresh store")
 	_check(loaded.get_value("video", "vsync") == true, "VSync survives a fresh store")
@@ -131,7 +131,7 @@ func _run() -> void:
 	_check((loaded.get_value("video", "pinned") as Array).is_empty() and bool(loaded.get_value("video", "auto")), "Reset to auto clears every pin")
 	panel.free()
 
-	var bad: FragrSettings = FragrSettings.new("user://missing-directory-%d/settings.cfg" % OS.get_process_id())
+	var bad: LocalExceptionSettings = LocalExceptionSettings.new("user://missing-directory-%d/settings.cfg" % OS.get_process_id())
 	panel = _panel(bad)
 	panel.show_page("LOOK")
 	(panel.find_child("mouse_sensitivity", true, false) as HSlider).value = 4.0
@@ -178,7 +178,7 @@ func _run() -> void:
 	_check(radio_node.player.bus == &"Radio", "radio playback routes to its bus")
 	radio_node.free()
 
-	var console: FragrConsole = FragrConsole.new()
+	var console: LocalExceptionConsole = LocalExceptionConsole.new()
 	console.preferences = preferences
 	console.run("sens 3.25")
 	loaded.load_from_disk()
@@ -199,7 +199,7 @@ func _run() -> void:
 	match_menu.close()
 	match_menu.free()
 	Engine.max_fps = 0
-	FragrSettings.new().apply_audio()
+	LocalExceptionSettings.new().apply_audio()
 	DirAccess.remove_absolute(path)
 	await process_frame
 	if _failures == 0:

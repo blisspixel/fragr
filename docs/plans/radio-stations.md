@@ -62,7 +62,7 @@ Music costs about 900 credits per minute. One hundred forty tracks averaging fou
 3. Wave 3: fill every station to twenty.
 4. Wave 4: news station beds, stings, and spoken bulletins; DJ bumpers and ads for the music stations.
 
-`fragr-audiogen batch --spec tools/audiogen/specs/radio-rock.json --limit 10 --max-credits 40000` is one wave step. Re-running continues where it stopped because existing files are skipped.
+`localexception-audiogen batch --spec tools/audiogen/specs/radio-rock.json --limit 10 --max-credits 40000` is one wave step. Re-running continues where it stopped because existing files are skipped.
 
 ## Client behaviour
 
@@ -75,7 +75,7 @@ Music costs about 900 credits per minute. One hundred forty tracks averaging fou
 
 ## Verification
 
-- `cargo test -p fragr-audiogen` covers spec parsing, length ranges, credit estimates, prefix and limit waves, and the manifest.
+- `cargo test -p localexception-audiogen` covers spec parsing, length ranges, credit estimates, prefix and limit waves, and the manifest.
 - `godot --headless --path client --check-only --script res://scripts/radio.gd` and the harness `res://scripts/test_radio.gd` (station grouping, shuffle no-repeat, station cycling, volume state table).
 - A recorded Solo Scrap session with the radio audible, station switches, and a Host callout ducking the music.
 - Every generated file has a manifest entry; the client loads by manifest, never by directory listing.

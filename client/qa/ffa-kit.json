@@ -1,5 +1,5 @@
 {
-  "comment": "Free-for-all Pistol start on map 1, now Larak Lot (wave 2 FFA kit lane). Run tools/qa_tour.sh with FRAGR_QA_MANIFEST=res://qa/ffa-kit.json, FRAGR_QA_BOTS=2 and the default free-for-all server. The pad routes are the arena tour's Larak Lot routes (client/qa/tour.json), one alternative per spawn quarter. The joined human starts on the Pistol and Fists, takes the Shotgun and the Railgun from their pads, then walks into the hub until a rival frags it so the death card names what the life lost. Inspection only; not a tour publish.",
+  "comment": "Free-for-all Pistol start on map 1, now Larak Lot (wave 2 FFA kit lane). Run tools/qa_tour.sh with LOCALEXCEPTION_QA_MANIFEST=res://qa/ffa-kit.json, LOCALEXCEPTION_QA_BOTS=2 and the default free-for-all server. The pad routes are the arena tour's Larak Lot routes (client/qa/tour.json), one alternative per spawn quarter. The joined human starts on the Pistol and Fists, takes the Shotgun and the Railgun from their pads, then walks into the hub until a rival frags it so the death card names what the life lost. Inspection only; not a tour publish.",
   "width": 1280,
   "height": 720,
   "pad_routes": {

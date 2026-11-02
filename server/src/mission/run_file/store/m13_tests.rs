@@ -90,7 +90,8 @@ fn m13_promotion_retains_every_outcome_and_exact_entry_without_episode_refill() 
 #[test]
 fn m13_locked_promotion_recovers_an_interrupted_replace_without_refill() {
     let source = m12_tests::completed_habitat();
-    let directory = std::env::temp_dir().join(format!("fragr-foundry-edge-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-foundry-edge-{}", Uuid::new_v4()));
     let store = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
     store.save(&source).unwrap();
     let bytes = fs::read(directory.join(RUN_NAME)).unwrap();

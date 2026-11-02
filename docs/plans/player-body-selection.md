@@ -24,7 +24,7 @@ No body-specific first-person hands in this slice (see Gaps).
 ## Salvage decision
 
 The earlier attempt lived only as uncommitted work on `feat/story-frames`
-(2026-09-22, backed up under `_backups/fragr-story-frames-2026-09-22`). It was
+(2026-09-22, backed up under `_backups/localexception-story-frames-2026-09-22`). It was
 re-implemented on current `main` rather than applied:
 
 - Its capability 9 is M02 on `main`, and main has since reached 12. The body is
@@ -90,13 +90,13 @@ ignored and its Welcome has none.
 
 | Check | Result |
 |---|---|
-| `cargo test -p fragr-server --lib body` | wire allowlist and defaults, seeded parity for both roles (snapshots equal after removing only `body`, records equal, damage and a frag resolved), respawn keeps the body, bot slot bodies independent of name and role, both bodies on both sides for 4, 6 and 8 bots in a team match, boss and Union actors carry none, both bodies and roles admitted to Recall Notice with identical readiness, equipment and faction, team sides independent of body |
-| `cargo test -p fragr-server --test body_identity` | real sockets: all roles and bodies, spectator without body, watcher snapshot shows each body, invalid ids refused before Welcome, resume asking for another body keeps the pawn's own |
+| `cargo test -p localexception-server --lib body` | wire allowlist and defaults, seeded parity for both roles (snapshots equal after removing only `body`, records equal, damage and a frag resolved), respawn keeps the body, bot slot bodies independent of name and role, both bodies on both sides for 4, 6 and 8 bots in a team match, boss and Union actors carry none, both bodies and roles admitted to Recall Notice with identical readiness, equipment and faction, team sides independent of body |
+| `cargo test -p localexception-server --test body_identity` | real sockets: all roles and bodies, spectator without body, watcher snapshot shows each body, invalid ids refused before Welcome, resume asking for another body keeps the pawn's own |
 | Adapter and brain tests | `join` body validation and persistence, `round_state.self_body`, `--body` parsing on both binaries, the brain's Hello carries its body |
 | `test_player_body.gd` | allowlist, Hello per role, Welcome and snapshot validation, older-server human fallback, pawn wearing, free tape and Union livery without a whole-body tint, gait frames, Union actors never wear a body, bake freshness against the manifest, no Union red and a light mean in both strips |
 | `test_frontend.gd`, `test_settings.gd` | body choice, preview, save, cancel and narrowing of unknown stored values |
 | Tour `client/qa/tour.json` | `body_human`, `body_synthetic` close stills, the joined player's accepted body recorded as synthetic, the callsign page with the choice and preview |
-| Tour `client/qa/modes.json` with `FRAGR_QA_MODE=tdm` | coalition human, coalition synthetic and a Union-side synthetic |
+| Tour `client/qa/modes.json` with `LOCALEXCEPTION_QA_MODE=tdm` | coalition human, coalition synthetic and a Union-side synthetic |
 
 Tour stills were inspected on Windows, OpenGL compatibility, AMD Radeon 780M,
 2026-09-26 (local runs under `.agents/qa/body-tour-2/` and
@@ -120,7 +120,7 @@ Full gates on 2026-09-26, all local on Windows:
 | 120 second soak with bots, agents, spectators and map rotation | pass |
 | `tools/godot_check.sh` (Godot 4.7.2) | pass, every harness |
 | `tools/test_godot_check.sh` | pass, every injected scenario |
-| Playable smoke on a release server with 4 bots | frags logged; `scripted-bot --body synthetic` and `fragr-brain play --body synthetic --max-seconds 20` (local rules, no ledger, $0) both joined and played |
+| Playable smoke on a release server with 4 bots | frags logged; `scripted-bot --body synthetic` and `localexception-brain play --body synthetic --max-seconds 20` (local rules, no ledger, $0) both joined and played |
 
 ## Gaps
 

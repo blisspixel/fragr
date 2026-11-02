@@ -1,5 +1,5 @@
 {
-  "comment": "Interest filtering (gameplay 66) as a joined fighter sees it: tools/qa_tour.sh with FRAGR_QA_MANIFEST=res://qa/fair-play.json on Larak Lot with rule bots. Fighters behind cover are withheld from this socket; review the strip for bodies that pop in at corners or hang at the origin, then the death card for the killer and its recap.",
+  "comment": "Interest filtering (gameplay 66) as a joined fighter sees it: tools/qa_tour.sh with LOCALEXCEPTION_QA_MANIFEST=res://qa/fair-play.json on Larak Lot with rule bots. Fighters behind cover are withheld from this socket; review the strip for bodies that pop in at corners or hang at the origin, then the death card for the killer and its recap.",
   "width": 1280,
   "height": 720,
   "states": [

@@ -4,13 +4,13 @@
 
 Tagged releases attach three archives and `SHA256SUMS.txt` on the
 [releases page](https://github.com/blisspixel/fragr/releases):
-`fragr-<tag>-windows-x86_64.zip`, `fragr-<tag>-linux-x86_64.zip`, and
-`fragr-<tag>-macos-universal.zip`. Keep the extracted game and bundled
-`fragr-server` together. Packages built from current source also include the
-matching `fragr-agent-adapter` for MCP clients, beside the server (macOS:
-`fragr.app/Contents/MacOS`). Older releases such as v0.82.0 lack the adapter
+`localexception-<tag>-windows-x86_64.zip`, `localexception-<tag>-linux-x86_64.zip`, and
+`localexception-<tag>-macos-universal.zip`. Keep the extracted game and bundled
+`localexception-server` together. Packages built from current source also include the
+matching `localexception-agent-adapter` for MCP clients, beside the server (macOS:
+`Local Exception.app/Contents/MacOS`). Older releases such as v0.82.0 lack the adapter
 and require a source build. Use an absolute executable path in saved MCP
-configurations; see the [adapter setup](../agent-adapter/README.md). Each package includes licenses for fragr, Godot,
+configurations; see the [adapter setup](../agent-adapter/README.md). Each package includes licenses for Local Exception, Godot,
 fonts and linked Rust crates. The radio library makes the packages large.
 
 A client that speaks an older gameplay or geometry version than the server
@@ -24,12 +24,12 @@ it speaks the server's version.
 
 | Platform | Start | First-open note |
 |---|---|---|
-| Windows | `fragr.exe` | The executable is unsigned; Windows may ask you to choose **More info > Run anyway**. |
-| Linux x86_64 | `./fragr.x86_64` | Requires glibc 2.35 or newer. |
-| macOS, Apple Silicon or Intel | Open `fragr.app` | The app is ad-hoc signed but not notarized. Use **Open Anyway** in System Settings, Privacy and Security after the first blocked open. |
+| Windows | `localexception.exe` | The executable is unsigned; Windows may ask you to choose **More info > Run anyway**. |
+| Linux x86_64 | `./localexception.x86_64` | Requires glibc 2.35 or newer. |
+| macOS, Apple Silicon or Intel | Open `Local Exception.app` | The app is ad-hoc signed but not notarized. Use **Open Anyway** in System Settings, Privacy and Security after the first blocked open. |
 
 On macOS you can also remove the downloaded-file quarantine flag from an
-archive you trust with `xattr -dr com.apple.quarantine fragr.app`.
+archive you trust with `xattr -dr com.apple.quarantine 'Local Exception.app'`.
 
 Single Player launches the bundled campaign server. Builds containing the
 desktop Host controls offer **Multiplayer > Run a match** for Team Deathmatch or
@@ -42,9 +42,9 @@ See [hosting](HOSTING.md) for LAN invitations and dedicated commands.
 
 ## Check an installation
 
-The packaged client accepts `fragr.exe --headless -- --check-install` on
-Windows, `./fragr.x86_64 --headless -- --check-install` on Linux, or
-`fragr.app/Contents/MacOS/fragr --headless -- --check-install` on macOS.
+The packaged client accepts `localexception.exe --headless -- --check-install` on
+Windows, `./localexception.x86_64 --headless -- --check-install` on Linux, or
+`'Local Exception.app/Contents/MacOS/Local Exception' --headless -- --check-install` on macOS.
 It checks exported resources, finds the bundled server, reads its campaign run
 preview and starts TDM then 5v5 Sabotage through the actual desktop Host path.
 Each preset must supply strict readiness and a matching validated spectator map
@@ -60,14 +60,14 @@ Install Godot 4.7.2-stable with matching export templates. From the
 repository root:
 
 ```bash
-cargo build -p fragr-server -p fragr-agent-adapter --release --locked
+cargo build -p localexception-server -p localexception-agent-adapter --release --locked
 mkdir -p builds/windows builds/macos builds/linux
-godot --headless --path client --export-release "Windows Desktop" ../builds/windows/fragr.exe
-godot --headless --path client --export-release "macOS" ../builds/macos/fragr.zip
-godot --headless --path client --export-release "Linux/X11" ../builds/linux/fragr.x86_64
+godot --headless --path client --export-release "Windows Desktop" ../builds/windows/localexception.exe
+godot --headless --path client --export-release "macOS" ../builds/macos/localexception.zip
+godot --headless --path client --export-release "Linux/X11" ../builds/linux/localexception.x86_64
 ```
 
-These presets export the client only. Put the matching `fragr-server` and `fragr-agent-adapter`
+These presets export the client only. Put the matching `localexception-server` and `localexception-agent-adapter`
 executables beside the Windows or Linux game. A macOS app looks for the server
 inside `Contents/MacOS` and needs signing again after it is changed. A source
 checkout also searches `target/release` and `target/debug`. The tag packaging

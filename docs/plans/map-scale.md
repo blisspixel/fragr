@@ -12,16 +12,16 @@ Both current arenas are one flat square room. Arena Duel is fifty units on a sid
 
 ## The references, and what each one is for
 
-- **Doom.** Interconnected rooms on a readable floor plan, doors and keys shaping the route, height used for drama and for sniping, and a player who learns the map as a place rather than an arena. This is the shape most fragr maps should be.
+- **Doom.** Interconnected rooms on a readable floor plan, doors and keys shaping the route, height used for drama and for sniping, and a player who learns the map as a place rather than an arena. This is the shape most Local Exception maps should be.
 - **Unreal Tournament.** Verticality that matters: lifts, ledges, and a fight that moves up and down as much as across. Pickups placed so that controlling a level means controlling a route, not a room.
 - **Halo.** Outdoor space joined to interior space, sightlines long enough for a rifle and broken enough to cross, and vehicles-worth of room even without vehicles.
-- **Battlefield 1942.** The large end. Distances measured in hundreds of metres, several objectives, a fight that is several fights at once. Some fragr maps should be this size, not all of them.
+- **Battlefield 1942.** The large end. Distances measured in hundreds of metres, several objectives, a fight that is several fights at once. Some Local Exception maps should be this size, not all of them.
 
 A pit or a small duel room is fine as one map among many. The mistake is every map being one.
 
 ## The size ladder
 
-One fragr unit is one metre. Current maps sit at the bottom rung and nothing else exists.
+One Local Exception unit is one metre. Current maps sit at the bottom rung and nothing else exists.
 
 | Tier | Playable extent | Fighters | What it is for |
 |---|---|---|---|

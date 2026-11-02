@@ -67,8 +67,10 @@ mod tests {
     use std::path::PathBuf;
 
     fn temp_file(name: &str, body: &str) -> PathBuf {
-        let path =
-            std::env::temp_dir().join(format!("fragr-brain-{name}-{}.env", std::process::id()));
+        let path = std::env::temp_dir().join(format!(
+            "localexception-brain-{name}-{}.env",
+            std::process::id()
+        ));
         fs::write(&path, body).unwrap();
         path
     }

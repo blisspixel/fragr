@@ -21,7 +21,7 @@ func _initialize() -> void:
 	_run.call_deferred()
 
 func _run() -> void:
-	var directory: String = OS.get_environment("FRAGR_ENFORCER_SOURCE_CAPTURE")
+	var directory: String = OS.get_environment("LOCALEXCEPTION_ENFORCER_SOURCE_CAPTURE")
 	if not directory.is_absolute_path() or DirAccess.make_dir_recursive_absolute(directory) != OK:
 		push_error("qa_enforcer_source: require owned absolute capture directory")
 		quit(1)

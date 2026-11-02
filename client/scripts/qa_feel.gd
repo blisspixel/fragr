@@ -6,7 +6,7 @@ extends SceneTree
 ## was actually drawn. The same script runs on any build, so a before and after
 ## pair measures one change rather than two sessions.
 ##
-## Measurements (written to FRAGR_QA_DIR as feel.json and feel.md):
+## Measurements (written to LOCALEXCEPTION_QA_DIR as feel.json and feel.md):
 ## key to first moved frame, key to 90 percent of top speed, release to rest
 ## and the slide distance, a strafe reversal, steady strafe speed variation and
 ## backward frames, frame time percentiles, same-tick prediction corrections,
@@ -14,7 +14,7 @@ extends SceneTree
 ## to the resolved shot. A second pass grabs consecutive frames into motion
 ## strips (strafe_stop, reversal, jump, fire) for a person to inspect.
 ##
-## Input to photon (#525): with the frame rate capped at FRAGR_FEEL_FPS
+## Input to photon (#525): with the frame rate capped at LOCALEXCEPTION_FEEL_FPS
 ## (default 60) and vsync off, real input events (a move key, a fire press and
 ## a mouse motion) go in at a seeded moment, the keys through
 ## Input.parse_input_event and the motion through the camera's handler, and
@@ -26,9 +26,9 @@ extends SceneTree
 ## Every frame also records the remote presentation clock: its buffer and how
 ## far the drawn time trails the newest snapshot tick.
 ##
-## FRAGR_SERVER names a separately started server, for example
-## `fragr-server --bind 127.0.0.1:6791 --bots 0 --map 1 --no-round-events`.
-## FRAGR_FEEL_STRIPS=0 skips the strip pass. The probe is evidence, not a
+## LOCALEXCEPTION_SERVER names a separately started server, for example
+## `localexception-server --bind 127.0.0.1:6791 --bots 0 --map 1 --no-round-events`.
+## LOCALEXCEPTION_FEEL_STRIPS=0 skips the strip pass. The probe is evidence, not a
 ## gate: it fails only when the session itself could not run.
 
 const BOUND_MS: int = 180000
@@ -96,14 +96,14 @@ func _until(condition: Callable, timeout_ms: int = 30000) -> bool:
 
 
 func _run() -> void:
-	_directory = OS.get_environment("FRAGR_QA_DIR")
-	if not _require(not _directory.is_empty() and _directory.is_absolute_path(), "FRAGR_QA_DIR must name an absolute owned directory"):
+	_directory = OS.get_environment("LOCALEXCEPTION_QA_DIR")
+	if not _require(not _directory.is_empty() and _directory.is_absolute_path(), "LOCALEXCEPTION_QA_DIR must name an absolute owned directory"):
 		quit(1)
 		return
 	DirAccess.make_dir_recursive_absolute(_directory)
-	set_meta("fragr_settings_path", _directory.path_join("settings.cfg"))
-	set_meta("fragr_records_path", _directory.path_join("records.json"))
-	var settings: FragrSettings = FragrSettings.new(_directory.path_join("settings.cfg"))
+	set_meta("localexception_settings_path", _directory.path_join("settings.cfg"))
+	set_meta("localexception_records_path", _directory.path_join("records.json"))
+	var settings: LocalExceptionSettings = LocalExceptionSettings.new(_directory.path_join("settings.cfg"))
 	settings.set_value("video", "display_mode", 0)
 	settings.set_value("audio", "music", 0.0)
 	settings.set_value("audio", "voice", 0.0)
@@ -112,11 +112,11 @@ func _run() -> void:
 		return
 	root.mode = Window.MODE_WINDOWED
 	root.size = Vector2i(1280, 720)
-	var url: String = OS.get_environment("FRAGR_SERVER")
-	if not _require(not url.is_empty(), "FRAGR_SERVER must name the server"):
+	var url: String = OS.get_environment("LOCALEXCEPTION_SERVER")
+	if not _require(not url.is_empty(), "LOCALEXCEPTION_SERVER must name the server"):
 		quit(1)
 		return
-	set_meta("fragr_boot", {"mode": "join", "host": url})
+	set_meta("localexception_boot", {"mode": "join", "host": url})
 	change_scene_to_file("res://scenes/main.tscn")
 	if not _require(await _until(func() -> bool: return current_scene != null and current_scene.get("local_prediction") != null), "match scene loaded"):
 		_finish()
@@ -150,7 +150,7 @@ func _run() -> void:
 	QaCombat.release_inputs()
 	var report: Dictionary = _analyze()
 	report["corrections"] = _corrections()
-	if OS.get_environment("FRAGR_FEEL_STRIPS") != "0":
+	if OS.get_environment("LOCALEXCEPTION_FEEL_STRIPS") != "0":
 		report["strips"] = await _strips()
 	_write(report)
 	_finish()
@@ -365,7 +365,7 @@ func _inject_action(action: String, pressed: bool) -> void:
 ## and vsync off for the pass, then both restored.
 func _photon() -> void:
 	_mark("photon")
-	var fps: int = maxi(1, int(OS.get_environment("FRAGR_FEEL_FPS"))) if not OS.get_environment("FRAGR_FEEL_FPS").is_empty() else 60
+	var fps: int = maxi(1, int(OS.get_environment("LOCALEXCEPTION_FEEL_FPS"))) if not OS.get_environment("LOCALEXCEPTION_FEEL_FPS").is_empty() else 60
 	var previous_fps: int = Engine.max_fps
 	var previous_vsync: DisplayServer.VSyncMode = DisplayServer.window_get_vsync_mode()
 	Engine.max_fps = fps

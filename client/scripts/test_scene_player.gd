@@ -20,7 +20,7 @@ var settings_path: String
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
 	settings_path = "user://scene-player-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", settings_path)
+	set_meta("localexception_settings_path", settings_path)
 	call_deferred("_run")
 
 func _finalize() -> void:
@@ -33,7 +33,7 @@ func _expect(value: bool, message: String) -> void:
 		push_error("test_scene_player: " + message)
 
 func _capture(name: String) -> void:
-	var directory: String = OS.get_environment("FRAGR_SCENE_QA_DIR")
+	var directory: String = OS.get_environment("LOCALEXCEPTION_SCENE_QA_DIR")
 	if directory.is_empty() or DisplayServer.get_name() == "headless":
 		return
 	await RenderingServer.frame_post_draw
@@ -88,7 +88,7 @@ func _run() -> void:
 
 ## Missing pictures and clips leave a complete reader-paced text page.
 func _reduced_motion() -> void:
-	var prefs: FragrSettings = FragrSettings.new(settings_path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	prefs.set_value("accessibility", "reduced_motion", true)
 	_expect(prefs.save_to_disk() == OK, "save initial reduced-motion preference")
 	var manifest: Dictionary = _scene([
@@ -183,7 +183,7 @@ func _still_and_narration() -> void:
 	player.free()
 
 	# Captions off in settings starts a voiced scene without captions.
-	var preferences: FragrSettings = FragrSettings.for_tree(self)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.for_tree(self)
 	preferences.set_value("gameplay", "story_captions", false)
 	preferences.save_to_disk()
 	player = await _start(manifest)
@@ -196,7 +196,7 @@ func _still_and_narration() -> void:
 	preferences.save_to_disk()
 
 func _muted_narration() -> void:
-	var preferences: FragrSettings = FragrSettings.for_tree(self)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.for_tree(self)
 	var manifest: Dictionary = StoryScene.load_scene("m04_arrival")
 	_expect(not manifest.is_empty(), "committed narrated arrival exists")
 	for bus: StringName in [&"Voice", &"Master"]:

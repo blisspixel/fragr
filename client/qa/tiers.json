@@ -1,5 +1,5 @@
 {
-  "comment": "The five tiers at a fixed 1920x1080 window on Larak Lot, each from the same locked pose: the overview and a low ground view on the default Fine world pixels, then the overview with world pixels off. Run once with FRAGR_RENDER_DRIVER=vulkan (Forward+, the shipped renderer; Ultra only draws there) and once with the default opengl3 (Compatibility). Fighters move between stills; the room must not. Frame samples on a busy machine are diagnostic only.",
+  "comment": "The five tiers at a fixed 1920x1080 window on Larak Lot, each from the same locked pose: the overview and a low ground view on the default Fine world pixels, then the overview with world pixels off. Run once with LOCALEXCEPTION_RENDER_DRIVER=vulkan (Forward+, the shipped renderer; Ultra only draws there) and once with the default opengl3 (Compatibility). Fighters move between stills; the room must not. Frame samples on a busy machine are diagnostic only.",
   "width": 1920,
   "height": 1080,
   "states": [

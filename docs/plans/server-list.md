@@ -1,6 +1,33 @@
 # Server list
 
-Status: **implemented**, 2026-10-06. Not merged, and not a release.
+## Planned public directory
+
+Nick's current direction (#544): `localexception.io` supplies the default
+public server list; `.com` redirects to it. Start with a static, bounded,
+cacheable list on the existing Cloudflare account. This is not deployed.
+
+Each entry names an endpoint, release, commit and gameplay/geometry versions.
+Before an intentional join, compare the entry with that endpoint's live status;
+require a matching released build on the default public path and reject missing,
+malformed, stale or conflicting facts with a clear update or unavailable message.
+The authoritative server must still enforce its handshake. Metadata comparison
+is compatibility checking, not remote attestation of a community server's code.
+Use TLS, cap response size and entries, bound timeouts, and retain direct-address
+and LAN paths when discovery is unavailable. No automatic download or launch.
+
+A sleeping official server is an explicit state, not a failed health check.
+Listing, periodic probes and bots must not wake or retain a paid process. Only
+an intentional join may request wake-up, with bounded retries and abuse limits.
+The process sleeps after its final human, agent or spectator leaves. Account
+entitlements, concurrent wake-up behavior, durable state and cost ceilings need
+a spike before deployment. The historical implementation notes below describe
+the local list, not the scope of the planned public directory.
+
+
+## Implemented local list
+
+The local list below is implemented and shipped. It does not provide the public
+directory or sleeping-server lifecycle described above.
 
 ## Goal
 
@@ -20,15 +47,17 @@ A row shows the address, then the map, the fighter count, the mode when the serv
 
 ## LAN presence
 
-A process whose bind is not loopback broadcasts UDP `6768` every 2 seconds. The packet is exactly `FRAGR/1 <tcp-port>` and a newline. It names the game port and nothing else. It is not a join, not a status body, and not the game transport. Loopback binds, including tests and a same-computer desktop host, do not send it. A wildcard or LAN address does.
+A process whose bind is not loopback broadcasts UDP `6768` every 2 seconds. The packet is exactly `LOCALEXCEPTION/1 <tcp-port>` and a newline. It names the game port and nothing else. It is not a join, not a status body, and not the game transport. Loopback binds, including tests and a same-computer desktop host, do not send it. A wildcard or LAN address does.
 
 The client still joins on TCP `6767`. A firewall that blocks UDP `6768` leaves direct connect and the saved list working. The game port stays TCP.
 
-The night process that is already running was built before this beacon. It does not announce. Replacing it would reset the match, so it stays up as it is.
+## Current boundary
 
-## Non-goals
-
-No public directory, no master server, no web client, and no accounts. Public `/status` still has no callsigns, addresses, tickets, or tokens. The beacon does not carry those either. Join tickets are not shown, because the public status line does not say whether a ticket is required. A gameplay-version warning is not on the wire yet, and an old server stays joinable. UDP game transport stays the measured spike in `docs/TRANSPORT.md`. No changelog entry until a release is cut. No screenshot tour until that release. No new mode, no Wipe, no Terraform, and no measurement table.
+The public directory above is planned; the implemented list is local. No web
+client or accounts. Public `/status` and LAN beacons expose no callsigns,
+addresses, tickets or tokens. Status advertises gameplay and geometry versions;
+the join page warns about mismatches and the server enforces its handshake.
+UDP game transport stays the measured spike in `docs/TRANSPORT.md`.
 
 ## Architecture
 
@@ -42,7 +71,7 @@ Godot 4.7.2.stable headless, 2026-10-06, on this machine:
 - `test_frontend.gd`: PASS. The match-line sentences are unchanged. Save, select, drop, and hide work. A list row does not replace the join line. Watch still follows Check host. The log has no `ERROR:` line.
 - `test_host_menu.gd`: PASS. Run a server and Join a server stay apart. Watch still follows Check host.
 
-`cargo test -p fragr-server --lib --locked announce`: 2 passed. The packet test sends to `127.0.0.1:0`, not to `0.0.0.0:6767`. `cargo clippy -p fragr-server --all-targets --locked -- -D warnings` is clean. `cargo fmt --all -- --check` is clean.
+`cargo test -p localexception-server --lib --locked announce`: 2 passed. The packet test sends to `127.0.0.1:0`, not to `0.0.0.0:6767`. `cargo clippy -p localexception-server --all-targets --locked -- -D warnings` is clean. `cargo fmt --all -- --check` is clean.
 
 Scan and remembered joins, Godot 4.7.2.stable headless, after `--import`, exit 0, no script or parse errors:
 

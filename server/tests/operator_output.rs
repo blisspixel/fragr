@@ -16,7 +16,7 @@ struct Server {
 
 impl Server {
     fn start(args: &[&str], env: &[(&str, &str)]) -> Self {
-        let mut command = Command::new(env!("CARGO_BIN_EXE_fragr-server"));
+        let mut command = Command::new(env!("CARGO_BIN_EXE_localexception-server"));
         command
             .args(["--bind", "127.0.0.1:0", "--seed", "7"])
             .args(args)
@@ -26,11 +26,11 @@ impl Server {
             .env_remove("RUST_LOG")
             .env_remove("NO_COLOR")
             .env_remove("FORCE_COLOR")
-            .env_remove("FRAGR_JOIN_SECRET");
+            .env_remove("LOCALEXCEPTION_JOIN_SECRET");
         for (key, value) in env {
             command.env(key, value);
         }
-        let mut child = command.spawn().expect("spawn fragr-server");
+        let mut child = command.spawn().expect("spawn localexception-server");
         let stdout = lines(child.stdout.take().unwrap());
         let stderr = lines(child.stderr.take().unwrap());
         Self {
@@ -109,17 +109,17 @@ fn redirected_output_keeps_the_full_plain_log() {
     });
     server.wait_for("STATUS JSON", READY, |s| s.stderr_has("STATUS {"));
     assert!(
-        server.stderr_has("fragr_server::feed: Spawned bot:"),
+        server.stderr_has("localexception_server::feed: Spawned bot:"),
         "{}",
         server.all()
     );
     assert!(
-        server.stderr_has("fragr_server::startup: Map: Larak Lot"),
+        server.stderr_has("localexception_server::startup: Map: Larak Lot"),
         "{}",
         server.all()
     );
     assert!(
-        !server.stdout_has("fragr dedicated server"),
+        !server.stdout_has("localexception dedicated server"),
         "no card when redirected"
     );
     assert!(!server.stdout_has("running |"), "no pulse when redirected");
@@ -159,7 +159,7 @@ fn forced_overview_prints_a_card_and_pulses_without_the_feed() {
         .position(|line| line.starts_with("ready ws://"))
         .unwrap();
     assert!(
-        server.out[ready + 1].starts_with("fragr dedicated server"),
+        server.out[ready + 1].starts_with("localexception dedicated server"),
         "card follows the unchanged ready line:\n{}",
         server.out.join("\n")
     );
@@ -257,7 +257,7 @@ fn desk_status_answers_and_closed_input_leaves_the_match_running() {
 fn a_taken_port_fails_with_one_line_and_no_card() {
     let holder = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
     let port = holder.local_addr().unwrap().port();
-    let output = Command::new(env!("CARGO_BIN_EXE_fragr-server"))
+    let output = Command::new(env!("CARGO_BIN_EXE_localexception-server"))
         .args([
             "--bind",
             &format!("127.0.0.1:{port}"),
@@ -272,7 +272,10 @@ fn a_taken_port_fails_with_one_line_and_no_card() {
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(!stdout.contains("ready ws://"), "{stdout}");
-    assert!(!stdout.contains("fragr dedicated server"), "{stdout}");
+    assert!(
+        !stdout.contains("localexception dedicated server"),
+        "{stdout}"
+    );
     assert!(stderr.contains(&port.to_string()), "{stderr}");
     assert_eq!(
         stderr
@@ -310,12 +313,12 @@ fn a_watcher_changes_the_room_line_and_the_join_event_stays_visible() {
         let (mut socket, _) = tokio_tungstenite::connect_async(&url).await.unwrap();
         let hello = serde_json::json!({
             "type": "hello", "role": "spectator", "name": "Watcher",
-            "gameplay_version": fragr_server::protocol::GAMEPLAY_VERSION,
-            "geometry_version": fragr_server::protocol::GEOMETRY_VERSION,
+            "gameplay_version": localexception_server::protocol::GAMEPLAY_VERSION,
+            "geometry_version": localexception_server::protocol::GEOMETRY_VERSION,
         });
         socket
             .send(tokio_tungstenite::tungstenite::Message::Text(
-                hello.to_string(),
+                hello.to_string().into(),
             ))
             .await
             .unwrap();

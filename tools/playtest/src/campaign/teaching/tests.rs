@@ -2,12 +2,12 @@
 //! fuel, outcomes and phases; they are not earned movement or campaign clears.
 use super::*;
 use crate::campaign::PROFILES;
-use fragr_server::maps::AuthoredSource;
-use fragr_server::protocol::{
+use localexception_server::maps::AuthoredSource;
+use localexception_server::protocol::{
     CampaignActor, ControlDomain, EnemyKind, EnemyPhase, JetpackState, MissionId, PaverStripState,
     Role,
 };
-use fragr_server::session::GameSession;
+use localexception_server::session::GameSession;
 
 const GALLERY: [f32; 3] = [-49.0, 4.5, -6.0];
 const ABOVE_GALLERY: [f32; 3] = [-49.0, 5.1, -6.0];

@@ -11,7 +11,7 @@ extends RefCounted
 ## resets and state changes; and camera mode changes. Phase marks split one
 ## session into steady walking, first fire, reload, death and menu windows.
 ##
-## The server half is `--tick-trace` (or FRAGR_TICK_TRACE). Both name the same
+## The server half is `--tick-trace` (or LOCALEXCEPTION_TICK_TRACE). Both name the same
 ## Snapshot tick, so `StutterReport` joins them without agreeing on a clock.
 ## While off, each hook costs one boolean test and nothing is measured.
 
@@ -233,7 +233,7 @@ func mark(label: String, now_usec: int) -> void:
 func to_dictionary() -> Dictionary:
 	return {
 		"version": VERSION,
-		"kind": "fragr_client_stutter_trace",
+		"kind": "localexception_client_stutter_trace",
 		"context": context.duplicate(true),
 		"started_usec": started_usec,
 		"started_unix_us": started_unix_us,

@@ -83,7 +83,7 @@ func _build() -> void:
 	centre.add_child(column)
 
 	var title: Label = Label.new()
-	title.text = "fragr"
+	title.text = "LOCAL EXCEPTION"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", MenuTheme.LARGE)
 	title.add_theme_font_override("font", MenuTheme.DISPLAY_FONT)

@@ -1,5 +1,5 @@
 {
-  "comment": "Level 2 observation bay. First frame is the live primary spawn without look_at or camera takeover. The near-window frame and motion strip show the noncombat Notary through an authoritative glass solid. Run with FRAGR_QA_MAP_FILE=server/maps/m02-persons-unknown.json and FRAGR_QA_BOTS=0.",
+  "comment": "Level 2 observation bay. First frame is the live primary spawn without look_at or camera takeover. The near-window frame and motion strip show the noncombat Notary through an authoritative glass solid. Run with LOCALEXCEPTION_QA_MAP_FILE=server/maps/m02-persons-unknown.json and LOCALEXCEPTION_QA_BOTS=0.",
   "width": 1280,
   "height": 720,
   "combat_travel": false,

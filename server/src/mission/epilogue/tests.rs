@@ -466,7 +466,7 @@ fn the_local_agent_walks_the_epilogue_to_the_bench() {
 
 /// The strict client reader's fixture: both MapInfo worlds and the mission
 /// messages through an ordinary walk with everyone the run could bring.
-/// Regenerate with FRAGR_UPDATE_LATE_CAMPAIGN_WORLDS=1.
+/// Regenerate with LOCALEXCEPTION_UPDATE_LATE_CAMPAIGN_WORLDS=1.
 #[test]
 fn client_lifecycle_fixture_matches_golden() {
     let (mut s, id) = session(Role::Human);
@@ -518,7 +518,7 @@ fn client_lifecycle_fixture_matches_golden() {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../client/golden/epilogue_lifecycle.json");
     let bytes = serde_json::to_string_pretty(&fixture).unwrap() + "\n";
-    if std::env::var_os("FRAGR_UPDATE_LATE_CAMPAIGN_WORLDS").is_some() {
+    if std::env::var_os("LOCALEXCEPTION_UPDATE_LATE_CAMPAIGN_WORLDS").is_some() {
         std::fs::write(&path, &bytes).unwrap();
     }
     assert_eq!(std::fs::read_to_string(path).unwrap(), bytes);

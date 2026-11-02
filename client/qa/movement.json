@@ -1,5 +1,5 @@
 {
-  "comment": "Bot-free live input proof on Larak Lot from the first spawn slot (TOLL north). No teleport, no jump during stair walking. Run with FRAGR_QA_BOTS=0, FRAGR_QA_NO_ROUND_EVENTS=1, and FRAGR_QA_MANIFEST=res://qa/movement.json.",
+  "comment": "Bot-free live input proof on Larak Lot from the first spawn slot (TOLL north). No teleport, no jump during stair walking. Run with LOCALEXCEPTION_QA_BOTS=0, LOCALEXCEPTION_QA_NO_ROUND_EVENTS=1, and LOCALEXCEPTION_QA_MANIFEST=res://qa/movement.json.",
   "width": 1280,
   "height": 720,
   "states": [

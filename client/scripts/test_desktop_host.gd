@@ -13,10 +13,10 @@ var unrelated: TCPServer = TCPServer.new()
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
 	settings_path = "user://desktop-host-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", settings_path)
-	set_meta("fragr_records_path", "")
+	set_meta("localexception_settings_path", settings_path)
+	set_meta("localexception_records_path", "")
 	run_directory = ProjectSettings.globalize_path("user://desktop-host-run-%d" % OS.get_process_id())
-	OS.set_environment("FRAGR_RUN_DIR", run_directory)
+	OS.set_environment("LOCALEXCEPTION_RUN_DIR", run_directory)
 	call_deferred("_run")
 
 func _finalize() -> void:
@@ -31,7 +31,7 @@ func _finalize() -> void:
 	unrelated.stop()
 	MouseCapture.release()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(settings_path))
-	OS.unset_environment("FRAGR_RUN_DIR")
+	OS.unset_environment("LOCALEXCEPTION_RUN_DIR")
 
 func _expect(value: bool, message: String) -> void:
 	if not value:
@@ -254,8 +254,8 @@ func _automatic(mode: String) -> bool:
 	return true
 
 func _run() -> void:
-	if not OS.get_environment("FRAGR_PAD_QA_DIR").is_empty():
-		var prefs: FragrSettings = FragrSettings.new(settings_path)
+	if not OS.get_environment("LOCALEXCEPTION_PAD_QA_DIR").is_empty():
+		var prefs: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 		prefs.set_value("video", "display_mode", 0)
 		prefs.set_value("video", "quality", 0)
 		prefs.set_value("video", "pixel_scale", 2)

@@ -1,5 +1,5 @@
 {
-  "comment": "Scheduled Service development route. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m03-scheduled-service.json, FRAGR_QA_MANIFEST=res://qa/m03-scheduled-service.json. Real human input, ordinary health, discovery supplies, authoritative enemies and mast shots. No grants or teleports. Accurate aim proves authoring, not fresh-player acceptance or ten-minute pacing.",
+  "comment": "Scheduled Service development route. LOCALEXCEPTION_QA_BOTS=0, LOCALEXCEPTION_QA_MAP_FILE=server/maps/m03-scheduled-service.json, LOCALEXCEPTION_QA_MANIFEST=res://qa/m03-scheduled-service.json. Real human input, ordinary health, discovery supplies, authoritative enemies and mast shots. No grants or teleports. Accurate aim proves authoring, not fresh-player acceptance or ten-minute pacing.",
   "width": 1280,
   "height": 720,
   "combat_travel": false,

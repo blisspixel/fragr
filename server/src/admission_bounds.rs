@@ -292,17 +292,19 @@ pub struct ProcessPolicy {
 }
 
 pub fn process_policy(join_secret_set: bool) -> ProcessPolicy {
-    let audience = std::env::var("FRAGR_JOIN_AUDIENCE")
+    let audience = std::env::var("LOCALEXCEPTION_JOIN_AUDIENCE")
         .ok()
         .map(|value| value.trim().to_string())
         .filter(|value| !value.is_empty());
-    let origins = std::env::var("FRAGR_ORIGIN_ALLOW")
+    let origins = std::env::var("LOCALEXCEPTION_ORIGIN_ALLOW")
         .ok()
         .map(|value| origin_allow_list(&value))
         .unwrap_or_default();
     let spectator_tickets = join_secret_set
         && matches!(
-            std::env::var("FRAGR_SPECTATOR_TICKET").ok().as_deref(),
+            std::env::var("LOCALEXCEPTION_SPECTATOR_TICKET")
+                .ok()
+                .as_deref(),
             Some("1")
         );
     ProcessPolicy {
@@ -369,7 +371,7 @@ pub fn fresh_board_window(now: Instant) -> ByteWindow {
     }
 }
 
-/// Exact entries from `FRAGR_ORIGIN_ALLOW`. Empty rejects every present Origin.
+/// Exact entries from `LOCALEXCEPTION_ORIGIN_ALLOW`. Empty rejects every present Origin.
 pub fn origin_allow_list(raw: &str) -> Vec<String> {
     raw.split(',')
         .map(str::trim)

@@ -127,7 +127,7 @@ func _test_gating() -> void:
 	_check(AimAssist.enabled_for(STANDARD, "keyboard") and AimAssist.enabled_for(AimAssist.Level.LIGHT, "gamepad"), "keyboard and gamepad look are assisted")
 	_check(not AimAssist.enabled_for(AimAssist.Level.OFF, "keyboard"), "the setting turns it off")
 	_check(AimAssist.level_from(7) == AimAssist.Level.OFF and AimAssist.level_from("2") == AimAssist.Level.OFF, "unknown levels are off")
-	var prefs: FragrSettings = FragrSettings.new("user://aim-assist-unused.cfg")
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new("user://aim-assist-unused.cfg")
 	_check(prefs.get_value("controls", "aim_assist") == 2, "standard is the default")
 	prefs.set_value("controls", "aim_assist", 5)
 	_check(prefs.get_value("controls", "aim_assist") == 2, "invalid stored levels fall back")

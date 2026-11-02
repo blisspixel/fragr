@@ -1,3 +1,3 @@
 fn main() {
-    fragr_build_metadata::emit();
+    localexception_build_metadata::emit();
 }

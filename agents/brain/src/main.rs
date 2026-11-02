@@ -8,15 +8,15 @@
 //! unless `--allow-remote-model` is given.
 
 use clap::{Args, Parser, Subcommand};
-use fragr_brain::bot::{run_bot, BotConfig};
-use fragr_brain::budget::{Budget, Caps, Pricing};
-use fragr_brain::decision::{tactical_questions, Gate};
-use fragr_brain::dotenv::resolve_key;
-use fragr_brain::local_model;
-use fragr_brain::provider::{
+use localexception_brain::bot::{run_bot, BotConfig};
+use localexception_brain::budget::{Budget, Caps, Pricing};
+use localexception_brain::decision::{tactical_questions, Gate};
+use localexception_brain::dotenv::resolve_key;
+use localexception_brain::local_model;
+use localexception_brain::provider::{
     decide, decision_request, key_request, parse_key_status, HttpTransport, Provider, Transport,
 };
-use fragr_brain::Error;
+use localexception_brain::Error;
 use std::path::PathBuf;
 use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, Mutex};
@@ -25,9 +25,9 @@ use tracing_subscriber::EnvFilter;
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "fragr-brain",
-    version = env!("FRAGR_CLI_VERSION"),
-    about = "A fragr agent whose intent comes from a decision model (TypeSafe Jev, natively or through OpenRouter) under a hard spend cap, or from a free open-weights decision model on this machine; local rules play for free."
+    name = "localexception-brain",
+    version = env!("LOCALEXCEPTION_CLI_VERSION"),
+    about = "A Local Exception agent whose intent comes from a decision model (TypeSafe Jev, natively or through OpenRouter) under a hard spend cap, or from a free open-weights decision model on this machine; local rules play for free."
 )]
 struct Cli {
     #[command(flatten)]
@@ -71,10 +71,10 @@ struct Common {
     #[arg(long, global = true)]
     no_ledger: bool,
     /// Dollars per million input tokens used for estimates and settlement.
-    #[arg(long, default_value_t = fragr_brain::budget::JEV_INPUT_PER_MILLION, global = true)]
+    #[arg(long, default_value_t = localexception_brain::budget::JEV_INPUT_PER_MILLION, global = true)]
     price_input_per_million: f64,
     /// Dollars per million output tokens.
-    #[arg(long, default_value_t = fragr_brain::budget::JEV_OUTPUT_PER_MILLION, global = true)]
+    #[arg(long, default_value_t = localexception_brain::budget::JEV_OUTPUT_PER_MILLION, global = true)]
     price_output_per_million: f64,
     /// Read keys from this .env file when the environment has none.
     #[arg(long, default_value = ".env", global = true)]
@@ -94,7 +94,7 @@ enum Command {
     Play {
         #[arg(long, default_value = "ws://127.0.0.1:6767")]
         server: String,
-        /// Display name; falls back to FRAGR_AGENT_NAME, then "Brain".
+        /// Display name; falls back to LOCALEXCEPTION_AGENT_NAME, then "Brain".
         #[arg(long)]
         name: Option<String>,
         /// Decisions per second (0.1 to 5). Ollama play asks only stance;
@@ -115,7 +115,7 @@ enum Command {
         timeline_path: Option<PathBuf>,
         /// Body for the pawn: `human` or `synthetic`. Presentation only.
         #[arg(long, default_value = "human", value_parser = parse_body)]
-        body: fragr_server::protocol::BodyKind,
+        body: localexception_server::protocol::BodyKind,
     },
     /// Send one decision for a state string and print the answers.
     Ask {
@@ -133,7 +133,7 @@ enum Command {
 }
 
 /// The wire's own allowlist, so the flag cannot name a path or model.
-fn parse_body(text: &str) -> Result<fragr_server::protocol::BodyKind, String> {
+fn parse_body(text: &str) -> Result<localexception_server::protocol::BodyKind, String> {
     serde_json::from_value(serde_json::Value::String(text.to_string()))
         .map_err(|_| format!("unknown body {text:?}; use human or synthetic"))
 }
@@ -210,7 +210,7 @@ fn resolve_name(name: Option<&str>, fallback: &str) -> String {
         .filter(|n| !n.is_empty())
         .map(str::to_string)
         .or_else(|| {
-            std::env::var("FRAGR_AGENT_NAME")
+            std::env::var("LOCALEXCEPTION_AGENT_NAME")
                 .ok()
                 .filter(|n| !n.trim().is_empty())
         })
@@ -376,7 +376,7 @@ fn run(cli: Cli, transport: Arc<dyn Transport>, out: &mut dyn std::io::Write) ->
             let state = state_value(state);
             let request =
                 decision_request(provider, &model, &api_key, &state, &tactical_questions())?;
-            let estimate = fragr_brain::provider::estimate_cost(&request, &budget.pricing);
+            let estimate = localexception_brain::provider::estimate_cost(&request, &budget.pricing);
             if dry_run {
                 let shown = serde_json::json!({
                     "request": request.redacted(),
@@ -461,9 +461,9 @@ fn state_value(state: String) -> serde_json::Value {
 }
 
 fn answers_json(
-    answers: &std::collections::BTreeMap<String, fragr_brain::decision::Answer>,
+    answers: &std::collections::BTreeMap<String, localexception_brain::decision::Answer>,
 ) -> serde_json::Value {
-    use fragr_brain::decision::Answer;
+    use localexception_brain::decision::Answer;
     let mut out = serde_json::Map::new();
     for (name, answer) in answers {
         let value = match answer {
@@ -521,7 +521,7 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use fragr_brain::provider::{HttpRequest, HttpResponse};
+    use localexception_brain::provider::{HttpRequest, HttpResponse};
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     struct Scripted {
@@ -549,12 +549,15 @@ mod tests {
     }
 
     fn parse(args: &[&str]) -> Cli {
-        Cli::try_parse_from(std::iter::once("fragr-brain").chain(args.iter().copied()))
+        Cli::try_parse_from(std::iter::once("localexception-brain").chain(args.iter().copied()))
             .expect("args parse")
     }
 
     fn temp(name: &str) -> PathBuf {
-        std::env::temp_dir().join(format!("fragr-brain-main-{name}-{}", uuid::Uuid::new_v4()))
+        std::env::temp_dir().join(format!(
+            "localexception-brain-main-{name}-{}",
+            uuid::Uuid::new_v4()
+        ))
     }
 
     fn answers() -> serde_json::Value {
@@ -592,19 +595,19 @@ mod tests {
         assert!(matches!(
             cli.command,
             Command::Play {
-                body: fragr_server::protocol::BodyKind::Synthetic,
+                body: localexception_server::protocol::BodyKind::Synthetic,
                 ..
             }
         ));
         assert!(matches!(
             parse(&["play"]).command,
             Command::Play {
-                body: fragr_server::protocol::BodyKind::Human,
+                body: localexception_server::protocol::BodyKind::Human,
                 ..
             }
         ));
         for bad in ["robot", "res://body.png", "Human"] {
-            assert!(Cli::try_parse_from(["fragr-brain", "play", "--body", bad]).is_err());
+            assert!(Cli::try_parse_from(["localexception-brain", "play", "--body", bad]).is_err());
         }
         assert!(
             matches!(cli.command, Command::Play { timeline_path: Some(ref path), .. } if path == &PathBuf::from(".agents/watch/test-timeline.json"))
@@ -628,7 +631,7 @@ mod tests {
         assert_eq!(cli.common.max_spend_usd, 5.0);
         assert!(matches!(parse(&["spend"]).command, Command::Spend));
         assert!(matches!(parse(&["key"]).command, Command::Key));
-        assert!(Cli::try_parse_from(["fragr-brain"]).is_err());
+        assert!(Cli::try_parse_from(["localexception-brain"]).is_err());
         assert_eq!(parse_provider("openrouter").unwrap(), Provider::OpenRouter);
         assert!(parse_provider("cloud").is_err());
         assert_eq!(resolve_name(Some(" Z "), "Brain"), "Z");
@@ -1099,7 +1102,7 @@ mod tests {
         std::fs::write(&key_file, "sk_or\n").unwrap();
         let transport = scripted(
             200,
-            serde_json::json!({"data": {"label": "fragr", "limit": null, "limit_remaining": null, "usage": 0.25}}),
+            serde_json::json!({"data": {"label": "localexception", "limit": null, "limit_remaining": null, "usage": 0.25}}),
         );
         let cli = parse(&[
             "--provider",

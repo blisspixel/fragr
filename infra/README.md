@@ -1,6 +1,6 @@
 # infra
 
-Run the same fragr Rust authoritative server at home or, later, from a template. A spare machine is a complete host. Cloud templates are optional and plan-only.
+Run the same Local Exception Rust authoritative server at home or, later, from a template. A spare machine is a complete host. Cloud templates are optional and plan-only.
 
 ## Product intent
 
@@ -22,7 +22,7 @@ Until Nick explicitly accepts a priced deployment:
 2. **No external IPv4 by default.** Private Google Access lets the internal-only host pull its image and read the pinned secret. Opting into an ephemeral public IPv4 for a reviewed test costs $0.005 per in-use hour on a standard VM ([Google VPC pricing](https://cloud.google.com/vpc/pricing#ipaddress), checked 2026-09-28), even if game ingress is closed. Tailscale is optional private testing only.
 3. **Tight firewall:** TCP 6767 has no source range by default. A bounded test may allow up to eight canonical operator IPv4 /32 addresses, with matching COS host INPUT rules. UDP remains blocked because the transport is not implemented. **SSH via IAP only**, no world SSH.
 4. **HTTP agent-adapter:** no deployable Cloud Run resource is included. A real, authenticated HTTP service can be designed later. It is not the raw game socket.
-5. **Never** put authoritative tick on Cloud Run/Functions as a free UDP front door (no inbound UDP). Slice 1 is WebSocket today; still prefer **GCE for long-lived authority**. The same rule covers a later central service: the sim is a long-lived process you can also run yourself. Serverless is for a status page, a later ticket issuer, and a server list. It is not a stand-in for the 20 Hz server. The first join ticket is an HMAC the host and the joining client share through `FRAGR_JOIN_SECRET`. A later issuer can mint that same ticket without copying the secret onto every player. Watchers are the scale. The fight stays a bounded mix of humans and agents.
+5. **Never** put authoritative tick on Cloud Run/Functions as a free UDP front door (no inbound UDP). Slice 1 is WebSocket today; still prefer **GCE for long-lived authority**. The same rule covers a later central service: the sim is a long-lived process you can also run yourself. Serverless is for a status page, a later ticket issuer, and a server list. It is not a stand-in for the 20 Hz server. The first join ticket is an HMAC the host and the joining client share through `LOCALEXCEPTION_JOIN_SECRET`. A later issuer can mint that same ticket without copying the secret onto every player. Watchers are the scale. The fight stays a bounded mix of humans and agents.
 
 ## Identity and secrets (required before modules)
 

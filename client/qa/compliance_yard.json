@@ -1,5 +1,5 @@
 {
-  "comment": "Compliance Yard live review: a real server on map 2 with rule bots, from eye height in each named room, on the inspection gantry and in the service corridor, a follow camera strip and a joined first-person fighter. Run with FRAGR_QA_MAP=2 FRAGR_QA_BOTS=6 FRAGR_QA_MANIFEST=res://qa/compliance_yard.json. Positions are world metres (the plan built at 95 percent). Camera placement is presentation only; no player pose injection.",
+  "comment": "Compliance Yard live review: a real server on map 2 with rule bots, from eye height in each named room, on the inspection gantry and in the service corridor, a follow camera strip and a joined first-person fighter. Run with LOCALEXCEPTION_QA_MAP=2 LOCALEXCEPTION_QA_BOTS=6 LOCALEXCEPTION_QA_MANIFEST=res://qa/compliance_yard.json. Positions are world metres (the plan built at 95 percent). Camera placement is presentation only; no player pose injection.",
   "width": 1280,
   "height": 720,
   "states": [

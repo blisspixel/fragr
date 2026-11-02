@@ -30,7 +30,7 @@ func _check(ok: bool, message: String) -> void:
 		push_error("test_event_replay: " + message)
 
 func _run() -> void:
-	var capture: String = OS.get_environment("FRAGR_EVENT_REPLAY_CAPTURE")
+	var capture: String = OS.get_environment("LOCALEXCEPTION_EVENT_REPLAY_CAPTURE")
 	if not capture.is_empty():
 		root.size = Vector2i(1280, 720)
 		root.content_scale_size = Vector2i(1920, 1080)

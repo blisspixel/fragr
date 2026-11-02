@@ -215,9 +215,9 @@ static func team_label_color(team: String, choice: int = -1) -> Color:
 			return UNION_LABEL
 		"coalition":
 			match FactionPalette.chosen(choice):
-				FragrSettings.TEAM_HIGH_CONTRAST:
+				LocalExceptionSettings.TEAM_HIGH_CONTRAST:
 					return Color("e8e2d6")
-				FragrSettings.TEAM_COLOUR_BLIND:
+				LocalExceptionSettings.TEAM_COLOUR_BLIND:
 					return FactionPalette.FREE_BLUE_LABEL
 			return COALITION_LABEL
 	return Color.WHITE

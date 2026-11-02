@@ -1,5 +1,5 @@
-use fragr_server::movement::{Arena, Solid};
-use fragr_server::vehicles::{vehicle_step, VehicleInput, VehicleMotion};
+use localexception_server::movement::{Arena, Solid};
+use localexception_server::vehicles::{vehicle_step, VehicleInput, VehicleMotion};
 
 fn main() {
     let flat = Arena {

@@ -6,7 +6,7 @@
 
 ## Goal
 
-Create Terraform infrastructure-as-code for deploying fragr game servers on GCP Always Free tier, targeting $0/month baseline cost.
+Create Terraform infrastructure-as-code for deploying Local Exception game servers on GCP Always Free tier, targeting $0/month baseline cost.
 
 ## Non-Goals
 
@@ -42,12 +42,12 @@ Create Terraform infrastructure-as-code for deploying fragr game servers on GCP 
   - Boot disk: 20 GB standard persistent (under 30 GB free tier)
   - Image: Debian 12 (stable, well-supported)
   - Ephemeral external IP (no static IP resource)
-  - Startup script: Install Docker, create /opt/fragr directory
+  - Startup script: Install Docker, create /opt/localexception directory
 
 ### Networking
 
 - **VPC:** `google_compute_network.vpc`
-  - Name: `fragr-vpc`
+  - Name: `localexception-vpc`
   - Regional routing
   - Manual subnets (no auto-create)
 
@@ -63,7 +63,7 @@ Create Terraform infrastructure-as-code for deploying fragr game servers on GCP 
 ### IAM
 
 - **Service Account:** `google_service_account.game_server`
-  - ID: `fragr-game-server`
+  - ID: `localexception-game-server`
   - Roles: `roles/logging.logWriter`, `roles/monitoring.metricWriter`
   - Minimal permissions (no compute admin, no storage access)
 
@@ -299,10 +299,10 @@ terraform validate                # Validate configuration
 
 ### Phase 3: Deploy Server (Future)
 
-1. SSH via IAP: `gcloud compute ssh fragr-game-server --zone=us-west1-a --tunnel-through-iap`
+1. SSH via IAP: `gcloud compute ssh localexception-game-server --zone=us-west1-a --tunnel-through-iap`
 2. Copy server binary to VM (scp or GCS)
 3. Configure systemd service (optional)
-4. Start server: `./fragr-server --bind 0.0.0.0:6767`
+4. Start server: `./localexception-server --bind 0.0.0.0:6767`
 5. Test connectivity from client
 6. Monitor costs in GCP Console
 

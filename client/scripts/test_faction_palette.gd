@@ -128,8 +128,8 @@ func _check_overlay() -> void:
 	_check(FactionPalette.livery("union") == "union" and FactionPalette.livery("coalition") == "free"
 		and FactionPalette.livery("") == "free", "only the Union side wears issued livery")
 	_check(FactionPalette.team_accent("union") == FactionPalette.UNION_RED, "Union red only on the Union side")
-	for choice: int in [FragrSettings.TEAM_STANDARD, FragrSettings.TEAM_HIGH_CONTRAST]:
-		var high_contrast: bool = choice == FragrSettings.TEAM_HIGH_CONTRAST
+	for choice: int in [LocalExceptionSettings.TEAM_STANDARD, LocalExceptionSettings.TEAM_HIGH_CONTRAST]:
+		var high_contrast: bool = choice == LocalExceptionSettings.TEAM_HIGH_CONTRAST
 		var amber: Color = FactionPalette.team_accent("coalition", choice)
 		_check(FactionPalette.free_accent_allowed(amber) and FactionPalette.is_warm_light(amber),
 			"the free accent is warm amber (high contrast %s): %s" % [high_contrast, amber.to_html(false)])

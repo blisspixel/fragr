@@ -59,7 +59,7 @@ static func run(tree: SceneTree, game: Node, until: Callable, check: Callable, l
 	if crouched:
 		await tree.create_timer(0.2).timeout
 		check.call(pawn(game).get("ducking", false), label + " held crouch persists")
-		var captures: String = OS.get_environment("FRAGR_PAD_QA_DIR")
+		var captures: String = OS.get_environment("LOCALEXCEPTION_PAD_QA_DIR")
 		if not captures.is_empty() and DisplayServer.get_name() != "headless":
 			await RenderingServer.frame_post_draw
 			check.call(DirAccess.make_dir_recursive_absolute(captures) == OK, "pad capture directory")

@@ -59,16 +59,16 @@ func _until(predicate: Callable, seconds: float) -> bool:
 	return false
 
 func _run() -> void:
-	var chosen_kind: String = OS.get_environment("FRAGR_VEHICLE_KIND")
+	var chosen_kind: String = OS.get_environment("LOCALEXCEPTION_VEHICLE_KIND")
 	if chosen_kind not in ["boat", "light_aircraft"]:
 		chosen_kind = "jeep"
 	directory = ProjectSettings.globalize_path("res://../.agents/vehicle-live/" + chosen_kind).simplify_path()
 	report["kind"] = chosen_kind
 	report["display"] = DisplayServer.get_name()
 	DirAccess.make_dir_recursive_absolute(directory)
-	set_meta("fragr_settings_path", directory.path_join("settings.cfg"))
-	set_meta("fragr_records_path", directory.path_join("records"))
-	var preferences: FragrSettings = FragrSettings.new(directory.path_join("settings.cfg"))
+	set_meta("localexception_settings_path", directory.path_join("settings.cfg"))
+	set_meta("localexception_records_path", directory.path_join("records"))
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(directory.path_join("settings.cfg"))
 	preferences.set_value("video", "display_mode", 0)
 	preferences.save_to_disk()
 	root.mode = Window.MODE_WINDOWED

@@ -5,7 +5,7 @@
 //! are read after the action is chosen and never return to the controller.
 use super::Status;
 use crate::campaign::market_guard::Guard;
-use fragr_server::protocol::{AmmoPool, LoadoutState, PaverStripState};
+use localexception_server::protocol::{AmmoPool, LoadoutState, PaverStripState};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use uuid::Uuid;

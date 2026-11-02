@@ -35,7 +35,7 @@ Tiles contain no baked lighting, emission, liquid gameplay or collision promises
 
 ## Exact operation and spend
 
-Use the existing `target/release/fragr-spritegen.exe` binary and
+Use the existing `target/release/localexception-spritegen.exe` binary and
 `tools/spritegen/specs/offworld-materials-20261001.json`. Five independent direct
 `marketing-studio/image` requests, square 2k, medium quality, enhancement disabled.
 The official [model API reference](https://open.higgsfield.ai/models/marketing-studio/image/api-reference)

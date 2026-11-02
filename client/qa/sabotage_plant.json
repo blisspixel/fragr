@@ -1,5 +1,5 @@
 {
-  "comment": "A joined fighter alone on a Sabotage server carries the charge to A Frame, plants it and watches it detonate. Run with FRAGR_QA_MODE=sabotage FRAGR_QA_MAP=4 FRAGR_QA_BOTS=0 FRAGR_QA_SEED=42.",
+  "comment": "A joined fighter alone on a Sabotage server carries the charge to A Frame, plants it and watches it detonate. Run with LOCALEXCEPTION_QA_MODE=sabotage LOCALEXCEPTION_QA_MAP=4 LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_SEED=42.",
   "width": 1280,
   "height": 720,
   "states": [

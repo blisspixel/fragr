@@ -28,14 +28,14 @@ Local WebSocket and rule-bot work only, $0. No external call or infrastructure a
 
 ## Local receipt, 2026-09-28
 
-Two loopback capture attempts completed and passed, with zero invalid windows. The final run used Windows 11 Pro 10.0.26200, Godot 4.7.2-stable, the OpenGL compatibility renderer on an AMD Radeon 780M, a release Rust server at `127.0.0.1:6793`, Arena Duel, simulation seed 1, one aggressive rule bot and free-for-all rules. `FRAGR_QA_NO_ROUND_EVENTS=1` disabled the timed boss and compliance pings; ordinary round start, frag and Host events still occurred. A joined human-role client received the same WebSocket JSON snapshots and sent ordinary Actions. The tour held movement and fire for 20 seconds, with no screenshot pause during the window. The client/server logs, full manifest, contact sheet and still are ignored under `.agents/qa/websocket-moving-combat-final/`. The still was inspected and shows a live first-person world and HUD. The first run, before peak-context instrumentation, is under `.agents/qa/websocket-moving-combat/`.
+Two loopback capture attempts completed and passed, with zero invalid windows. The final run used Windows 11 Pro 10.0.26200, Godot 4.7.2-stable, the OpenGL compatibility renderer on an AMD Radeon 780M, a release Rust server at `127.0.0.1:6793`, Arena Duel, simulation seed 1, one aggressive rule bot and free-for-all rules. `LOCALEXCEPTION_QA_NO_ROUND_EVENTS=1` disabled the timed boss and compliance pings; ordinary round start, frag and Host events still occurred. A joined human-role client received the same WebSocket JSON snapshots and sent ordinary Actions. The tour held movement and fire for 20 seconds, with no screenshot pause during the window. The client/server logs, full manifest, contact sheet and still are ignored under `.agents/qa/websocket-moving-combat-final/`. The still was inspected and shows a live first-person world and HUD. The first run, before peak-context instrumentation, is under `.agents/qa/websocket-moving-combat/`.
 
 Reproduce from this branch in Git Bash, with Godot 4.7.2 installed:
 
 ```bash
-export FRAGR_GODOT=/c/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe
-export FRAGR_QA_BOTS=1 FRAGR_QA_NO_ROUND_EVENTS=1
-export FRAGR_QA_MANIFEST=res://qa/websocket-moving-combat.json FRAGR_PORT=6793
+export LOCALEXCEPTION_GODOT=/c/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe
+export LOCALEXCEPTION_QA_BOTS=1 LOCALEXCEPTION_QA_NO_ROUND_EVENTS=1
+export LOCALEXCEPTION_QA_MANIFEST=res://qa/websocket-moving-combat.json LOCALEXCEPTION_PORT=6793
 tools/qa_tour.sh .agents/qa/websocket-moving-combat-final
 ```
 

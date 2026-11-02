@@ -21,7 +21,7 @@ func _check(condition: bool, message: String) -> void:
 
 func _run() -> void:
 	var path: String = "user://test-host-voice-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", path)
+	set_meta("localexception_settings_path", path)
 	_check_setting(path)
 	await _check_menus(path)
 	await _check_hud_gate()
@@ -33,20 +33,20 @@ func _run() -> void:
 
 
 func _check_setting(path: String) -> void:
-	var preferences: FragrSettings = FragrSettings.new(path)
-	_check(preferences.announcer() == FragrSettings.ANNOUNCER_ON, "the announcer starts On")
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(path)
+	_check(preferences.announcer() == LocalExceptionSettings.ANNOUNCER_ON, "the announcer starts On")
 	preferences.set_value("audio", "announcer", 7)
-	_check(preferences.announcer() == FragrSettings.ANNOUNCER_ON, "an unknown announcer mode falls back to On")
+	_check(preferences.announcer() == LocalExceptionSettings.ANNOUNCER_ON, "an unknown announcer mode falls back to On")
 	preferences.set_value("audio", "announcer", "2")
-	_check(preferences.announcer() == FragrSettings.ANNOUNCER_ON, "a string is not a mode")
-	preferences.set_value("audio", "announcer", FragrSettings.ANNOUNCER_BIG_MOMENTS)
+	_check(preferences.announcer() == LocalExceptionSettings.ANNOUNCER_ON, "a string is not a mode")
+	preferences.set_value("audio", "announcer", LocalExceptionSettings.ANNOUNCER_BIG_MOMENTS)
 	preferences.set_value("audio", "announcer_volume", 4.0)
 	_check(is_equal_approx(float(preferences.get_value("audio", "announcer_volume")), 1.0), "announcer volume clamps to the bus range")
 	preferences.set_value("audio", "announcer_volume", 0.4)
 	_check(preferences.save_to_disk() == OK, "the announcer setting saves")
-	var reloaded: FragrSettings = FragrSettings.new(path)
+	var reloaded: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	reloaded.load_from_disk()
-	_check(reloaded.announcer() == FragrSettings.ANNOUNCER_BIG_MOMENTS, "Big moments only survives a restart")
+	_check(reloaded.announcer() == LocalExceptionSettings.ANNOUNCER_BIG_MOMENTS, "Big moments only survives a restart")
 	var bus: int = AudioServer.get_bus_index("Announcer")
 	_check(bus >= 0, "the Announcer bus exists")
 	reloaded.apply_audio()
@@ -54,12 +54,12 @@ func _check_setting(path: String) -> void:
 	reloaded.set_value("audio", "announcer_volume", 0.0)
 	reloaded.apply_audio()
 	_check(AudioServer.is_bus_mute(bus), "zero announcer volume mutes the bus")
-	_check(FragrSettings.announcer_labels() == (["ON", "BIG MOMENTS ONLY", "OFF"] as Array[String]), "three labelled choices: " + str(FragrSettings.announcer_labels()))
+	_check(LocalExceptionSettings.announcer_labels() == (["ON", "BIG MOMENTS ONLY", "OFF"] as Array[String]), "three labelled choices: " + str(LocalExceptionSettings.announcer_labels()))
 
 
 ## Settings > Audio, and the same page from the match menu.
 func _check_menus(path: String) -> void:
-	var preferences: FragrSettings = FragrSettings.new(path)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	var panel: SettingsPanel = SettingsPanel.new()
 	panel.preferences = preferences
 	root.add_child(panel)
@@ -108,11 +108,11 @@ func _check_hud_gate() -> void:
 	var big: Dictionary = {"kind": "triple_frag", "variant": 0, "player": "Nightfall", "big": true}
 	var small: Dictionary = {"kind": "double_frag", "variant": 0, "player": "Nightfall"}
 	var expected: Dictionary = {
-		FragrSettings.ANNOUNCER_ON: ["HOST: TRIPLE FRAG! NIGHTFALL!", "HOST: DOUBLE FRAG. NIGHTFALL."],
-		FragrSettings.ANNOUNCER_BIG_MOMENTS: ["HOST: TRIPLE FRAG! NIGHTFALL!"],
-		FragrSettings.ANNOUNCER_OFF: [],
+		LocalExceptionSettings.ANNOUNCER_ON: ["HOST: TRIPLE FRAG! NIGHTFALL!", "HOST: DOUBLE FRAG. NIGHTFALL."],
+		LocalExceptionSettings.ANNOUNCER_BIG_MOMENTS: ["HOST: TRIPLE FRAG! NIGHTFALL!"],
+		LocalExceptionSettings.ANNOUNCER_OFF: [],
 	}
-	for mode: int in FragrSettings.ANNOUNCER_MODES:
+	for mode: int in LocalExceptionSettings.ANNOUNCER_MODES:
 		hud.combat_feed.clear()
 		hud.announcer = mode
 		hud.show_host_reaction(big)
@@ -120,13 +120,13 @@ func _check_hud_gate() -> void:
 		hud.show_host_join("HOST: ARENA DUEL IS LIVE.")
 		var lines: PackedStringArray = _feed_lines(hud)
 		var want: Array = (expected[mode] as Array).duplicate()
-		if mode == FragrSettings.ANNOUNCER_ON:
+		if mode == LocalExceptionSettings.ANNOUNCER_ON:
 			want.append("HOST: ARENA DUEL IS LIVE.")
 		_check(Array(lines) == want, "announcer mode %d shows %s, got %s" % [mode, str(want), str(lines)])
-		_check(hud.announcer_allows(true) == (mode != FragrSettings.ANNOUNCER_OFF), "big moments pass unless Off")
-		_check(hud.announcer_allows(false) == (mode == FragrSettings.ANNOUNCER_ON), "captions pass only when On")
+		_check(hud.announcer_allows(true) == (mode != LocalExceptionSettings.ANNOUNCER_OFF), "big moments pass unless Off")
+		_check(hud.announcer_allows(false) == (mode == LocalExceptionSettings.ANNOUNCER_ON), "captions pass only when On")
 	# Sudden death is a rule fact: it shows whatever the announcer says.
-	hud.announcer = FragrSettings.ANNOUNCER_OFF
+	hud.announcer = LocalExceptionSettings.ANNOUNCER_OFF
 	hud.call("set_match_rules", {"mode": "ffa", "name": "Free-for-all"})
 	hud.set_round_info("Active", null, 10, true)
 	var chip: Label = hud.get("mode_chip_label")
@@ -175,7 +175,7 @@ func _check_recordings() -> void:
 				var looped: bool = (clip as AudioStreamMP3).loop if clip is AudioStreamMP3 else false
 				_check(not looped, "a call plays once: " + path)
 			var data: Dictionary = {"kind": kind, "variant": variant, "player": "Nightfall", "team": "union", "big": true}
-			_check(voice.speak(data, FragrSettings.ANNOUNCER_BIG_MOMENTS), "the real loader voices " + path)
+			_check(voice.speak(data, LocalExceptionSettings.ANNOUNCER_BIG_MOMENTS), "the real loader voices " + path)
 	for kind: String in CAPTIONS:
 		for variant: int in range(MatchRules.REACTION_VARIANTS):
 			_check(not ResourceLoader.exists(HostVoice.slot_path(kind, variant)), "a caption has no recording: " + kind)
@@ -199,7 +199,7 @@ func _check_voice() -> void:
 	var big: Dictionary = {"kind": "triple_frag", "variant": 1, "player": "Nightfall", "big": true}
 	# No recording: silence, never an error.
 	var unrecorded: Dictionary = {"kind": "golden_rail", "variant": 1, "player": "Nightfall", "big": true}
-	_check(not voice.speak(unrecorded, FragrSettings.ANNOUNCER_ON), "a missing clip is silence")
+	_check(not voice.speak(unrecorded, LocalExceptionSettings.ANNOUNCER_ON), "a missing clip is silence")
 	var asked: Array[String] = []
 	var clip: AudioStreamWAV = _tone()
 	voice.clip_source = func(path: String) -> AudioStream:
@@ -207,18 +207,18 @@ func _check_voice() -> void:
 		return clip if path.ends_with("_1.mp3") else null
 	var ducked: Array[float] = []
 	voice.spoke.connect(func(seconds: float) -> void: ducked.append(seconds))
-	_check(voice.speak(big, FragrSettings.ANNOUNCER_ON), "a recorded big moment plays")
+	_check(voice.speak(big, LocalExceptionSettings.ANNOUNCER_ON), "a recorded big moment plays")
 	_check(voice.playing and voice.stream == clip, "the slot's clip is what plays")
 	_check(asked == (["res://assets/audio/host/triple_frag_1.mp3"] as Array[String]), "the slot asked for is the kind and variant: " + str(asked))
 	_check(ducked.size() == 1 and ducked[0] > clip.get_length(), "the radio ducks for the clip and its tail")
-	_check(voice.speak(big, FragrSettings.ANNOUNCER_BIG_MOMENTS), "Big moments only still voices a big moment")
-	_check(not voice.speak(big, FragrSettings.ANNOUNCER_OFF), "Off never speaks")
+	_check(voice.speak(big, LocalExceptionSettings.ANNOUNCER_BIG_MOMENTS), "Big moments only still voices a big moment")
+	_check(not voice.speak(big, LocalExceptionSettings.ANNOUNCER_OFF), "Off never speaks")
 	var caption: Dictionary = big.duplicate()
 	caption.erase("big")
-	_check(not voice.speak(caption, FragrSettings.ANNOUNCER_ON), "a text-only caption is never voiced")
+	_check(not voice.speak(caption, LocalExceptionSettings.ANNOUNCER_ON), "a text-only caption is never voiced")
 	for bad: Dictionary in [{"kind": "ace", "variant": 1, "big": true}, {"kind": "triple_frag", "variant": 3, "big": true}, {"kind": "triple_frag", "variant": 1.5, "big": true}]:
-		_check(not voice.speak(bad, FragrSettings.ANNOUNCER_ON), "malformed calls stay silent: " + str(bad))
-	_check(not voice.speak({"kind": "triple_frag", "variant": 0, "big": true}, FragrSettings.ANNOUNCER_ON), "an empty slot does not interrupt")
+		_check(not voice.speak(bad, LocalExceptionSettings.ANNOUNCER_ON), "malformed calls stay silent: " + str(bad))
+	_check(not voice.speak({"kind": "triple_frag", "variant": 0, "big": true}, LocalExceptionSettings.ANNOUNCER_ON), "an empty slot does not interrupt")
 	_check(voice.playing, "the current call keeps speaking")
 	# Leaving the match retires the voice the way the match scene does.
 	var retirement: ClientRetirement = ClientRetirement.for_tree(self)

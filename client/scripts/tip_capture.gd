@@ -10,7 +10,7 @@ func _initialize() -> void:
 	call_deferred("_run_capture")
 
 func _run_capture() -> void:
-	var out_dir: String = OS.get_environment("FRAGR_TIP_CAPTURE_DIR")
+	var out_dir: String = OS.get_environment("LOCALEXCEPTION_TIP_CAPTURE_DIR")
 	if out_dir.is_empty():
 		out_dir = ProjectSettings.globalize_path("res://../docs/screenshots")
 

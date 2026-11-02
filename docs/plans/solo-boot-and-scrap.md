@@ -25,12 +25,12 @@ Make **single-player first-class**: Nick (or anyone) can boot and scrap solo vs 
 - `project.godot` `run/main_scene` = `res://scenes/main.tscn` (arena + HUD + NetClient).
 - `game_manager.gd` `_ready` always connects as **spectator** unless cmdline contains `--human`.
 - Press **J** to disconnect/reconnect as human; **L** leaves back to spectate.
-- `net_client.gd` defaults to `ws://127.0.0.1:6767`; override via `FRAGR_SERVER`.
+- `net_client.gd` defaults to `ws://127.0.0.1:6767`; override via `LOCALEXCEPTION_SERVER`.
 - No main menu. Opening the client alone is spectator-hangout UX, not Solo Scrap.
 
 ### How server `--bots N` works
 
-- `fragr-server --bots N` (default **4**) calls `GameSession::spawn_bots(N)` once at boot.
+- `localexception-server --bots N` (default **4**) calls `GameSession::spawn_bots(N)` once at boot.
 - Named rule bots (Rusher/Sniper/Flanker/Tank/...) are `Role::Agent` on the same Action path as humans.
 - Bots respawn; humans leaving does not remove bots.
 - Gap: `--bots 0` (or any empty start) leaves an empty arena with no refill. Solo needs living opponents always when a min is set.
@@ -52,7 +52,7 @@ VISION: "solo boot-and-scrap ... Local rule bots, arcade-or-campaign loop, offli
 | Area | Change |
 |---|---|
 | `server/` | `min_bots` + `ensure_min_bots()` so solo never sits empty when target > 0 |
-| `client/` | Boot menu: Solo Scrap (default) / Spectate Local / Join Host; `--solo` / `FRAGR_SOLO` auto-joins human on loopback |
+| `client/` | Boot menu: Solo Scrap (default) / Spectate Local / Join Host; `--solo` / `LOCALEXCEPTION_SOLO` auto-joins human on loopback |
 | `tools/solo_scrap.sh` | One-command: loopback server with bots + Godot Solo Scrap |
 | `docs/` | This plan; tip priorities; README Solo Scrap section |
 | Protocol | No wire changes |
@@ -61,8 +61,8 @@ VISION: "solo boot-and-scrap ... Local rule bots, arcade-or-campaign loop, offli
 ## Technical approach
 
 1. **Server:** Store `min_bots` on `GameSession`. `spawn_bots` at boot sets it. Each tick (or before bot AI) call `ensure_min_bots()`: if `self.bots.len() < min_bots`, spawn the deficit with the existing named configs. Tests cover empty -> refill and no-op when already full.
-2. **Client boot menu:** New `boot_menu.tscn` as main scene. Buttons: **Solo Scrap** (default focus), **Spectate Local**, **Join Host** (LineEdit for `host:port`). Solo/Spectate force loopback unless Join Host. Pass mode via `SceneTree` meta into `main.tscn`. Cmdline `--solo` / env `FRAGR_SOLO=1` skips menu straight into human scrap (for the shell helper). Existing `--human` and J/L stay.
-3. **One-command:** `tools/solo_scrap.sh` builds/runs `fragr-server --bind 127.0.0.1:6767 --bots 4`, then launches Godot 4.7.2 on `main.tscn` with `--solo`. Cleans up server on exit. No Tailscale, no public bind required.
+2. **Client boot menu:** New `boot_menu.tscn` as main scene. Buttons: **Solo Scrap** (default focus), **Spectate Local**, **Join Host** (LineEdit for `host:port`). Solo/Spectate force loopback unless Join Host. Pass mode via `SceneTree` meta into `main.tscn`. Cmdline `--solo` / env `LOCALEXCEPTION_SOLO=1` skips menu straight into human scrap (for the shell helper). Existing `--human` and J/L stay.
+3. **One-command:** `tools/solo_scrap.sh` builds/runs `localexception-server --bind 127.0.0.1:6767 --bots 4`, then launches Godot 4.7.2 on `main.tscn` with `--solo`. Cleans up server on exit. No Tailscale, no public bind required.
 4. **README:** Lead with Solo Scrap one-command; document offline loopback 6767; keep MP/Tailscale as secondary.
 
 ## Verification

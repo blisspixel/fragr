@@ -1,6 +1,6 @@
 //! Bounded, accepted identity and same-snapshot kill evidence. Historical
 //! name-keyed transient caches are deliberately not promoted into this owner.
-use fragr_server::protocol::{Snapshot, WeaponType};
+use localexception_server::protocol::{Snapshot, WeaponType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use uuid::Uuid;

@@ -35,7 +35,7 @@ curl -fsS http://127.0.0.1:6767/status
 Wait for `healthy` in `docker compose ps` and `health.status: ok` in the
 response. The image carries the server, bundled maps and legal notices. The
 container runs unprivileged with a read-only root filesystem, and Compose
-restarts it after a failure. Set `FRAGR_BOTS` and `FRAGR_MAP` through the
+restarts it after a failure. Set `LOCALEXCEPTION_BOTS` and `LOCALEXCEPTION_MAP` through the
 ignored root `.env` or the host environment. See [Home LAN](HOME-LAN.md) for
 join-ticket and access-list configuration. Keep secrets out of the image,
 checkout and shell history.
@@ -43,7 +43,7 @@ checkout and shell history.
 Allow inbound TCP 6767 only from the approved friends' addresses during this
 test. Keep SSH limited to key-based operator access or the provider's private
 management path. UDP is closed because the current game transport uses
-WebSocket. The Godot Multiplayer page or `FRAGR_SERVER` connects to the host
+WebSocket. The Godot Multiplayer page or `LOCALEXCEPTION_SERVER` connects to the host
 address. No VPN is required for this path.
 
 Direct `ws://` gameplay is plaintext, and today's shared join secret is not a

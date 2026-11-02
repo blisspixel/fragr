@@ -1,5 +1,5 @@
 {
-  "comment": "M17 command galleries layout review: the command floor under its raised galleries, both ordinary stairs, the outer service stair from the assembly hall, the bulkhead and court stair the core override opens, the cross-floor sightlines and the gallery rail cover. Run with FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m17-peace-without-interruption.json FRAGR_QA_MANIFEST=res://qa/m17-galleries.json. Spectator geometry and composition review in the sealed world, not combat or fresh-player evidence.",
+  "comment": "M17 command galleries layout review: the command floor under its raised galleries, both ordinary stairs, the outer service stair from the assembly hall, the bulkhead and court stair the core override opens, the cross-floor sightlines and the gallery rail cover. Run with LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MAP_FILE=server/maps/m17-peace-without-interruption.json LOCALEXCEPTION_QA_MANIFEST=res://qa/m17-galleries.json. Spectator geometry and composition review in the sealed world, not combat or fresh-player evidence.",
   "width": 1280,
   "height": 720,
   "states": [

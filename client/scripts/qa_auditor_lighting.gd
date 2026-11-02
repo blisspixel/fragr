@@ -10,7 +10,7 @@ func _initialize() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
-	var output: String = OS.get_environment("FRAGR_QA_DIR")
+	var output: String = OS.get_environment("LOCALEXCEPTION_QA_DIR")
 	if output.is_empty():
 		push_error("qa_auditor_lighting: requires owned output directory")
 		quit(1)

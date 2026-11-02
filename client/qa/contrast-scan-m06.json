@@ -1,5 +1,5 @@
 {
- "comment": "Contrast scan of M06's guards from the golden route's posed eye-height views (built from m06-golden-guards.json, each view held about five seconds while client/qa/contrast_scan.gd reads every actor it sees 10 to 40 m away). FRAGR_QA_SCRIPT=res://qa/contrast_scan.gd FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=<level map>.",
+ "comment": "Contrast scan of M06's guards from the golden route's posed eye-height views (built from m06-golden-guards.json, each view held about five seconds while client/qa/contrast_scan.gd reads every actor it sees 10 to 40 m away). LOCALEXCEPTION_QA_SCRIPT=res://qa/contrast_scan.gd LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MAP_FILE=<level map>.",
  "width": 1280,
  "height": 720,
  "states": [

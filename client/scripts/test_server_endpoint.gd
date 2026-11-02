@@ -15,7 +15,7 @@ func _run() -> void:
 		{"input": "127.0.0.1:6767", "game": "ws://127.0.0.1:6767", "status": "http://127.0.0.1:6767/status"},
 		{"input": " localhost ", "game": "ws://localhost:6767", "status": "http://localhost:6767/status"},
 		{"input": "ws://192.168.1.12:32123", "game": "ws://192.168.1.12:32123", "status": "http://192.168.1.12:32123/status"},
-		{"input": "WSS://FRAGR.EXAMPLE/", "game": "wss://fragr.example:443", "status": "https://fragr.example:443/status"},
+		{"input": "WSS://LOCALEXCEPTION.EXAMPLE/", "game": "wss://localexception.example:443", "status": "https://localexception.example:443/status"},
 		{"input": "ws://localhost", "game": "ws://localhost:80", "status": "http://localhost:80/status"},
 		{"input": "[::1]:6767", "game": "ws://[::1]:6767", "status": "http://[::1]:6767/status"},
 	]

@@ -24,7 +24,7 @@ pub const TYPESAFE_MODEL: &str = "jev-1.13.0";
 pub const OPENROUTER_MODEL: &str = "typesafe/jev-1.13";
 /// App attribution OpenRouter shows on its rankings; this repository, nothing else.
 pub const APP_REFERER: &str = "https://github.com/blisspixel/fragr";
-pub const APP_TITLE: &str = "fragr";
+pub const APP_TITLE: &str = "localexception";
 pub const TYPESAFE_KEY_NAMES: &[&str] = &["TYPESAFE_API_KEY", "TYPESAFE"];
 pub const OPENROUTER_KEY_NAMES: &[&str] = &["OPENROUTER_API_KEY", "OPENROUTER"];
 /// Fixed per-call token overhead for headers and framing in the estimate.
@@ -571,8 +571,10 @@ mod tests {
     use uuid::Uuid;
 
     fn test_budget(caps: Caps) -> Budget {
-        let path =
-            std::env::temp_dir().join(format!("fragr-brain-provider-{}.jsonl", Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!(
+            "localexception-brain-provider-{}.jsonl",
+            Uuid::new_v4()
+        ));
         Budget::with_ledger(caps, Pricing::default(), &path).unwrap()
     }
 
@@ -733,10 +735,10 @@ mod tests {
         ));
         let status = parse_key_status(&HttpResponse {
             status: 200,
-            body: br#"{"data":{"label":"fragr","limit":5.0,"limit_remaining":4.5,"usage":0.5,"is_free_tier":false}}"#.to_vec(),
+            body: br#"{"data":{"label":"localexception","limit":5.0,"limit_remaining":4.5,"usage":0.5,"is_free_tier":false}}"#.to_vec(),
         })
         .unwrap();
-        assert_eq!(status.label.as_deref(), Some("fragr"));
+        assert_eq!(status.label.as_deref(), Some("localexception"));
         assert_eq!(status.limit, Some(5.0));
         assert_eq!(status.limit_remaining, Some(4.5));
         assert_eq!(status.is_free_tier, Some(false));

@@ -773,7 +773,7 @@ fn the_crew_cross_on_their_own_once_the_crossing_is_clear() {
 
 /// The strict client reader's fixture: both MapInfo worlds, the mission
 /// messages at every stage of an ordinary run, and a snapshot carrying a live
-/// Surveyor disc. Regenerate with FRAGR_UPDATE_LATE_CAMPAIGN_WORLDS=1.
+/// Surveyor disc. Regenerate with LOCALEXCEPTION_UPDATE_LATE_CAMPAIGN_WORLDS=1.
 #[test]
 fn client_lifecycle_fixture_matches_golden() {
     let (mut s, id) = session_with(CampaignDifficulty::Standard, Role::Human);
@@ -879,7 +879,7 @@ fn client_lifecycle_fixture_matches_golden() {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../client/golden/m20_lifecycle.json");
     let bytes = serde_json::to_string_pretty(&fixture).unwrap() + "\n";
-    if std::env::var_os("FRAGR_UPDATE_LATE_CAMPAIGN_WORLDS").is_some() {
+    if std::env::var_os("LOCALEXCEPTION_UPDATE_LATE_CAMPAIGN_WORLDS").is_some() {
         std::fs::write(&path, &bytes).unwrap();
     }
     assert_eq!(std::fs::read_to_string(path).unwrap(), bytes);

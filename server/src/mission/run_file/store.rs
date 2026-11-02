@@ -253,7 +253,8 @@ mod tests {
     };
 
     fn temp_dir() -> PathBuf {
-        let path = std::env::temp_dir().join(format!("fragr-run-store-{}", Uuid::new_v4()));
+        let path =
+            std::env::temp_dir().join(format!("localexception-run-store-{}", Uuid::new_v4()));
         fs::create_dir(&path).unwrap();
         path
     }

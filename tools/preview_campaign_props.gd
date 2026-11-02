@@ -28,8 +28,8 @@ var _shots: int = 0
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
-	set_meta("fragr_settings_path", "")
-	set_meta("fragr_records_path", "")
+	set_meta("localexception_settings_path", "")
+	set_meta("localexception_records_path", "")
 	MouseCapture.release()
 	call_deferred("_run")
 
@@ -143,7 +143,7 @@ func _place(views_path: String, out: String, only: String) -> void:
 		await _level(info, str(level.get("presenter", "")), views, out)
 
 func _level(info: Dictionary, presenter_name: String, views: Array, out: String) -> void:
-	var settings: FragrSettings = FragrSettings.new("user://preview_campaign_settings.cfg")
+	var settings: LocalExceptionSettings = LocalExceptionSettings.new("user://preview_campaign_settings.cfg")
 	var arena: Node3D = Node3D.new()
 	arena.name = "Arena"
 	root.add_child(arena)

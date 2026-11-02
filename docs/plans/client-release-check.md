@@ -16,9 +16,9 @@ The server already refuses a hello outside its contract. When the hello is older
 
 The join page reads the same versions from `GET /status`. A higher advertised version asks this client to update and shows **Install the latest and rejoin**. A lower one says the server is older and shows no install button. Nothing is downloaded until the button is pressed.
 
-The offer reads the public latest release, picks this computer's archive (`fragr-<tag>-windows-x86_64.zip`, `linux-x86_64`, or `macos-universal`), downloads `SHA256SUMS.txt` and that zip, and starts the game only when the zip's hash matches the named line. Download URLs are built for `github.com/blisspixel/fragr`. A URL inside the release JSON is ignored. The new process is started with `--rejoin` so it joins as the player. `FRAGR_SERVER` alone would still watch.
+The offer reads the public latest release, picks this computer's archive (`localexception-<tag>-windows-x86_64.zip`, `linux-x86_64`, or `macos-universal`), downloads `SHA256SUMS.txt` and that zip, and starts the game only when the zip's hash matches the named line. Download URLs are built for `github.com/blisspixel/fragr`. A URL inside the release JSON is ignored. The new process is started with `--rejoin` so it joins as the player. `LOCALEXCEPTION_SERVER` alone would still watch.
 
-An exported `fragr.exe`, `fragr.x86_64`, or `fragr.app` outside a checkout can be replaced after this process exits, because Windows cannot overwrite a running executable. The editor, a Godot binary, and any folder inside the source checkout launch the checked copy beside them instead. A checksum mismatch is not unpacked into a launch.
+An exported `localexception.exe`, `localexception.x86_64`, or `Local Exception.app` outside a checkout can be replaced after this process exits, because Windows cannot overwrite a running executable. The editor, a Godot binary, and any folder inside the source checkout launch the checked copy beside them instead. A checksum mismatch is not unpacked into a launch.
 
 If the error text arrives on the socket, the client shows it and adds the release sentence when the server only said to update. A close that carries only the code still names the releases page.
 

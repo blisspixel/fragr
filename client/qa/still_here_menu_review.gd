@@ -2,8 +2,8 @@ extends SceneTree
 
 ## Single Player with a saved survival, as review stills on any desktop: the
 ## menu's Walk Still Here entry and the practice list's development walk,
-## rendered into a fixed 1280x720 viewport. FRAGR_RUN_DIR names the run
-## directory the menu previews; stills land in FRAGR_QA_DIR. Development
+## rendered into a fixed 1280x720 viewport. LOCALEXCEPTION_RUN_DIR names the run
+## directory the menu previews; stills land in LOCALEXCEPTION_QA_DIR. Development
 ## inspection only, never an acceptance.
 const SIZE: Vector2i = Vector2i(1280, 720)
 var _viewport: SubViewport
@@ -14,13 +14,13 @@ func _initialize() -> void:
 	_run.call_deferred()
 
 func _run() -> void:
-	_out_dir = OS.get_environment("FRAGR_QA_DIR")
+	_out_dir = OS.get_environment("LOCALEXCEPTION_QA_DIR")
 	if _out_dir.is_empty():
-		push_error("still_here_menu_review: FRAGR_QA_DIR is required")
+		push_error("still_here_menu_review: LOCALEXCEPTION_QA_DIR is required")
 		quit(1)
 		return
 	DirAccess.make_dir_recursive_absolute(_out_dir)
-	set_meta("fragr_settings_path", _out_dir.path_join("settings.cfg"))
+	set_meta("localexception_settings_path", _out_dir.path_join("settings.cfg"))
 	_viewport = SubViewport.new()
 	_viewport.size = SIZE
 	_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS

@@ -3,9 +3,9 @@ extends SceneTree
 ## Held-gun motion review without a match: the real HUD over a plain field,
 ## driven frame by frame, so the switch, the shot, the reload, the sway and the
 ## landing are captured at exact times rather than whenever a live tour lands.
-## Writes one strip per sequence (bottom-centre crops) into FRAGR_QA_DIR:
+## Writes one strip per sequence (bottom-centre crops) into LOCALEXCEPTION_QA_DIR:
 ##
-##   FRAGR_QA_DIR=/abs/dir godot --path client --rendering-driver vulkan \
+##   LOCALEXCEPTION_QA_DIR=/abs/dir godot --path client --rendering-driver vulkan \
 ##     --windowed --script res://qa/viewmodel_review.gd
 ##
 ## Presentation review only: no server, no shot or reload is decided here.
@@ -20,13 +20,13 @@ var _failed: bool = false
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
-	set_meta("fragr_settings_path", "")
+	set_meta("localexception_settings_path", "")
 	_run.call_deferred()
 
 func _run() -> void:
-	_output = OS.get_environment("FRAGR_QA_DIR")
+	_output = OS.get_environment("LOCALEXCEPTION_QA_DIR")
 	if not _output.is_absolute_path():
-		push_error("viewmodel_review: FRAGR_QA_DIR must be an absolute directory")
+		push_error("viewmodel_review: LOCALEXCEPTION_QA_DIR must be an absolute directory")
 		quit(1)
 		return
 	DirAccess.make_dir_recursive_absolute(_output)

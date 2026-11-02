@@ -1,10 +1,10 @@
-# AGENTS.md - fragr
+# AGENTS.md - Local Exception
 
 Operating rules for coding agents and human contributors. Humans: start with `README.md`, then `docs/ROADMAP.md`.
 
 ## What this is
 
-**fragr** (working name) is an agentic-first **3D** FPS with retro pixel surfaces: a compact authored campaign (twenty levels in five episodes, about four hours, limited continues refilled each episode; `docs/CAMPAIGN.md` owns the contract) and watch-or-join multiplayer where humans, agents and spectators share one match. Not branded as Doom or id. Windows, Linux and macOS are targets; keep GPU paths vendor-neutral. Monorepo:
+**Local Exception** is an agentic-first **3D** FPS with retro pixel surfaces: a compact authored campaign (twenty levels in five episodes, about four hours, limited continues refilled each episode; `docs/CAMPAIGN.md` owns the contract) and watch-or-join multiplayer where humans, agents and spectators share one match. Not branded as Doom or id. Windows, Linux and macOS are targets; keep GPU paths vendor-neutral. Monorepo:
 
 - `server/` - Rust authoritative game server (tokio, WebSocket JSON, 20 Hz tick). Owns positions, damage, HP, frags, spawns, scoring, bots, rounds, maps and missions.
 - `client/` - Godot **4.7.2-stable**, GDScript only. Thin presenter: render, audio, HUD, cameras, input. Never sim authority.
@@ -42,7 +42,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 ## Hard constraints (project law)
 
 - **Spend.** Local play and LAN cost $0. Paid calls never run in CI or at player runtime by default. Any new cash charge, cloud apply or new paid service needs Nick's written approval first, within the $50 total cap for such charges.
-  - **Asset credits (current authorization).** Nick authorizes using the funded Higgsfield balance and the included Meshy and ElevenLabs plan credits for fragr assets that will be integrated and visible, through `tools/spritegen` (Higgsfield images, Meshy models) and `tools/audiogen` (ElevenLabs) only. Before every paid stage: run the free live balance check, price the exact operation, set an explicit batch ceiling within that service's usable balance (never assume the same credits fund two outstanding batches), write a durable reservation to the ledger, retain uncertain holds, and reconcile actual usage afterwards. No purchases, renewals, top-ups or overages; an offer to add funds is not an authorization. A subscription is not an unlimited budget. Native ceilings: `fragr-spritegen` `HARD_CAP_USD` $40 with an explicit `--max-spend-usd` per run; `meshy-gen --max-credits` 1 to 1,900. Generated ElevenLabs sound effects and music ship by committing the selected files with their `audiogen-manifest.json` provenance (Nick, 2026-10-23). Recovery steps: `docs/plans/higgsfield-pipeline.md`, `docs/plans/meshy-pipeline.md`.
+  - **Asset credits (current authorization).** Nick authorizes using the funded Higgsfield balance and the included Meshy and ElevenLabs plan credits for Local Exception assets that will be integrated and visible, through `tools/spritegen` (Higgsfield images, Meshy models) and `tools/audiogen` (ElevenLabs) only. Before every paid stage: run the free live balance check, price the exact operation, set an explicit batch ceiling within that service's usable balance (never assume the same credits fund two outstanding batches), write a durable reservation to the ledger, retain uncertain holds, and reconcile actual usage afterwards. No purchases, renewals, top-ups or overages; an offer to add funds is not an authorization. A subscription is not an unlimited budget. Native ceilings: `localexception-spritegen` `HARD_CAP_USD` $40 with an explicit `--max-spend-usd` per run; `meshy-gen --max-credits` 1 to 1,900. Generated ElevenLabs sound effects and music ship by committing the selected files with their `audiogen-manifest.json` provenance (Nick, 2026-10-23). Recovery steps: `docs/plans/higgsfield-pipeline.md`, `docs/plans/meshy-pipeline.md`.
   - **Brain inference.** Jev (TypeSafe native or OpenRouter) runs only through `agents/brain`, with an explicit `--max-spend-usd`, a $5 per-run ceiling enforced in code and a ledger under `.agents/spend/`.
 - **Authority.** The Rust server decides every game outcome. Godot never decides combat. Movement in `server/src/movement.rs` has a deliberate GDScript mirror and golden vectors; change and verify both together.
 - **Agents off the hot path.** Humans and agents share one discrete action channel. Rule bots run at tick rate on the server. MCP is for slow operations, never aim or fire at 20 to 60 Hz.
@@ -57,7 +57,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 ## Architecture boundaries
 
 - **Server authority, thin client.** Client scripts validate server facts at the boundary (`*_state.gd`) and present them. A client never infers an outcome the server did not send.
-- **Adapter is a slow control plane.** The adapter, playtest harness and brain read wire types from `fragr-server`; there is no second copy.
+- **Adapter is a slow control plane.** The adapter, playtest harness and brain read wire types from `localexception-server`; there is no second copy.
 - **One seam per concern.** Before adding a second way to log, configure, serialize, retry or talk to the server, search the tree and reuse the existing seam.
 - **Ordering invariants.** `MapInfo` precedes matching mission facts. A client session receives its initial `MapInfo` before any broadcast. Access lists refuse before any slot, seat or status answer. Never kill a listener by port or process name. Never rewind ticks, input sequence or inventory within a process.
 
@@ -90,7 +90,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Decisions, sequence, look, story | `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `docs/ART_STORY_BIBLE.md`, `docs/CAMPAIGN.md`, `docs/lore/` |
 | Hosting and cloud | `infra/README.md`, `infra/docs/`, `infra/terraform/` |
 
-Env vars: `FRAGR_SERVER`, `FRAGR_SOLO`, `FRAGR_MAP`, `FRAGR_AGENT_NAME`, `FRAGR_SERVER_BIN`, `FRAGR_JOIN_SECRET`, `FRAGR_JOIN_AUDIENCE`, `FRAGR_ORIGIN_ALLOW`, `FRAGR_SPECTATOR_TICKET`, `FRAGR_RUN_DIR`, `FRAGR_TIP_CAPTURE_DIR`, `RUST_LOG`, `ELEVENLABS_API_KEY`, plus `FRAGR_BIND`, `FRAGR_BOTS`, `FRAGR_MAP_ROTATE` and `GODOT_BIN` for `tools/solo_scrap.sh`.
+Env vars: `LOCALEXCEPTION_SERVER`, `LOCALEXCEPTION_SOLO`, `LOCALEXCEPTION_MAP`, `LOCALEXCEPTION_AGENT_NAME`, `LOCALEXCEPTION_SERVER_BIN`, `LOCALEXCEPTION_JOIN_SECRET`, `LOCALEXCEPTION_JOIN_AUDIENCE`, `LOCALEXCEPTION_ORIGIN_ALLOW`, `LOCALEXCEPTION_SPECTATOR_TICKET`, `LOCALEXCEPTION_RUN_DIR`, `LOCALEXCEPTION_TIP_CAPTURE_DIR`, `RUST_LOG`, `ELEVENLABS_API_KEY`, plus `LOCALEXCEPTION_BIND`, `LOCALEXCEPTION_BOTS`, `LOCALEXCEPTION_MAP_ROTATE` and `GODOT_BIN` for `tools/solo_scrap.sh`.
 
 ## Tests and lints
 
@@ -109,31 +109,31 @@ These match `.github/workflows/ci.yml`. If CI and this list disagree, fix one in
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
-cargo run -p fragr-server --release --locked -- --bench 16 --bench-ticks 1200 --bench-check --bench-assert --seed 42
+cargo run -p localexception-server --release --locked -- --bench 16 --bench-ticks 1200 --bench-check --bench-assert --seed 42
 cargo llvm-cov --workspace --locked --fail-under-lines 90 -- --test-threads=2
 cargo build --workspace --release --locked
 cargo deny check licenses bans sources   # advisories are reported, not blocking
 bash tools/check_action_pins.sh && bash tools/test_action_pins.sh && bash tools/test_check_godot_archive.sh
-cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci.json
-cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-seeds 1 --seed 42 --max-seconds 600 --report .agents/playtest/ci-campaign.json # diagnostic outcomes; evaluator tests are the gate
-cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m19-teaching --survey-seeds 1 --seed 42 --max-seconds 600 --report .agents/playtest/ci-m19-teaching.json # standalone diagnostic; includes failures
-cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m19-market --survey-seeds 1 --seed 42 --max-seconds 600 --report .agents/playtest/ci-m19-market.json # earned prefix through the market; includes failures
-cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode tdm --frag-limit 6 --time-limit-seconds 60 --assert --report .agents/playtest/ci-tdm.json
-cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mutator rail-only --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci-rail-only.json
-cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode tdm --mutator licence-to-kill --frag-limit 6 --time-limit-seconds 60 --assert --report .agents/playtest/ci-tdm-licence.json
-cargo run -p fragr-playtest --locked -- --ctf-route-smoke --report .agents/playtest/ci-ctf-route.json
-cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode ctf --map 4 --tiers reflex,planner --capture-limit 1 --time-limit-seconds 180 --max-seconds 240 --assert --ctf-contested --report .agents/playtest/ci-ctf.json
-cargo run -p fragr-playtest --locked -- --sabotage-route-smoke --report .agents/playtest/ci-sabotage-route.json
-cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode sabotage --map 4 --tiers reflex,planner --time-limit-seconds 105 --max-seconds 160 --assert --sabotage-contested --report .agents/playtest/ci-sabotage.json
+cargo run -p localexception-playtest --locked -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci.json
+cargo run -p localexception-playtest --release --locked -- --campaign-survey --survey-seeds 1 --seed 42 --max-seconds 600 --report .agents/playtest/ci-campaign.json # diagnostic outcomes; evaluator tests are the gate
+cargo run -p localexception-playtest --release --locked -- --campaign-survey --survey-mission m19-teaching --survey-seeds 1 --seed 42 --max-seconds 600 --report .agents/playtest/ci-m19-teaching.json # standalone diagnostic; includes failures
+cargo run -p localexception-playtest --release --locked -- --campaign-survey --survey-mission m19-market --survey-seeds 1 --seed 42 --max-seconds 600 --report .agents/playtest/ci-m19-market.json # earned prefix through the market; includes failures
+cargo run -p localexception-playtest --locked -- --agents 4 --rounds 1 --mode tdm --frag-limit 6 --time-limit-seconds 60 --assert --report .agents/playtest/ci-tdm.json
+cargo run -p localexception-playtest --locked -- --agents 4 --rounds 1 --mutator rail-only --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci-rail-only.json
+cargo run -p localexception-playtest --locked -- --agents 4 --rounds 1 --mode tdm --mutator licence-to-kill --frag-limit 6 --time-limit-seconds 60 --assert --report .agents/playtest/ci-tdm-licence.json
+cargo run -p localexception-playtest --locked -- --ctf-route-smoke --report .agents/playtest/ci-ctf-route.json
+cargo run -p localexception-playtest --locked -- --agents 4 --rounds 1 --mode ctf --map 4 --tiers reflex,planner --capture-limit 1 --time-limit-seconds 180 --max-seconds 240 --assert --ctf-contested --report .agents/playtest/ci-ctf.json
+cargo run -p localexception-playtest --locked -- --sabotage-route-smoke --report .agents/playtest/ci-sabotage-route.json
+cargo run -p localexception-playtest --locked -- --agents 4 --rounds 1 --mode sabotage --map 4 --tiers reflex,planner --time-limit-seconds 105 --max-seconds 160 --assert --sabotage-contested --report .agents/playtest/ci-sabotage.json
 bash tools/playtest_roster.sh   # mixed clients across all eight maps
-cargo build -p fragr-server -p fragr-playtest --release --locked   # soak job
-target/release/fragr-playtest --soak --soak-seconds 120 --soak-sample-seconds 15 --soak-bots 4 --agents 4 --soak-spectators 2 --soak-map-rotate --assert --soak-log .agents/soak/ci.ndjson
+cargo build -p localexception-server -p localexception-playtest --release --locked   # soak job
+target/release/localexception-playtest --soak --soak-seconds 120 --soak-sample-seconds 15 --soak-bots 4 --agents 4 --soak-spectators 2 --soak-map-rotate --assert --soak-log .agents/soak/ci.ndjson
 ```
 
 Godot (the `godot` CI job; locally point `GODOT_BIN` at a 4.7.2-stable binary):
 
 ```bash
-cargo build -p fragr-server --release --locked  # required by the real local-launch harness
+cargo build -p localexception-server --release --locked  # required by the real local-launch harness
 bash tools/godot_check.sh        # import, parse and harness runs; logs under .agents/godot-check-*
 bash tools/test_m02_carry.sh     # saved M01 departure and M02 retry
 bash tools/test_godot_check.sh   # the checker still catches failures
@@ -141,7 +141,7 @@ bash tools/test_godot_check.sh   # the checker still catches failures
 
 The `container` job builds the server image, checks its unprivileged runtime and notices, starts Compose and requires `health.status: ok` from `GET /status` (locally: `docker compose build server`, `docker compose up -d --no-build`, probe, `docker compose down`). The `terraform` job runs `fmt -check`, backend-free `init`, `validate` and mocked plan tests under `infra/terraform`; it never applies. The `portability` job runs `cargo test --workspace --locked`, `tools/test_godot_check.sh` and `tools/godot_check.sh` on Windows and macOS against a pinned Godot archive checked by `tools/check_godot_archive.sh`. On Windows use Git Bash and set `GODOT_BIN`. Run focused checks while iterating and the full suite before claiming completion. A command that never ran did not pass; report it as not run.
 
-Playable smoke: `cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 4` starts with no cloud config and bots frag within about 30 seconds; the Godot client spectates, J joins, L leaves; `cd agent-adapter && cargo run -- scripted-bot --name Probe` stays connected; `cargo run -p fragr-brain -- play --name Brain --max-seconds 30` plays on local rules at zero cost.
+Playable smoke: `cargo run -p localexception-server -- --bind 127.0.0.1:6767 --bots 4` starts with no cloud config and bots frag within about 30 seconds; the Godot client spectates, J joins, L leaves; `cd agent-adapter && cargo run -- scripted-bot --name Probe` stays connected; `cargo run -p localexception-brain -- play --name Brain --max-seconds 30` plays on local rules at zero cost.
 
 ## Evidence
 

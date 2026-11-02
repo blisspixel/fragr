@@ -5,7 +5,7 @@ extends SceneTree
 ## the Benchmark page, the first-launch tune card, the join page, a loading
 ## card, the hold-Tab board with its MVP and aura debt marks, and the fun
 ## tally feed line. Run it windowed at each size under a real display
-## (--resolution 1920x1080, then 1280x800); stills land in FRAGR_QA_DIR.
+## (--resolution 1920x1080, then 1280x800); stills land in LOCALEXCEPTION_QA_DIR.
 ## Development inspection only, never an acceptance.
 const ME: String = "00000000-0000-0000-0000-000000000001"
 var _out_dir: String = ""
@@ -15,15 +15,15 @@ func _initialize() -> void:
 	_run.call_deferred()
 
 func _run() -> void:
-	_out_dir = OS.get_environment("FRAGR_QA_DIR")
+	_out_dir = OS.get_environment("LOCALEXCEPTION_QA_DIR")
 	if _out_dir.is_empty():
-		push_error("humour_review: FRAGR_QA_DIR is required")
+		push_error("humour_review: LOCALEXCEPTION_QA_DIR is required")
 		quit(1)
 		return
 	DirAccess.make_dir_recursive_absolute(_out_dir)
-	set_meta("fragr_settings_path", _out_dir.path_join("settings.cfg"))
-	set_meta(&"fragr_tune_offered", true)
-	var asked: PackedStringArray = OS.get_environment("FRAGR_QA_SIZE").split("x")
+	set_meta("localexception_settings_path", _out_dir.path_join("settings.cfg"))
+	set_meta(&"localexception_tune_offered", true)
+	var asked: PackedStringArray = OS.get_environment("LOCALEXCEPTION_QA_SIZE").split("x")
 	var size: Vector2i = Vector2i(int(asked[0]), int(asked[1])) if asked.size() == 2 else Vector2i(1920, 1080)
 	DisplayServer.window_set_size(size)
 	root.size = size
@@ -61,7 +61,7 @@ func _menus(tag: String) -> void:
 		await _save("%s_settings_graphics_%s" % [tag, RenderQuality.TIER_NAMES[tier].to_lower()])
 	menu.call("_show", "main")
 	await create_timer(0.4).timeout
-	set_meta(&"fragr_tune_offer_force", true)
+	set_meta(&"localexception_tune_offer_force", true)
 	menu.call("_open_tune_offer")
 	await create_timer(0.6).timeout
 	await _save("%s_tune_offer" % tag)

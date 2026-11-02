@@ -20,7 +20,7 @@ func _check(expected: Input.MouseMode, label: String) -> void:
 func _run() -> void:
 	root.mode = Window.MODE_WINDOWED
 	root.size = Vector2i(480, 320)
-	root.title = "fragr input check"
+	root.title = "localexception input check"
 	await process_frame
 	var capture: MouseCapture = MouseCapture.new()
 	root.add_child(capture)

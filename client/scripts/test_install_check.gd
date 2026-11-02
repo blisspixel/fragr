@@ -1,5 +1,5 @@
 extends SceneTree
-## The install check must reach the real fragr-server through LocalMatch, and
+## The install check must reach the real localexception-server through LocalMatch, and
 ## LocalMatch must attach even when requested while the root is adding children.
 
 class MissingServer extends LocalMatch:
@@ -105,7 +105,7 @@ func _run() -> void:
 
 	var run_dir: String = ProjectSettings.globalize_path("user://install-check-runs")
 	DirAccess.make_dir_recursive_absolute(run_dir)
-	OS.set_environment("FRAGR_RUN_DIR", run_dir)
+	OS.set_environment("LOCALEXCEPTION_RUN_DIR", run_dir)
 	await _test_process_reuse(first.executable_path())
 	var check: InstallCheck = InstallCheck.new(first)
 	check.quit_when_done = false
@@ -129,7 +129,7 @@ func _run() -> void:
 	_expect(dropped.dropped and results == [false, true, false], "real Sabotage socket loss fails before Welcome")
 	_expect(dropped._host.process.retirement_confirmed and not dropped._owns_host,
 		"failure confirms the actual owned child's retirement without a stale PID lookup")
-	OS.unset_environment("FRAGR_RUN_DIR")
+	OS.unset_environment("LOCALEXCEPTION_RUN_DIR")
 	DirAccess.remove_absolute(run_dir)
 	first.stop()
 	dropped.queue_free()

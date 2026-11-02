@@ -9,9 +9,9 @@ Current arena layouts are useful foundations, not the spatial or visual bar.
 
 Every level is judged by its loop before its story or its look. The bar is the
 best of the classics: simple to read, intensely fun to play. Each one gives
-fragr a rule:
+Local Exception a rule:
 
-| Game | What it teaches | fragr rule |
+| Game | What it teaches | Local Exception rule |
 |---|---|---|
 | Doom and Doom II | Speed, no reloads, a monster mix that dictates the gun, ambushes sprung by a pickup, levels that loop back changed, secrets everywhere, an intermission tally against par | The enemy mix makes the player swap guns. Grabbing something can spring a trap. The way back is never empty. Every level ends on a tally. |
 | GoldenEye 007 | Short objective lists, difficulty that adds objectives instead of health, hit reactions, alarms and reinforcements, par times worth chasing | Objectives are a few short verbs. Harder difficulties add optional objectives and tighter pars, not bullet sponges. Enemies react visibly when hit. |
@@ -35,7 +35,7 @@ Checks for every campaign level brief and build:
 6. **Story never blocks play.** Rescues, reveals and atmosphere happen while
    the player moves and fights. No escort fail states, no waiting on dialogue.
 7. **End on a tally.** Kills, secrets, deaths and time against par, Doom's
-   intermission in fragr's look, kept per difficulty in the service record.
+   intermission in Local Exception's look, kept per difficulty in the service record.
 
 If a brief reads complicated, simplify it: fewer systems, sharper fights.
 
@@ -236,7 +236,7 @@ runtime representation and an inspectable expansion.
 The classics are design references, not layouts to copy. A useful lesson from
 [the original Dust 2 designer's account](https://www.johnsto.co.uk/design/making-dust2/)
 is that entrances, connected routes and restrained visual cues make spaces
-readable while retaining different fighting distances. For fragr, choose one
+readable while retaining different fighting distances. For Local Exception, choose one
 memorable spatial idea per mission and develop it through play. M01 uses public
 intake below an administrative balcony, then branching records circulation.
 Judge whether a player can remember the place and make decisions within it.

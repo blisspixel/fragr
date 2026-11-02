@@ -69,7 +69,7 @@ cargo llvm-cov --workspace --locked --summary-only --fail-under-lines 80
 
 Manual / smoke:
 
-1. `cargo run -p fragr-server -- --bots 4` on 6767.
+1. `cargo run -p localexception-server -- --bots 4` on 6767.
 2. Godot spectator: press J (join human), L (leave spectate), J again. No stuck "Connecting", no duplicate Human Player on the scoreboard.
 3. Adapter leave then join same `--name`: one agent in observe; no ghost.
 4. Tip face: weapon + health + armor pads render without SCRIPT ERROR / Parameter "p_child" is null.

@@ -57,7 +57,7 @@ var combat_duck: CombatDuck = CombatDuck.new()
 ## The last cue the player heard in a scene or a level, for the take control.
 var last_cue: String = ""
 var slots: Array[Dictionary] = []
-var preferences: FragrSettings = null
+var preferences: LocalExceptionSettings = null
 
 var _bed_slot: String = ""
 var _bed_path: String = ""
@@ -192,7 +192,7 @@ static func slot_from_path(path: String) -> String:
 
 
 ## The take a player chose for a slot, A unless the setting says otherwise.
-static func chosen_take(settings: FragrSettings, slot: String) -> String:
+static func chosen_take(settings: LocalExceptionSettings, slot: String) -> String:
 	if settings == null:
 		return DEFAULT_TAKE
 	var takes: Variant = settings.get_value(SETTINGS_SECTION, "takes")
@@ -201,13 +201,13 @@ static func chosen_take(settings: FragrSettings, slot: String) -> String:
 	return DEFAULT_TAKE
 
 
-static func score_enabled(settings: FragrSettings) -> bool:
+static func score_enabled(settings: LocalExceptionSettings) -> bool:
 	return settings == null or bool(settings.get_value(SETTINGS_SECTION, "enabled"))
 
 
 ## A scene's music bed path through the score rules: "" when the score is off,
 ## the chosen take (or the other one) for a score cue, any other path unchanged.
-static func scene_music_path(path: String, settings: FragrSettings, exists: Callable = Callable()) -> String:
+static func scene_music_path(path: String, settings: LocalExceptionSettings, exists: Callable = Callable()) -> String:
 	var slot: String = slot_from_path(path)
 	if slot.is_empty():
 		return path
@@ -323,7 +323,7 @@ func take_for(slot: String) -> String:
 func set_take(slot: String, take: String) -> void:
 	if preferences == null or slot.is_empty() or not take in TAKES:
 		return
-	var candidate: FragrSettings = preferences.draft()
+	var candidate: LocalExceptionSettings = preferences.draft()
 	var takes: Dictionary = clean_takes(candidate.get_value(SETTINGS_SECTION, "takes")).duplicate()
 	takes[slot] = take
 	candidate.set_value(SETTINGS_SECTION, "takes", takes)
@@ -346,7 +346,7 @@ func set_enabled(on: bool) -> void:
 		enabled = on
 		_refresh_bed()
 		return
-	var candidate: FragrSettings = preferences.draft()
+	var candidate: LocalExceptionSettings = preferences.draft()
 	candidate.set_value(SETTINGS_SECTION, "enabled", on)
 	if preferences.commit(candidate) != OK:
 		push_warning("campaign_score: the setting could not be saved")

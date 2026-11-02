@@ -1,8 +1,8 @@
 //! Isolated ordinary-movement calibration, never earned campaign evidence.
 use super::*;
 use crate::campaign::{constrain, PROFILES};
-use fragr_server::protocol::Role;
-use fragr_server::session::GameSession;
+use localexception_server::protocol::Role;
+use localexception_server::session::GameSession;
 use std::f32::consts::{FRAC_PI_2, PI};
 use uuid::Uuid;
 
@@ -192,7 +192,7 @@ fn crossing_checks_the_whole_step_and_blocked_escape_does_not_invent_a_route() {
     me.z = 0.0;
     arena
         .solids
-        .push(fragr_server::movement::Solid::from_center_top(
+        .push(localexception_server::movement::Solid::from_center_top(
             5.0, 0.6, 4.0, 0.2, 4.5,
         ));
     let shared = keys(FRAC_PI_2, &me, &observed, &arena);
@@ -217,8 +217,8 @@ fn crossing_checks_the_whole_step_and_blocked_escape_does_not_invent_a_route() {
 fn retained_market_coordinates_reproduce_and_refuse_the_lethal_return_step() {
     // Baseline 6b8061b7, seed42 reference/Severe, ticks1558/1559. This is an
     // isolated movement replay of recorded public facts, not a campaign clear.
-    let map = fragr_server::maps::AuthoredSource::Mission(
-        fragr_server::protocol::MissionId::PlannedWorks,
+    let map = localexception_server::maps::AuthoredSource::Mission(
+        localexception_server::protocol::MissionId::PlannedWorks,
     )
     .load()
     .unwrap();
@@ -240,7 +240,7 @@ fn retained_market_coordinates_reproduce_and_refuse_the_lethal_return_step() {
         phase_started: 1556,
         phase_ends: 1568,
     }];
-    let toward = Some(fragr_server::protocol::LookAt {
+    let toward = Some(localexception_server::protocol::LookAt {
         x: Some(15.073_867),
         y: Some(0.9),
         z: Some(30.890_463),

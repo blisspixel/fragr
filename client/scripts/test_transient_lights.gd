@@ -44,11 +44,11 @@ func _run() -> void:
 	var camera: Camera3D = Camera3D.new()
 	root.add_child(camera)
 	for key: String in ViewLight.FLASHES:
-		_check(ViewLight.flash(camera, key, FragrSettings.FLASHES_FULL), "%s lights the eye" % key)
+		_check(ViewLight.flash(camera, key, LocalExceptionSettings.FLASHES_FULL), "%s lights the eye" % key)
 		var view: ViewLight = camera.get_node(ViewLight.NODE_NAME) as ViewLight
 		if not view.is_node_ready():
 			await process_frame
-			ViewLight.flash(camera, key, FragrSettings.FLASHES_FULL)
+			ViewLight.flash(camera, key, LocalExceptionSettings.FLASHES_FULL)
 		var muzzle: OmniLight3D = view.get_node(ViewLight.MUZZLE_NAME) as OmniLight3D
 		_bounded("lit eye " + key, muzzle.light_energy, muzzle.omni_range)
 		_check(not muzzle.shadow_enabled, "%s eye light casts no shadow map" % key)

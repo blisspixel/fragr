@@ -2,19 +2,19 @@
 set -euo pipefail
 
 # COS reruns this startup script on every boot. /etc is stateless there.
-install -d -m 0700 /etc/fragr /home/fragr-host /run/fragr
+install -d -m 0700 /etc/localexception /home/localexception-host /run/localexception
 
-cat > /etc/fragr/launch.sh <<'LAUNCH'
+cat > /etc/localexception/launch.sh <<'LAUNCH'
 #!/bin/bash
 set -euo pipefail
 umask 077
 
-export HOME=/home/fragr-host
-install -d -m 0700 "$HOME" /run/fragr
-rm -f /run/fragr/server.env
-response_file=/run/fragr/secret-response.json
-raw_file=/run/fragr/secret.raw
-trap 'rm -f "$response_file" "$raw_file" /run/fragr/server.env' EXIT
+export HOME=/home/localexception-host
+install -d -m 0700 "$HOME" /run/localexception
+rm -f /run/localexception/server.env
+response_file=/run/localexception/secret-response.json
+raw_file=/run/localexception/secret.raw
+trap 'rm -f "$response_file" "$raw_file" /run/localexception/server.env' EXIT
 
 # The credential helper is already in COS. The VM identity has repository
 # Reader on exactly the preexisting image repository.
@@ -53,38 +53,38 @@ test "$byte_count" -eq "$(printf '%s' "$secret" | wc -c)" || {
 printf '%s' "$secret" | LC_ALL=C grep -Eq '^[A-Za-z0-9_-]{16,256}$' || {
   echo 'Join secret must be a single ASCII token' >&2; exit 1;
 }
-printf 'FRAGR_JOIN_SECRET=%s\n' "$secret" > /run/fragr/server.env
-chmod 0600 /run/fragr/server.env
+printf 'LOCALEXCEPTION_JOIN_SECRET=%s\n' "$secret" > /run/localexception/server.env
+chmod 0600 /run/localexception/server.env
 unset secret
 rm -f "$response_file" "$raw_file"
 
 image='${image_ref}'
 docker pull "$image"
-exec docker run --rm --name fragr-server --network host \
+exec docker run --rm --name localexception-server --network host \
   --user 10001:10001 --read-only --cap-drop ALL \
-  --security-opt no-new-privileges --env-file /run/fragr/server.env \
+  --security-opt no-new-privileges --env-file /run/localexception/server.env \
   --health-cmd "curl -fsS http://127.0.0.1:6767/status | grep -Fq '\"health\":{\"status\":\"ok\"'" \
   --health-interval 15s --health-timeout 5s \
   --health-start-period 60s --health-retries 4 \
   --stop-timeout 15 --log-driver local \
   "$image" --bind 0.0.0.0:6767 --bots 4
 LAUNCH
-chmod 0700 /etc/fragr/launch.sh
+chmod 0700 /etc/localexception/launch.sh
 
-cat > /etc/systemd/system/fragr-server.service <<'UNIT'
+cat > /etc/systemd/system/localexception-server.service <<'UNIT'
 [Unit]
-Description=fragr authoritative match container
+Description=localexception authoritative match container
 Requires=docker.service
 Wants=gcr-online.target
 After=docker.service gcr-online.target
 
 [Service]
 Type=simple
-Environment=HOME=/home/fragr-host
-ExecStartPre=-/usr/bin/docker rm -f fragr-server
-ExecStart=/bin/bash /etc/fragr/launch.sh
-ExecStop=-/usr/bin/docker stop -t 15 fragr-server
-ExecStopPost=-/usr/bin/rm -f /run/fragr/server.env
+Environment=HOME=/home/localexception-host
+ExecStartPre=-/usr/bin/docker rm -f localexception-server
+ExecStart=/bin/bash /etc/localexception/launch.sh
+ExecStop=-/usr/bin/docker stop -t 15 localexception-server
+ExecStopPost=-/usr/bin/rm -f /run/localexception/server.env
 Restart=always
 RestartSec=10
 
@@ -99,4 +99,4 @@ UNIT
 %{ endfor ~}
 
 systemctl daemon-reload
-systemctl restart fragr-server.service
+systemctl restart localexception-server.service

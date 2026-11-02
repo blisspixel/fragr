@@ -2,7 +2,7 @@ class_name RecordsPanel
 extends VBoxContainer
 
 var records: PlayerRecords
-var preferences: FragrSettings
+var preferences: LocalExceptionSettings
 var _kind: String = "mission"
 var _summary: Label
 var _selection: OptionButton
@@ -58,7 +58,7 @@ func _ready() -> void:
 	commentary.text = tr("RECORD_COMMENTARY")
 	commentary.button_pressed = preferences.get_value("gameplay", "stat_commentary")
 	commentary.toggled.connect(func(enabled: bool) -> void:
-		var candidate: FragrSettings = preferences.draft()
+		var candidate: LocalExceptionSettings = preferences.draft()
 		candidate.set_value("gameplay", "stat_commentary", enabled)
 		if preferences.commit(candidate) != OK:
 			commentary.set_pressed_no_signal(not enabled)

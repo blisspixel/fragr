@@ -1,5 +1,5 @@
 {
-  "comment": "M04 Notice to Vacate golden-slice art review. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m04_notice_to_vacate.json. Eye-height spectator views of every beat on the authored route, from the tram stop to the roof stair, with the notice-board guards placed from the start. Look at each still against docs/design/earth.md (M04 Low Water), the art bible and the Recall Notice bar; this is art review, not combat or fresh-player evidence.",
+  "comment": "M04 Notice to Vacate golden-slice art review. LOCALEXCEPTION_QA_BOTS=0, LOCALEXCEPTION_QA_MAP_FILE=server/maps/m04_notice_to_vacate.json. Eye-height spectator views of every beat on the authored route, from the tram stop to the roof stair, with the notice-board guards placed from the start. Look at each still against docs/design/earth.md (M04 Low Water), the art bible and the Recall Notice bar; this is art review, not combat or fresh-player evidence.",
   "width": 1280,
   "height": 720,
   "states": [

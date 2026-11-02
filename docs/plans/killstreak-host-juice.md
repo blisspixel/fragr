@@ -87,7 +87,7 @@ godot --headless --path client --import --quit-after 120
 
 ## How to trigger streaks
 
-1. `cargo run -p fragr-server -- --bots 4` (port 6767).
+1. `cargo run -p localexception-server -- --bots 4` (port 6767).
 2. Open Godot client, spectate or Join.
 3. Wait for a fighter (or you) to land 2, then 3, then 5 frags without dying in the same round. Host bumper + streak flash fire at those counts.
 4. Dying or round end resets the counter; MCP `get_events` / observe `recent_events` show `event: killstreak`.

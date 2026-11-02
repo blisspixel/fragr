@@ -57,7 +57,7 @@ Broadcast with other events. Buffered in adapter `recent_events` (cap 50) and re
 
 - Schema: object with required `text` (string). `additionalProperties` false / unknown keys -> clear schema error.
 - Length / empty validated in adapter before send; server re-validates.
-- Documented in `docs/skills/fragr/SKILL.md` and `agent-adapter/README.md`.
+- Documented in `docs/skills/localexception/SKILL.md` and `agent-adapter/README.md`.
 
 ## Architecture impact
 

@@ -19,7 +19,7 @@ func _check(condition: bool, message: String) -> void:
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
 	settings_path = "user://campaign-score-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", settings_path)
+	set_meta("localexception_settings_path", settings_path)
 	_run.call_deferred()
 
 
@@ -49,7 +49,7 @@ func _run() -> void:
 
 
 func _test_settings() -> void:
-	var settings: FragrSettings = FragrSettings.new(settings_path)
+	var settings: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	_check(bool(settings.get_value("score", "enabled")), "the campaign score defaults to On")
 	_check((settings.get_value("score", "takes") as Dictionary).is_empty(), "no take is chosen by default")
 	_check(CampaignScore.chosen_take(settings, "l04") == "a", "an unchosen slot plays take A")
@@ -63,7 +63,7 @@ func _test_settings() -> void:
 	settings.set_value("score", "enabled", false)
 	settings.set_value("score", "takes", {"l04": "b", "cue-l02": "b"})
 	_check(settings.save_to_disk() == OK, "settings save")
-	var loaded: FragrSettings = FragrSettings.new(settings_path)
+	var loaded: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	loaded.load_from_disk()
 	_check(not bool(loaded.get_value("score", "enabled")), "Off persists")
 	_check(CampaignScore.chosen_take(loaded, "l04") == "b" and CampaignScore.chosen_take(loaded, "cue-l02") == "b", "per-slot takes persist")
@@ -135,7 +135,7 @@ func _test_resolution() -> void:
 	_check(CampaignScore.gain_for_path("res://assets/audio/score/l05/a.mp3", gained) == 0.0, "no match, no change")
 	for slot: Dictionary in CampaignScore.shipped_slots():
 		_check((slot["gain_db"] as Dictionary).size() == 2, "every shipped slot level-matches both takes: " + str(slot["id"]))
-	var settings: FragrSettings = FragrSettings.new(settings_path)
+	var settings: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	settings.set_value("score", "takes", {"cue-l05": "b"})
 	_check(CampaignScore.scene_music_path("res://assets/audio/score/cue-l05/a.mp3", settings, both).ends_with("cue-l05/b.mp3"), "a scene cue plays the chosen take")
 	_check(CampaignScore.scene_music_path("res://assets/story/ambience/low_water_runoff.wav", settings, both) == "res://assets/story/ambience/low_water_runoff.wav", "other scene beds are untouched")
@@ -144,7 +144,7 @@ func _test_resolution() -> void:
 
 
 func _test_live_node() -> void:
-	var settings: FragrSettings = FragrSettings.new(settings_path)
+	var settings: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	var score: CampaignScore = CampaignScore.new()
 	score.preferences = settings
 	# Injected slots: one real level and one whose files do not exist.
@@ -168,7 +168,7 @@ func _test_live_node() -> void:
 		score.set_take("l04", "b")
 		_check(score.bed_path().ends_with("l04/b.mp3"), "switching the take changes the bed live")
 		_check(CampaignScore.chosen_take(settings, "l04") == "b", "the switch is kept in the settings")
-		var saved: FragrSettings = FragrSettings.new(settings_path)
+		var saved: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 		saved.load_from_disk()
 		_check(CampaignScore.chosen_take(saved, "l04") == "b", "the switch is written to the settings file")
 		score.toggle_take("l04")
@@ -227,7 +227,7 @@ func _test_radio_starts_off() -> void:
 
 
 func _test_pause_menu() -> void:
-	var settings: FragrSettings = FragrSettings.new(settings_path)
+	var settings: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	var menu: PauseMenu = PauseMenu.new()
 	menu.preferences = settings
 	root.add_child(menu)

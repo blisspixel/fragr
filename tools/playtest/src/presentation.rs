@@ -316,7 +316,7 @@ mod tests {
         assert_eq!(
             committed,
             golden_json(),
-            "presentation model changed; regenerate {GOLDEN_PATH} with `cargo test -p fragr-playtest --lib regenerate_presentation_golden -- --ignored` and replay it in Godot"
+            "presentation model changed; regenerate {GOLDEN_PATH} with `cargo test -p localexception-playtest --lib regenerate_presentation_golden -- --ignored` and replay it in Godot"
         );
     }
 

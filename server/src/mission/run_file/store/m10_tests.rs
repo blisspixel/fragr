@@ -124,7 +124,8 @@ fn m10_real_promotion_completes_only_released_crew_and_retry_keeps_its_entry() {
 fn m10_locked_promotion_commits_distinct_transit_once() {
     let mut source = m09_receipt_tests::completed_berth(true, true);
     source.remaining_continues = 1;
-    let directory = std::env::temp_dir().join(format!("fragr-m10-transit-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-m10-transit-{}", Uuid::new_v4()));
     let store = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
     store.save(&source).unwrap();
     let bytes = fs::read(directory.join(RUN_NAME)).unwrap();
@@ -752,7 +753,8 @@ fn m10_actual_repeater_find_resets_on_retry_and_carries_spent_rounds_into_m11() 
         .unwrap();
     let mut hashes = m09_tests::HASHES;
     hashes[9] = hash;
-    let directory = std::env::temp_dir().join(format!("fragr-m10-repeater-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-m10-repeater-{}", Uuid::new_v4()));
     let mut state = GameState::with_authored_map(source.clone());
     state.seed(42);
     state.load_campaign_run(&entry).unwrap();

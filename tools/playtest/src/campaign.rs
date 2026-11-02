@@ -1,19 +1,19 @@
 //! Constrained, guided campaign trials on the real simulation. The controller
 //! knows public mission objectives and geometry, but sees enemies and supply
 //! only inside its view. These are declared stress profiles, not human data.
-use fragr_server::combat::{line_of_sight, FIGHTER_HEIGHT};
-use fragr_server::inventory::control_action_with_target_filter;
-use fragr_server::maps::AuthoredSource;
-use fragr_server::mission::MissionClient;
-use fragr_server::movement::{Arena, EYE_HEIGHT};
-use fragr_server::navigation::Navigator;
-use fragr_server::protocol::{
+use localexception_server::combat::{line_of_sight, FIGHTER_HEIGHT};
+use localexception_server::inventory::control_action_with_target_filter;
+use localexception_server::maps::AuthoredSource;
+use localexception_server::mission::MissionClient;
+use localexception_server::movement::{Arena, EYE_HEIGHT};
+use localexception_server::navigation::Navigator;
+use localexception_server::protocol::{
     Action, AmmoPool, CampaignActor, CampaignDifficulty, CampaignRunStatus, EnemyPhase,
     LoadoutState, LookAt, MissionContinue, MissionId, MissionPhase, MissionReady, PlayerState,
     Role, ServerMessage, Snapshot,
 };
-use fragr_server::session::GameSession;
-use fragr_server::sim::PLAYER_FLOOR_Y;
+use localexception_server::session::GameSession;
+use localexception_server::sim::PLAYER_FLOOR_Y;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::f32::consts::{PI, TAU};
@@ -68,7 +68,11 @@ impl Scenario {
         matches!(self, Self::M19Market | Self::M19Tanks)
     }
 
-    fn segment_complete(self, state: &fragr_server::protocol::MissionState, alive: bool) -> bool {
+    fn segment_complete(
+        self,
+        state: &localexception_server::protocol::MissionState,
+        alive: bool,
+    ) -> bool {
         if !alive
             || state.run.is_some_and(|run| {
                 matches!(
@@ -264,19 +268,22 @@ fn visible_aim(
     let head = [
         target.x,
         target.y - PLAYER_FLOOR_Y
-            + fragr_server::combat::stance_eye(target.campaign, target.ducking),
+            + localexception_server::combat::stance_eye(target.campaign, target.ducking),
         target.z,
     ];
     // A player who has learned the machines aims at the red light (or the
     // lens) when it shows and the held gun's cone fits it; the same rule
     // the server's look_at lock follows. Everyone else is centre mass.
     let feet = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
-    let spread = fragr_server::protocol::WeaponType::ALL
+    let spread = localexception_server::protocol::WeaponType::ALL
         .into_iter()
         .find(|weapon| weapon.name() == me.weapon)
-        .map_or(0.0, fragr_server::protocol::WeaponType::spread_radians);
-    let weak = fragr_server::combat::weak_point(feet, target.campaign, target.ducking)
-        .filter(|point| fragr_server::combat::weak_point_fits(eye(me), *point, spread));
+        .map_or(
+            0.0,
+            localexception_server::protocol::WeaponType::spread_radians,
+        );
+    let weak = localexception_server::combat::weak_point(feet, target.campaign, target.ducking)
+        .filter(|point| localexception_server::combat::weak_point_fits(eye(me), *point, spread));
     weak.into_iter()
         .chain([chest(target), head])
         .find(|point| visible(me, *point, arena, profile))
@@ -310,7 +317,7 @@ impl Perception {
             // Combat selection excludes corpses, but perception must still
             // hide an unseen opponent's death from search memory.
             if me.id == p.id
-                || !fragr_server::protocol::hostile(me.campaign, p.campaign)
+                || !localexception_server::protocol::hostile(me.campaign, p.campaign)
                 || (me.team.is_some() && me.team == p.team)
             {
                 return true;
@@ -339,8 +346,8 @@ fn constrain(
     seed: u64,
     arena: &Arena,
 ) -> Action {
-    let wanted_motion = fragr_server::movement::wish_dir(
-        &fragr_server::movement::MoveInput {
+    let wanted_motion = localexception_server::movement::wish_dir(
+        &localexception_server::movement::MoveInput {
             forward: action.forward,
             back: action.back,
             left: action.left,
@@ -399,8 +406,8 @@ fn constrain(
             (false, true, false, true),
         ];
         let score = |k: &(bool, bool, bool, bool)| {
-            let motion = fragr_server::movement::wish_dir(
-                &fragr_server::movement::MoveInput {
+            let motion = localexception_server::movement::wish_dir(
+                &localexception_server::movement::MoveInput {
                     forward: k.0,
                     back: k.1,
                     left: k.2,
@@ -951,7 +958,7 @@ fn drive(
             && scan_remaining <= 0.0
             && snapshot.tick.saturating_sub(progress) >= 60
             && state.m19.as_ref().and_then(|facts| facts.current.as_ref()).is_some_and(|objective| {
-                matches!(&objective.action, fragr_server::protocol::MissionObjectiveAction::Arrival { region, .. } if region.contains(report.last_feet))
+                matches!(&objective.action, localexception_server::protocol::MissionObjectiveAction::Arrival { region, .. } if region.contains(report.last_feet))
             })
         {
             scan_remaining = TAU;
@@ -1110,8 +1117,9 @@ fn drive(
         report.seconds = session.state.tick as f64 / 20.0;
         for message in &messages {
             configure_map(&mut client, message)?;
-            if let ServerMessage::Event(fragr_server::protocol::GameEvent::Checkpoint { .. }) =
-                message
+            if let ServerMessage::Event(localexception_server::protocol::GameEvent::Checkpoint {
+                ..
+            }) = message
             {
                 report
                     .checkpoint_seconds
@@ -1315,8 +1323,8 @@ pub fn run_scenario(
     };
     Ok(Report {
         schema: 3,
-        build: env!("FRAGR_CLI_VERSION"),
-        commit: env!("FRAGR_BUILD_COMMIT"),
+        build: env!("LOCALEXCEPTION_CLI_VERSION"),
+        commit: env!("LOCALEXCEPTION_BUILD_COMMIT"),
         observation,
         profiles: PROFILES,
         decision_hz: 20,
@@ -1332,8 +1340,8 @@ pub fn run_scenario(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use fragr_server::movement::Solid;
-    use fragr_server::protocol::LookAt;
+    use localexception_server::movement::Solid;
+    use localexception_server::protocol::LookAt;
 
     fn scene() -> (Snapshot, Arena, Uuid, Uuid) {
         let mut session = GameSession::new();
@@ -1367,12 +1375,12 @@ mod tests {
         let (mut snapshot, arena, id, target) = scene();
         let profile = PROFILES[1];
         // Isolated perception fixture, not earned campaign progress.
-        let mut inventory = fragr_server::inventory::Inventory::new(
-            fragr_server::protocol::EquipmentPolicy::Discovery,
+        let mut inventory = localexception_server::inventory::Inventory::new(
+            localexception_server::protocol::EquipmentPolicy::Discovery,
         );
-        inventory.grant_weapon(fragr_server::protocol::WeaponType::Tack);
+        inventory.grant_weapon(localexception_server::protocol::WeaponType::Tack);
         let gear = inventory
-            .state(id, fragr_server::protocol::WeaponType::Tack, 0)
+            .state(id, localexception_server::protocol::WeaponType::Tack, 0)
             .unwrap();
         let mut perception = Perception::default();
         for tick in 0..=profile.reaction_ticks {
@@ -1933,9 +1941,10 @@ mod tests {
 
     #[test]
     fn reload_commands_preserve_finite_supply_in_an_isolated_inventory_fixture() {
-        use fragr_server::protocol::{EquipmentPolicy, WeaponType};
+        use localexception_server::protocol::{EquipmentPolicy, WeaponType};
         // Calibration of the reload seam only; no campaign result is claimed.
-        let mut inventory = fragr_server::inventory::Inventory::new(EquipmentPolicy::Discovery);
+        let mut inventory =
+            localexception_server::inventory::Inventory::new(EquipmentPolicy::Discovery);
         inventory.grant_weapon(WeaponType::Tack);
         inventory.arm_magazines();
         let id = Uuid::from_u128(1);
@@ -1967,10 +1976,11 @@ mod tests {
 
     #[test]
     fn weapon_selection_cannot_cancel_an_empty_magazine_reload() {
-        use fragr_server::protocol::{EquipmentPolicy, WeaponType};
+        use localexception_server::protocol::{EquipmentPolicy, WeaponType};
         let (snapshot, _, id, _) = scene();
         // Isolated owned-gun fixture, distinct from earned campaign trials.
-        let mut inventory = fragr_server::inventory::Inventory::new(EquipmentPolicy::Discovery);
+        let mut inventory =
+            localexception_server::inventory::Inventory::new(EquipmentPolicy::Discovery);
         inventory.grant_weapon(WeaponType::Tack);
         inventory.arm_magazines();
         for _ in 0..12 {
@@ -2205,8 +2215,8 @@ mod tests {
             42,
             &arena,
         );
-        let motion = fragr_server::movement::wish_dir(
-            &fragr_server::movement::MoveInput {
+        let motion = localexception_server::movement::wish_dir(
+            &localexception_server::movement::MoveInput {
                 forward: action.forward,
                 back: action.back,
                 left: action.left,

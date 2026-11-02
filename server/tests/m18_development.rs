@@ -1,8 +1,8 @@
-use fragr_server::maps::{AuthoredMap, RuntimeMap};
-use fragr_server::movement::{BODY_HEIGHT, CONTACT_EPSILON, EYE_HEIGHT};
-use fragr_server::navigation::{NavigationGoal, Navigator, RouteStatus, SEARCH_LIMIT};
-use fragr_server::protocol::{Action, EquipmentPolicy, Role};
-use fragr_server::sim::{GameState, PLAYER_FLOOR_Y};
+use localexception_server::maps::{AuthoredMap, RuntimeMap};
+use localexception_server::movement::{BODY_HEIGHT, CONTACT_EPSILON, EYE_HEIGHT};
+use localexception_server::navigation::{NavigationGoal, Navigator, RouteStatus, SEARCH_LIMIT};
+use localexception_server::protocol::{Action, EquipmentPolicy, Role};
+use localexception_server::sim::{GameState, PLAYER_FLOOR_Y};
 use serde_json::Value;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -137,7 +137,7 @@ fn recovery_development_reads_without_a_mission() {
     let eye = [square[0], square[1] + EYE_HEIGHT, square[2]];
     let tower_face = [5.6, 8.2, 21.6];
     assert!(
-        fragr_server::combat::line_of_sight(eye, tower_face, &runtime.arena().solids),
+        localexception_server::combat::line_of_sight(eye, tower_face, &runtime.arena().solids),
         "overlook tower is hidden from the recovery square"
     );
 }

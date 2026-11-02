@@ -68,7 +68,7 @@ func _run() -> void:
 	_check(not bounded.accept({"tick": 1}) and not bounded.error.is_empty(), "memory bound refuses excess before storing it")
 
 	var path: String = "user://benchmark-comparison-test-%d.cfg" % OS.get_process_id()
-	var prefs: FragrSettings = FragrSettings.new(path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	prefs.set_value("video", "quality", RenderQuality.MEDIUM)
 	prefs.set_value("video", "fps_cap", 45)
 	var run: BenchmarkRun = BenchmarkRun.new()
@@ -97,7 +97,7 @@ func _run() -> void:
 	var csv: String = BenchmarkRun.csv(document)
 	_check(csv.contains("low_1_fps,p50_ms,p95_ms,p99_ms,max_ms") and csv.contains('"Adapter, ""Name"""') and csv.contains(capture.digest), "CSV keeps required metrics, escaped metadata and replay identity")
 	var result_dir: String = "user://benchmark-result-test-%d" % OS.get_process_id()
-	set_meta("fragr_benchmark_dir", result_dir)
+	set_meta("localexception_benchmark_dir", result_dir)
 	_check(run._save_report(document).is_empty(), "local result writer succeeds in isolated directory")
 	var basename: String = result_dir.path_join("benchmark-20261006T120000-%d" % OS.get_process_id())
 	var saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(basename + ".json"))
@@ -115,7 +115,7 @@ func _run() -> void:
 	owner.remove_child(cancelled)
 	cancelled.free()
 	_check(owner.restored == 2 and Engine.max_fps == 45, "leaving the scene during comparison restores saved pacing")
-	var console: FragrConsole = FragrConsole.new()
+	var console: LocalExceptionConsole = LocalExceptionConsole.new()
 	console.preferences = prefs
 	root.add_child(console)
 	var scene: Node = load("res://scenes/main.tscn").instantiate()

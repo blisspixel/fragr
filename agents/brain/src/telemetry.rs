@@ -3,7 +3,7 @@
 //! the round. Small on purpose: decision models read literally and are thrown
 //! by irrelevant state, and every character is billed.
 
-use fragr_server::protocol::{GameEvent, Snapshot};
+use localexception_server::protocol::{GameEvent, Snapshot};
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, VecDeque};
 use uuid::Uuid;
@@ -169,7 +169,7 @@ pub fn observe(me: Uuid, snapshot: &Snapshot, hits: &mut RecentHits) -> Option<T
     let mut fighters = 0;
     for other in &snapshot.players {
         if other.id != me
-            && fragr_server::protocol::hostile(mine.campaign, other.campaign)
+            && localexception_server::protocol::hostile(mine.campaign, other.campaign)
             && (mine.team.is_none() || mine.team != other.team)
         {
             // A respawning leader is still the leader.
@@ -361,7 +361,7 @@ impl Telemetry {
 
 #[cfg(test)]
 pub(crate) mod fixtures {
-    use fragr_server::protocol::{PickupState, PlayerState, Snapshot};
+    use localexception_server::protocol::{PickupState, PlayerState, Snapshot};
     use uuid::Uuid;
 
     pub fn player(name: &str, id: Uuid, x: f32, z: f32, hp: i32, weapon: &str) -> PlayerState {
@@ -401,7 +401,7 @@ pub(crate) mod fixtures {
 
     pub fn pad(kind: &str, weapon: &str, x: f32, z: f32, available: bool) -> PickupState {
         PickupState {
-            claim: fragr_server::protocol::SupplyClaim::Contested,
+            claim: localexception_server::protocol::SupplyClaim::Contested,
             pool: None,
             id: format!("{kind}-{weapon}-{x}-{z}"),
             kind: kind.to_string(),
@@ -531,7 +531,7 @@ mod tests {
             pad("weapon", "Rail", 6.0, 8.0, true),
             pad("weapon", "Rail", 3.0, 0.0, true),
             pad("weapon", "", 2.0, 0.0, true),
-            fragr_server::protocol::PickupState {
+            localexception_server::protocol::PickupState {
                 dropped: true,
                 ..pad("weapon", "Rocket", 1.0, 0.0, true)
             },
@@ -559,7 +559,7 @@ mod tests {
 
     #[test]
     fn team_telemetry_excludes_allies_from_rival_score_and_targets() {
-        use fragr_server::protocol::Team;
+        use localexception_server::protocol::Team;
         let id = Uuid::from_u128(1);
         let mut mine = player("same", id, 0.0, 0.0, 100, "flechette");
         mine.team = Some(Team::Union);

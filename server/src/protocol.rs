@@ -893,10 +893,10 @@ pub const INTEREST_GAMEPLAY_VERSION: u32 = ZONES_GAMEPLAY_VERSION;
 /// could not perceive (`crate::interest`). A reader at 66 would draw a heard
 /// shot's cut trace, so a shared room moves to this contract.
 pub const SHOT_SENSE_GAMEPLAY_VERSION: u32 = 67;
-/// The highest contract: the senses applied to shots, throws and pickups,
-/// after locational damage, the objective board, the fun metrics notice and
-/// interest filtering of the roster.
-pub const GAMEPLAY_VERSION: u32 = SHOT_SENSE_GAMEPLAY_VERSION;
+/// Local Exception identity: renamed join-ticket domains and LAN beacon.
+/// Earlier clients must update rather than silently joining another product.
+pub const IDENTITY_GAMEPLAY_VERSION: u32 = 68;
+pub const GAMEPLAY_VERSION: u32 = IDENTITY_GAMEPLAY_VERSION;
 const _: () = assert!(
     GAMEPLAY_VERSION >= ZONES_GAMEPLAY_VERSION
         && GAMEPLAY_VERSION >= MAP_VOTE_GAMEPLAY_VERSION

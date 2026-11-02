@@ -12,7 +12,7 @@
 
 ## Success criteria
 
-- [x] `cargo run -p fragr-server` (or `cd server && cargo run`) listens on `127.0.0.1:6767` with no env secrets / cloud config.
+- [x] `cargo run -p localexception-server` (or `cd server && cargo run`) listens on `127.0.0.1:6767` with no env secrets / cloud config.
 - [x] At least four automated fighters (rule bots) engage; within ~30s damage or a frag is visible in **server logs and** Godot spectator.
 - [x] Spectator is presentation-only (no local authority); killing the server drops/freezes the match cleanly.
 - [x] Agent-adapter (or documented equivalent) drives ≥1 fighter via `observe` / `act`; MCP tool surface listed in README even if partially stubbed.
@@ -63,7 +63,7 @@
 
 ### 6. Agent-adapter (~3-4 h)
 - [x] Process connects as `role=agent`, owns one pawn
-- [x] Tools/API: Hello join on connect (`--name` / `FRAGR_AGENT_NAME`), `observe`, `act`, `speak`, `join`, `leave`, `round_state` (leave tool or process exit)
+- [x] Tools/API: Hello join on connect (`--name` / `LOCALEXCEPTION_AGENT_NAME`), `observe`, `act`, `speak`, `join`, `leave`, `round_state` (leave tool or process exit)
 - [x] Prefer MCP stdio if quick; else HTTP/JSON with same shapes + note "MCP wrapper next"
 - [x] Scripted loop using adapter proves external drive path (even without an LLM)
 - [x] Document tool schemas in `agent-adapter/README.md`

@@ -24,7 +24,7 @@ External spend is $0. No paid API, cloud resource or Terraform apply. Success me
 
 ## Pre-review exploratory rounds, 2026-09-28
 
-These first five rounds used a pre-review binary. Their table is retained as exploratory evidence; the corrected event identity and deadline gate is measured separately below. Ran the debug `fragr-playtest` binary on the Windows AMD Ryzen 7 7840U host, from this uncommitted branch based on `357ad1b`. Each seed used `target/debug/fragr-playtest.exe --agents 12 --rounds 1 --mode ctf --map 4 --tiers reflex,planner --capture-limit 3 --time-limit-seconds 180 --max-seconds 190 --seed SEED --report .agents/playtest/ctf-carry-seed-SEED.json`. The five processes ran serially. JSON reports and console logs are ignored under `.agents/playtest/`. Every process exited 0 and its authoritative round ended at the time limit after 181.9 observed seconds. The reports recorded no omitted carry episodes.
+These first five rounds used a pre-review binary. Their table is retained as exploratory evidence; the corrected event identity and deadline gate is measured separately below. Ran the debug `localexception-playtest` binary on the Windows AMD Ryzen 7 7840U host, from this uncommitted branch based on `357ad1b`. Each seed used `target/debug/localexception-playtest.exe --agents 12 --rounds 1 --mode ctf --map 4 --tiers reflex,planner --capture-limit 3 --time-limit-seconds 180 --max-seconds 190 --seed SEED --report .agents/playtest/ctf-carry-seed-SEED.json`. The five processes ran serially. JSON reports and console logs are ignored under `.agents/playtest/`. Every process exited 0 and its authoritative round ended at the time limit after 181.9 observed seconds. The reports recorded no omitted carry episodes.
 
 | Seed | Takes | Drops | Combat drops | Returns | Captures | Carrier s | Own flag away ticks | Home blocked ticks | Frags | Final Union:Coalition |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -67,8 +67,8 @@ stored reports and logs under ignored `.agents/playtest/`.
 Exact-head CI targets `main` for validation, then the draft returns to its
 CTF role-policy parent; the workflow only starts for `main` pull requests.
 
-- `cargo test -p fragr-playtest --lib ctf_carry --locked`: five tests passed.
-- `cargo test -p fragr-playtest --lib observer_max_tick --locked`: one test passed.
+- `cargo test -p localexception-playtest --lib ctf_carry --locked`: five tests passed.
+- `cargo test -p localexception-playtest --lib observer_max_tick --locked`: one test passed.
 - `cargo fmt --all -- --check`: passed.
 - `cargo clippy --workspace --all-targets --locked -- -D warnings`: passed.
 - `cargo test --workspace --locked`: passed, including 537 server library tests with two ignored.

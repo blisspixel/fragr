@@ -10,9 +10,9 @@ enum State { IDLE, STARTING, RUNNING, STOPPING, FAILED }
 const START_TIMEOUT_MS: int = 15000
 const STOP_TIMEOUT_MS: int = 3000
 const MAX_READY_BYTES: int = 4096
-const PENDING_META: StringName = &"fragr_local_match_pending"
+const PENDING_META: StringName = &"localexception_local_match_pending"
 ## Set by a finished mission that asked to continue the saved run directly.
-const ONWARD_META: StringName = &"fragr_run_onward"
+const ONWARD_META: StringName = &"localexception_run_onward"
 ## Current rules revision 4 requires the shared Assessor capability floor.
 const DURABLE_GAMEPLAY: int = 43
 const M02_GAMEPLAY: int = 43
@@ -71,7 +71,7 @@ func executable_path() -> String:
 	return find_executable_path()
 
 static func find_executable_path() -> String:
-	var filename: String = "fragr-server.exe" if OS.get_name() == "Windows" else "fragr-server"
+	var filename: String = "localexception-server.exe" if OS.get_name() == "Windows" else "localexception-server"
 	var candidates: Array[String] = [OS.get_executable_path().get_base_dir().path_join(filename)]
 	if OS.has_feature("editor"):
 		for profile: String in ["release", "debug"]:

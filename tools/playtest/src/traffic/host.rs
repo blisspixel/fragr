@@ -3,7 +3,7 @@
 //! it sends. Each probe names its source; a platform without it reports
 //! nothing rather than a guess.
 
-use fragr_server::tick_trace::TickTraceRecord;
+use localexception_server::tick_trace::TickTraceRecord;
 use serde::Serialize;
 use std::io::BufRead;
 use std::path::Path;
@@ -169,7 +169,7 @@ pub fn tick_window(path: &Path, from: u64, to: u64) -> Result<TickWindow, String
     if samples.is_empty() {
         return Err(format!("no traced ticks from {from} to {to}"));
     }
-    let ms = |pick: fn(&fragr_server::tick_trace::TickSample) -> u64| -> Spread {
+    let ms = |pick: fn(&localexception_server::tick_trace::TickSample) -> u64| -> Spread {
         let mut values: Vec<f64> = samples.iter().map(|s| pick(s) as f64 / 1000.0).collect();
         Spread::of(&mut values)
     };
@@ -348,12 +348,13 @@ mod tests {
 
     #[test]
     fn a_tick_window_keeps_the_held_ticks() {
-        let dir = std::env::temp_dir().join(format!("fragr-tick-window-{}", std::process::id()));
+        let dir =
+            std::env::temp_dir().join(format!("localexception-tick-window-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("ticks.ndjson");
         let tick = |tick: u64, total_us: u64, skipped: u64| {
             serde_json::to_string(&TickTraceRecord::Tick(
-                fragr_server::tick_trace::TickSample {
+                localexception_server::tick_trace::TickSample {
                     tick,
                     unix_us: 0,
                     late_us: 1000 * tick,

@@ -12,7 +12,7 @@ var hud: CanvasLayer
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
-	set_meta("fragr_settings_path", "user://event-covers-%d.cfg" % OS.get_process_id())
+	set_meta("localexception_settings_path", "user://event-covers-%d.cfg" % OS.get_process_id())
 	_run.call_deferred()
 
 func _check(ok: bool, message: String) -> void:
@@ -62,7 +62,7 @@ func _run() -> void:
 	_continue_refresh()
 	game.free()
 	await _settle()
-	DirAccess.remove_absolute(ProjectSettings.globalize_path(str(get_meta("fragr_settings_path"))))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(str(get_meta("localexception_settings_path"))))
 	if failures == 0:
 		print("test_event_covers: PASS actual covers, draw ownership, identity and Conquest changes")
 	quit(0 if failures == 0 else 1)
@@ -88,7 +88,7 @@ func _full_covers() -> void:
 	var pause := PauseMenu.new()
 	game.add_child(pause)
 	game.pause_menu = pause
-	pause.preferences = FragrSettings.new(str(get_meta("fragr_settings_path")))
+	pause.preferences = LocalExceptionSettings.new(str(get_meta("localexception_settings_path")))
 	pause.open()
 	await _settle()
 	_tick(20)
@@ -121,7 +121,7 @@ func _full_covers() -> void:
 
 func _region_covers() -> void:
 	_seed()
-	var console := FragrConsole.new()
+	var console := LocalExceptionConsole.new()
 	game.add_child(console)
 	game.console = console
 	console.set_open(true)

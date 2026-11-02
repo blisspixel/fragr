@@ -1,5 +1,5 @@
 {
-  "comment": "M03 Scheduled Service golden-slice art review. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m03-scheduled-service.json, FRAGR_QA_MANIFEST=res://qa/m03-golden.json. Eye-height spectator views of every beat on the authored route, with the placed Union watch in its yard. Look at each still against docs/design/earth.md (M03 freight yard), the art bible and the Recall Notice bar; this is art review, not combat or fresh-player evidence.",
+  "comment": "M03 Scheduled Service golden-slice art review. LOCALEXCEPTION_QA_BOTS=0, LOCALEXCEPTION_QA_MAP_FILE=server/maps/m03-scheduled-service.json, LOCALEXCEPTION_QA_MANIFEST=res://qa/m03-golden.json. Eye-height spectator views of every beat on the authored route, with the placed Union watch in its yard. Look at each still against docs/design/earth.md (M03 freight yard), the art bible and the Recall Notice bar; this is art review, not combat or fresh-player evidence.",
   "width": 1280,
   "height": 720,
   "states": [

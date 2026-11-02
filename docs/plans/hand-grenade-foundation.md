@@ -107,8 +107,8 @@ participant records count launches. No paid call or dependency was added.
 | Focused command | Actual result |
 |---|---|
 | `cargo check --workspace --all-targets --locked` | PASS |
-| `cargo test -p fragr-server --lib grenade --locked` | PASS, 17 tests including parallel carry/retry tests |
-| `cargo test -p fragr-agent-adapter -p fragr-brain -p fragr-playtest --locked` | PASS, 91 adapter, 114 brain library, 10 brain binary, 74 playtest library and 5 playtest binary tests |
+| `cargo test -p localexception-server --lib grenade --locked` | PASS, 17 tests including parallel carry/retry tests |
+| `cargo test -p localexception-agent-adapter -p localexception-brain -p localexception-playtest --locked` | PASS, 91 adapter, 114 brain library, 10 brain binary, 74 playtest library and 5 playtest binary tests |
 | Final workspace Clippy, warnings denied | PASS after the test-only useless conversion was corrected, `clippy-final.log` |
 
 Logs are `.agents/m05-grenade-check.log`, `m05-grenade-tests.log`,

@@ -1,6 +1,6 @@
-# fragr-brain
+# Local Exception-brain
 
-A reference agent whose intent comes from a decision model and whose reflexes stay local. An agent in fragr is one participant on the wire, however it thinks: server-run rule bots, any MCP client through the adapter, a scripted client, or this one, which asks a decision model what to do a few times a second while a local controller keeps playing every tick. One agent can combine a language model, other ML, and a decision model; the server sees one fighter either way.
+A reference agent whose intent comes from a decision model and whose reflexes stay local. An agent in Local Exception is one participant on the wire, however it thinks: server-run rule bots, any MCP client through the adapter, a scripted client, or this one, which asks a decision model what to do a few times a second while a local controller keeps playing every tick. One agent can combine a language model, other ML, and a decision model; the server sees one fighter either way.
 
 The paid brain is Jev, TypeSafe AI's decision model, reached either at TypeSafe's own endpoint or through OpenRouter. A free brain is an open-weights decision model on your own machine; see [Run it with a free local model](#run-it-with-a-free-local-model). Jev does not generate text. It answers typed questions (a choice between named options, a yes-or-no probability, a score on an ordered scale) with calibrated confidence, in a few hundred milliseconds, for about four cents per million input tokens. That shape fits a shooter far better than a chat model: no prose to parse, no invalid actions to guard against, no warm-up.
 
@@ -10,10 +10,10 @@ The MCP door is unchanged. Any MCP client still drives a fighter through `agent-
 
 ```bash
 # Terminal 1
-cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 3
+cargo run -p localexception-server -- --bind 127.0.0.1:6767 --bots 3
 
 # Terminal 2: local rules only, no key, no spend
-cargo run -p fragr-brain -- play --name Brain-1 --max-seconds 120
+cargo run -p localexception-brain -- play --name Brain-1 --max-seconds 120
 ```
 
 `--provider local` is the default. The same loop runs, the same telemetry is built, and the same controller plays; only the decision comes from rules instead of a model. CI exercises this path in-process.
@@ -22,8 +22,8 @@ For a free Recall Notice attempt, start the authored server with `--bots 0`,
 `--campaign-run`, and a difficulty, then point `play --server` at it. For example:
 
 ```bash
-cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 0 --map-file server/maps/m01-recall-notice.json --campaign-run --difficulty standard
-cargo run -p fragr-brain -- --provider local --no-ledger play --server ws://127.0.0.1:6767 --name CampaignProbe --max-seconds 150
+cargo run -p localexception-server -- --bind 127.0.0.1:6767 --bots 0 --map-file server/maps/m01-recall-notice.json --campaign-run --difficulty standard
+cargo run -p localexception-brain -- --provider local --no-ledger play --server ws://127.0.0.1:6767 --name CampaignProbe --max-seconds 150
 ```
 
 Run those commands in separate terminals. The JSON receipt's `mission` field is
@@ -65,9 +65,9 @@ For a rendered first-person developer watch, run `bash tools/qa_watch.sh` from
 the repository root (Git Bash on Windows). It starts an owned local M01 server,
 one free-rule brain pawn and a passive Godot spectator, then saves eight eye
 frames and a paired UUID/tick/brain receipt under `.agents/watch/`. Set
-`FRAGR_WATCH_SECONDS=180` for a longer M01 attempt. The wrapper uses no provider
+`LOCALEXCEPTION_WATCH_SECONDS=180` for a longer M01 attempt. The wrapper uses no provider
 key and stops only the processes it started. A short capture proves the live
-view, not a mission clear. Set `FRAGR_WATCH_SEED` and `FRAGR_WATCH_NAME` to fix
+view, not a mission clear. Set `LOCALEXCEPTION_WATCH_SEED` and `LOCALEXCEPTION_WATCH_NAME` to fix
 those inputs when comparing routes; live scheduling can still change the result.
 The verified receipt includes the mission state,
 kills, and deaths after the run.
@@ -75,11 +75,11 @@ The watch also saves `timeline.json` beside the verified receipt.
 
 ## Run it with a free local model
 
-APUS-OpenJev-v1-4B is an Apache 2.0 decision model fine-tuned from Qwen3.5-4B. It scores the options fragr supplies and runs in [Ollama](https://ollama.com) on your own machine. No key, no cap, no ledger entry. Pull it once, then play:
+APUS-OpenJev-v1-4B is an Apache 2.0 decision model fine-tuned from Qwen3.5-4B. It scores the options Local Exception supplies and runs in [Ollama](https://ollama.com) on your own machine. No key, no cap, no ledger entry. Pull it once, then play:
 
 ```bash
 ollama pull hf.co/apus-ailab/APUS-OpenJev-v1-4B-GGUF:Q8_0
-cargo run -p fragr-brain -- --provider ollama --timeout-ms 20000 play --name Apus-1 --decision-hz 1
+cargo run -p localexception-brain -- --provider ollama --timeout-ms 20000 play --name Apus-1 --decision-hz 1
 ```
 
 `play` loads the model before joining and names the pull command if it is missing. If the `hf.co` pull fails (Ollama 0.34.2 refused the Hugging Face CDN redirect on 2026-09-26), download `APUS-OpenJev-v1-4B-Q8_0.gguf` from the model's GGUF repository, check it against the repository's `SHA256SUMS`, create the model with the repository's `Modelfile` (`ollama create apus-openjev-v1-4b:q8_0 -f Modelfile`), and pass `--model apus-openjev-v1-4b:q8_0`. Weights live in Ollama's store, never in this repository.
@@ -88,12 +88,12 @@ The brain renders the model's own prompt contract and reads its answer from the 
 
 The original three-question play path took about twelve seconds on a Ryzen 7 7840U laptop with integrated graphics, and timed out at the default two second budget. That historical measurement is in [`docs/plans/brain-local-model.md`](../../docs/plans/brain-local-model.md). The single-question path has fake-transport validation in [`brain-responsive-local.md`](../../docs/plans/brain-responsive-local.md); no new hardware latency or match-quality result is claimed.
 
-`--provider openjev` sends the same `systemone` body as the TypeSafe provider to an [openjev](https://huggingface.co/openjev/openjev) server you run yourself (default `http://127.0.0.1:3000`, no key). **The openjev weights are CC BY-NC 4.0: non-commercial use only.** fragr never bundles, downloads or defaults to them, and this path is tested with fake transports only.
+`--provider openjev` sends the same `systemone` body as the TypeSafe provider to an [openjev](https://huggingface.co/openjev/openjev) server you run yourself (default `http://127.0.0.1:3000`, no key). **The openjev weights are CC BY-NC 4.0: non-commercial use only.** Local Exception never bundles, downloads or defaults to them, and this path is tested with fake transports only.
 
 Both local providers reach loopback only (`localhost`, 127.0.0.0/8, `::1`); `--model-url` changes the address and `--allow-remote-model` is required for any other host. Replies are untrusted: bounded, parsed strictly and checked against the questions asked. A slow, failed or unreadable answer falls back to local rules exactly as a paid one does, including backoff and switching the model off after repeated bad answers. `ask` works too, with `--dry-run` to print the requests:
 
 ```bash
-cargo run -p fragr-brain -- --provider ollama --timeout-ms 20000 ask --state '{"self":{"health":"low"},"enemy":{"present":true,"range":"close"}}'
+cargo run -p localexception-brain -- --provider ollama --timeout-ms 20000 ask --state '{"self":{"health":"low"},"enemy":{"present":true,"range":"close"}}'
 ```
 
 ## Run it with a paid brain
@@ -108,8 +108,8 @@ openrouter=sk-or-...     # or OPENROUTER_API_KEY
 Then pre-approve a cap. Nothing paid happens without one:
 
 ```bash
-cargo run -p fragr-brain -- --provider typesafe --max-spend-usd 5 play --name Jev-1 --decision-hz 3
-cargo run -p fragr-brain -- --provider openrouter --max-spend-usd 5 play --name Jev-2
+cargo run -p localexception-brain -- --provider typesafe --max-spend-usd 5 play --name Jev-1 --decision-hz 3
+cargo run -p localexception-brain -- --provider openrouter --max-spend-usd 5 play --name Jev-2
 ```
 
 Both providers send the same body: a `state` object, a `model`, and a `questions` map. TypeSafe gets `jev-1.13.0` at `https://api.typesafe.ai/v1/systemone`. OpenRouter gets `typesafe/jev-1.13` at `https://openrouter.ai/api/alpha/decisions` plus the app attribution headers pointing at this repository. Override the model with `--model`.
@@ -121,10 +121,10 @@ Every paid path goes through one gate, in this order:
 1. **Pre-approval.** `--max-spend-usd` defaults to zero. A paid provider with a zero cap refuses to start and says how to approve one.
 2. **Estimate before send.** Each request is priced from its byte length (two characters per token, the ratio measured against OpenRouter's billed count, rounded up, plus overhead) at `--price-input-per-million` and `--price-output-per-million`, which default to Jev's list price. If the estimate would cross a cap, the call is not sent.
 3. **Reserve before send, settle after return.** A synced pending receipt beside the ledger is created before the request leaves the process. Only one paid call across processes sharing that ledger can be in flight. Any failed response, or a successful response without provider billing evidence, leaves the receipt unresolved and blocks later calls until provider usage is reconciled. The provider's reported usage and cost replace the estimate after a fully evidenced return.
-4. **Ledger on disk.** Completed calls and failures are synced as JSON lines to `.agents/spend/brain.jsonl`. Failed calls retain their pending receipt after the estimated charge is recorded. The total carries across runs. `--max-total-usd` re-reads the ledger under the exclusive pending reservation; `--max-calls` caps count regardless of price. A restart clears a leftover pending receipt only when its matching settled charge is already in the ledger. Paid `play`, `ask`, and library decisions refuse a missing ledger. `fragr-brain spend` shows ledger totals and any pending receipt requiring provider reconciliation.
+4. **Ledger on disk.** Completed calls and failures are synced as JSON lines to `.agents/spend/brain.jsonl`. Failed calls retain their pending receipt after the estimated charge is recorded. The total carries across runs. `--max-total-usd` re-reads the ledger under the exclusive pending reservation; `--max-calls` caps count regardless of price. A restart clears a leftover pending receipt only when its matching settled charge is already in the ledger. Paid `play`, `ask`, and library decisions refuse a missing ledger. `localexception-brain spend` shows ledger totals and any pending receipt requiring provider reconciliation.
 5. **Fail open to rules.** A refused, failed, slow, or low-confidence decision hands the fighter to the local rules for that cycle. A cap refusal, a bad key or model id, or any unresolved paid request turns the brain off for the rest of the run, once, with a warning, so an uncertain bill cannot be followed by another call. Dead fighters and fighters outside an active round are never asked. The fighter never stops playing.
 6. **Per-run ceiling.** `--max-spend-usd` above five dollars is refused outright; that ceiling is a constant in the code, so raising it is a reviewed change.
-7. **Provider-side backstop.** For OpenRouter, create a key with its own lifetime dollar limit in the dashboard; `fragr-brain --provider openrouter key` shows the limit and what remains, and warns when the key has none. A token estimate is not a guarantee of final cost, so the provider limit backs up the local cap.
+7. **Provider-side backstop.** For OpenRouter, create a key with its own lifetime dollar limit in the dashboard; `localexception-brain --provider openrouter key` shows the limit and what remains, and warns when the key has none. A token estimate is not a guarantee of final cost, so the provider limit backs up the local cap.
 
 Measured on 2026-09-18 through OpenRouter: an arena call billed roughly 700 input tokens (the fixed question text dominates the small state). At the checked $0.042 per million input tokens, that is about $0.0000294 per call, $0.0053 per minute at three calls per second, or $0.32 per hour of continuous play. Actual usage and cost vary by state and are recorded from provider responses. A five dollar cap is roughly fifteen hours at that example rate, never a guarantee. Latency and win rates stay in local ledgers and reports under the provider agreement.
 
@@ -172,8 +172,8 @@ arrives.
 Try one decision by hand, with or without sending. A JSON object is sent as an object; anything else goes as a plain string:
 
 ```bash
-cargo run -p fragr-brain -- --provider openrouter ask --dry-run --state '{"self":{"health":"low","armor":"none","weapon":"flechette","taking_damage":true,"score":"even"},"enemy":{"present":true,"range":"close","health":"high","weapon":"scatter"},"pads":{"health":"near","armor":"none"},"clock":"plenty"}'
-cargo run -p fragr-brain -- --provider openrouter --max-spend-usd 0.01 ask --state '{...}'
+cargo run -p localexception-brain -- --provider openrouter ask --dry-run --state '{"self":{"health":"low","armor":"none","weapon":"flechette","taking_damage":true,"score":"even"},"enemy":{"present":true,"range":"close","health":"high","weapon":"scatter"},"pads":{"health":"near","armor":"none"},"clock":"plenty"}'
+cargo run -p localexception-brain -- --provider openrouter --max-spend-usd 0.01 ask --state '{...}'
 ```
 
 ## What it reports

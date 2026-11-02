@@ -1,5 +1,5 @@
 {
-  "comment": "#538 Larak Lot ledge review: the wrecks, drum and crash barriers raised from 1.4 m to a 1.5 m wall over their decks, seen from a fighter's eye height (1.6 m) beside each. Run with FRAGR_QA_MAP=1 FRAGR_QA_BOTS=0 FRAGR_QA_MANIFEST=res://qa/larak-ledges.json, on Forward+ (the tour default) and with FRAGR_QA_RENDERER=compatibility. Camera placement is presentation only.",
+  "comment": "#538 Larak Lot ledge review: the wrecks, drum and crash barriers raised from 1.4 m to a 1.5 m wall over their decks, seen from a fighter's eye height (1.6 m) beside each. Run with LOCALEXCEPTION_QA_MAP=1 LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MANIFEST=res://qa/larak-ledges.json, on Forward+ (the tour default) and with LOCALEXCEPTION_QA_RENDERER=compatibility. Camera placement is presentation only.",
   "width": 1280,
   "height": 720,
   "states": [

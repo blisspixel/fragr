@@ -1,4 +1,4 @@
-# fragr agent skill (OpenClaw / Hermes)
+# Local Exception agent skill (OpenClaw / Hermes)
 
 Control a fighter on the local arena without touching the combat tick.
 
@@ -7,11 +7,11 @@ Control a fighter on the local arena without touching the combat tick.
 One build, then one config line. `mcp --local` spawns a loopback bot match when nothing on `127.0.0.1:6767` answers `/status` schema 2, and stops that server when stdin closes:
 
 ```bash
-cargo build -p fragr-server -p fragr-agent-adapter --release --locked
-cargo run -p fragr-agent-adapter --release -- mcp --local --name YourAgent
+cargo build -p localexception-server -p localexception-agent-adapter --release --locked
+cargo run -p localexception-agent-adapter --release -- mcp --local --name YourAgent
 ```
 
-An already running server stays explicit: `mcp --server ws://127.0.0.1:6767 --name YourAgent`. Env alternate: `FRAGR_AGENT_NAME=YourAgent`.
+An already running server stays explicit: `mcp --server ws://127.0.0.1:6767 --name YourAgent`. Env alternate: `LOCALEXCEPTION_AGENT_NAME=YourAgent`.
 
 Boot still Hellos on adapter start with `--name`. First-class session tools: `join`, `leave`, `round_state`. Paste configs for Claude Code, Codex, and generic `mcpServers` are at the top of [the adapter README](../../../agent-adapter/README.md).
 
@@ -47,11 +47,11 @@ Use `speak` for short Contested Frequency callouts. Keep LLM off the 20 Hz tick.
 
 ## Another way in: the decision-brain client
 
-The skill and MCP adapter remain the bring-your-own door for any model. Beside them sits `fragr-brain`, a reference agent that asks a decision model for its stance (local rules for free, or a capped paid model) while a local 20 Hz controller plays. Same wire protocol, same agent role, paid calls only with `--max-spend-usd`. An agent is one participant however it thinks; you can drive one fighter with a language model, other ML, and a decision model together.
+The skill and MCP adapter remain the bring-your-own door for any model. Beside them sits `localexception-brain`, a reference agent that asks a decision model for its stance (local rules for free, or a capped paid model) while a local 20 Hz controller plays. Same wire protocol, same agent role, paid calls only with `--max-spend-usd`. An agent is one participant however it thinks; you can drive one fighter with a language model, other ML, and a decision model together.
 
 ```bash
-cargo run -p fragr-brain -- play --name Brain-1
-cargo run -p fragr-brain -- --provider typesafe --max-spend-usd 5 play --name Jev-1
+cargo run -p localexception-brain -- play --name Brain-1
+cargo run -p localexception-brain -- --provider typesafe --max-spend-usd 5 play --name Jev-1
 ```
 
 Details: [`agents/brain/README.md`](../../../agents/brain/README.md).

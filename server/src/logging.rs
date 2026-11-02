@@ -81,18 +81,18 @@ where
 /// Routine match feed: frags, pickups, bot spawns, Host reactions and similar
 /// play-by-play. The text is unchanged; only the target separates it so the
 /// operator overview can leave it out while a log keeps it.
-pub const FEED_TARGET: &str = "fragr_server::feed";
+pub const FEED_TARGET: &str = "localexception_server::feed";
 
 /// Startup narrative that the operator overview's ready card summarises.
 /// Warnings on this target still print in every mode.
-pub const STARTUP_TARGET: &str = "fragr_server::startup";
+pub const STARTUP_TARGET: &str = "localexception_server::startup";
 
 /// Default filter for the full log stream (unchanged from #415).
-pub const LOG_FILTER: &str = "info,fragr_server=debug";
+pub const LOG_FILTER: &str = "info,localexception_server=debug";
 
 /// Default filter for the operator overview. `RUST_LOG` still replaces it.
 pub const OVERVIEW_FILTER: &str =
-    "warn,fragr_server=info,fragr_server::feed=warn,fragr_server::startup=warn";
+    "warn,localexception_server=info,localexception_server::feed=warn,localexception_server::startup=warn";
 
 /// What a dedicated server writes to its terminal.
 #[derive(clap::ValueEnum, Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -182,12 +182,12 @@ pub fn uptime_stamp(uptime: std::time::Duration) -> String {
 /// `compact` is the operator overview line: process uptime, a level word only
 /// for warnings and errors, and no module target.
 #[derive(Debug, Clone, Copy)]
-pub struct FragrFormatter {
+pub struct LocalExceptionFormatter {
     pub ansi: bool,
     pub compact: bool,
 }
 
-impl<S, N> FormatEvent<S, N> for FragrFormatter
+impl<S, N> FormatEvent<S, N> for LocalExceptionFormatter
 where
     S: Subscriber + for<'a> LookupSpan<'a>,
     N: for<'a> FormatFields<'a> + 'static,
@@ -317,7 +317,7 @@ fn init_logging_with(default_filter: &str, color: ColorChoice, compact: bool) {
     let use_ansi = ansi_for_stream(color, std::io::stderr().is_terminal());
     tracing_subscriber::fmt()
         .with_ansi(use_ansi)
-        .event_format(FragrFormatter {
+        .event_format(LocalExceptionFormatter {
             ansi: use_ansi,
             compact,
         })
@@ -362,7 +362,7 @@ mod tests {
         let writer = sink.clone();
         let subscriber = tracing_subscriber::fmt()
             .with_ansi(ansi)
-            .event_format(FragrFormatter { ansi, compact })
+            .event_format(LocalExceptionFormatter { ansi, compact })
             .with_env_filter(EnvFilter::new(filter))
             .with_writer(move || writer.clone())
             .finish();
@@ -372,12 +372,12 @@ mod tests {
             tracing::warn!(target: FEED_TARGET, "feed warning stays");
             tracing::info!(target: STARTUP_TARGET, "Map: Arena Duel (id 1)");
             tracing::warn!(target: STARTUP_TARGET, "Join check did not answer");
-            tracing::info!(target: "fragr_server::session", "Player joined as Human");
-            tracing::info!(target: "fragr_server::run", "STATUS {{\"ticks\":1}}");
-            tracing::debug!(target: "fragr_server::net", "New connection from 127.0.0.1");
-            tracing::info!(target: "fragr_server::audit", event = "reject", code = "banned");
+            tracing::info!(target: "localexception_server::session", "Player joined as Human");
+            tracing::info!(target: "localexception_server::run", "STATUS {{\"ticks\":1}}");
+            tracing::debug!(target: "localexception_server::net", "New connection from 127.0.0.1");
+            tracing::info!(target: "localexception_server::audit", event = "reject", code = "banned");
             tracing::info!(target: "tokio_tungstenite", "library chatter");
-            tracing::error!(target: "fragr_server::run", "bind failed");
+            tracing::error!(target: "localexception_server::run", "bind failed");
         });
         let bytes = sink.0.lock().unwrap().clone();
         String::from_utf8(bytes).unwrap()
@@ -407,7 +407,10 @@ mod tests {
         assert!(!text.contains('\x1b'), "no escapes without colour:\n{text}");
         for line in text.lines() {
             assert!(line.starts_with('+'), "uptime stamp first: {line}");
-            assert!(!line.contains("fragr_server::"), "no module target: {line}");
+            assert!(
+                !line.contains("localexception_server::"),
+                "no module target: {line}"
+            );
             assert!(!line.contains(" INFO "), "no info level word: {line}");
         }
     }
@@ -416,10 +419,10 @@ mod tests {
     fn log_filter_still_prints_every_event_with_targets() {
         let text = capture(LOG_FILTER, false, false);
         for kept in [
-            "INFO fragr_server::feed: FRAG: Dan -> Linda (score: 1)",
-            "fragr_server::feed: PICKUP: Kid claimed Flechette",
-            "fragr_server::startup: Map: Arena Duel (id 1)",
-            "DEBUG fragr_server::net: New connection from 127.0.0.1",
+            "INFO localexception_server::feed: FRAG: Dan -> Linda (score: 1)",
+            "localexception_server::feed: PICKUP: Kid claimed Flechette",
+            "localexception_server::startup: Map: Arena Duel (id 1)",
+            "DEBUG localexception_server::net: New connection from 127.0.0.1",
             "STATUS {\"ticks\":1}",
             "library chatter",
         ] {

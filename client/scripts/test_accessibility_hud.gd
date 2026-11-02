@@ -16,10 +16,10 @@ func _run() -> void:
 	# 1. ScreenFlash under Repeater burst (15 hits at 100ms cadence = 1.4s)
 	var flash = ScreenFlashScript.new()
 	root.add_child(flash)
-	root.remove_meta("fragr_flash_history")
+	root.remove_meta("localexception_flash_history")
 
 	# Reduced mode rate test
-	flash.set_flash_mode(FragrSettings.FLASHES_REDUCED)
+	flash.set_flash_mode(LocalExceptionSettings.FLASHES_REDUCED)
 	var mock_clock: Array[float] = [10.0]
 	flash.time_source = func() -> float: return mock_clock[0]
 
@@ -42,8 +42,8 @@ func _run() -> void:
 	_check(ScreenFlashScript.MAX_REDUCED_ALPHA <= 0.25, "reduced max alpha is <= 0.25")
 
 	# Off mode produces 0 flashes
-	root.remove_meta("fragr_flash_history")
-	flash.set_flash_mode(FragrSettings.FLASHES_OFF)
+	root.remove_meta("localexception_flash_history")
+	flash.set_flash_mode(LocalExceptionSettings.FLASHES_OFF)
 	var off_admitted: int = 0
 	for i in range(15):
 		mock_clock[0] = 20.0 + float(i) * 0.10
@@ -52,22 +52,22 @@ func _run() -> void:
 	_check(off_admitted == 0, "Off mode produces 0 flashes (admitted: %d)" % off_admitted)
 
 	# Magenta prevention
-	flash.set_flash_mode(FragrSettings.FLASHES_FULL)
+	flash.set_flash_mode(LocalExceptionSettings.FLASHES_FULL)
 	var magenta = Color(0.6, 0.15, 0.55)
 	flash.trigger("fail", magenta, 0.45)
 	_check(flash.current_color == MenuTheme.DANGER, "magenta failure flash is converted to danger red")
 	flash.free()
-	root.remove_meta("fragr_flash_history")
+	root.remove_meta("localexception_flash_history")
 
 	# 2. Team colours and shape marks
 	_check(MatchRules.team_shape_mark("union") == "■", "Union shape mark is solid bar ■")
 	_check(MatchRules.team_shape_mark("coalition") == "□", "Free coalition shape mark is open bar □")
-	var union_col: Color = MatchRules.team_label_color("union", FragrSettings.TEAM_HIGH_CONTRAST)
-	var free_col: Color = MatchRules.team_label_color("coalition", FragrSettings.TEAM_HIGH_CONTRAST)
+	var union_col: Color = MatchRules.team_label_color("union", LocalExceptionSettings.TEAM_HIGH_CONTRAST)
+	var free_col: Color = MatchRules.team_label_color("coalition", LocalExceptionSettings.TEAM_HIGH_CONTRAST)
 	_check(free_col == Color("e8e2d6"), "Free text moves to bone under high contrast")
 
-	var mark_union = HudRelation.mark("union", "foe", false, FragrSettings.TEAM_HIGH_CONTRAST)
-	var mark_free = HudRelation.mark("coalition", "mate", false, FragrSettings.TEAM_HIGH_CONTRAST)
+	var mark_union = HudRelation.mark("union", "foe", false, LocalExceptionSettings.TEAM_HIGH_CONTRAST)
+	var mark_free = HudRelation.mark("coalition", "mate", false, LocalExceptionSettings.TEAM_HIGH_CONTRAST)
 	_check(not mark_union.open, "Union mark is filled")
 	_check(mark_free.open, "Free coalition mark is open")
 	_check(mark_union.bar_color == MenuTheme.DANGER, "Union high contrast mark is danger red")
@@ -83,9 +83,9 @@ func _run() -> void:
 	root.add_child(hud)
 	hud.set_process(false)
 
-	var settings = FragrSettings.for_tree(self)
+	var settings = LocalExceptionSettings.for_tree(self)
 	settings.set_value("accessibility", "hud_scale", 150)
-	settings.set_value("accessibility", "text_size", FragrSettings.TEXT_LARGE)
+	settings.set_value("accessibility", "text_size", LocalExceptionSettings.TEXT_LARGE)
 	hud.apply_preferences(settings)
 
 	_check(hud.hud_style.scale == 1.5, "hud style scale is 1.5")

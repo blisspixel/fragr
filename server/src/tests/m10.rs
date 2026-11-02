@@ -401,10 +401,11 @@ async fn m10_real_admission_refuses_all_old_roles_and_delivers_map_before_facts(
         crate::protocol::ASSESSOR_GAMEPLAY_VERSION,
         crate::protocol::M18_GAMEPLAY_VERSION,
         crate::protocol::RECEIPT_GAMEPLAY_VERSION,
+        crate::protocol::GAMEPLAY_VERSION,
     ] {
         for role in ["human", "agent", "spectator"] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-            socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Ship reader","gameplay_version":version,"geometry_version":crate::protocol::GEOMETRY_VERSION}).to_string())).await.unwrap();
+            socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Ship reader","gameplay_version":version,"geometry_version":crate::protocol::GEOMETRY_VERSION}).to_string().into())).await.unwrap();
             tokio::time::timeout(Duration::from_secs(5), async {
                 let mut welcomed = false;
                 let mut frames = crate::protocol::WorldReader::new();
@@ -416,13 +417,13 @@ async fn m10_real_admission_refuses_all_old_roles_and_delivers_map_before_facts(
                     let value: serde_json::Value = frames.read_value(&text).unwrap();
                     // M10 facts carry the single-schema transit receipt, so an
                     // older reader is refused before it can misread them.
-                    if version < crate::protocol::RECEIPT_GAMEPLAY_VERSION {
+                    if version < crate::protocol::GAMEPLAY_VERSION {
                         assert_eq!(value["type"], "error");
                         assert_eq!(value["code"], "unsupported_gameplay");
-                        assert!(value["message"].as_str().unwrap().contains(&format!(
-                            "version {}",
-                            crate::protocol::RECEIPT_GAMEPLAY_VERSION
-                        )));
+                        assert!(value["message"]
+                            .as_str()
+                            .unwrap()
+                            .contains(&format!("version {}", crate::protocol::GAMEPLAY_VERSION)));
                         break;
                     }
                     match value["type"].as_str().unwrap() {
@@ -462,7 +463,8 @@ async fn m10_registered_panels_require_current_readers_even_without_mission_fact
         "m10_passenger_deck",
         "m10_command_deck",
     ] {
-        let path = std::env::temp_dir().join(format!("fragr-ship-panel-{}.json", Uuid::new_v4()));
+        let path =
+            std::env::temp_dir().join(format!("localexception-ship-panel-{}.json", Uuid::new_v4()));
         let source = serde_json::json!({"version":1,"map_id":1042,"name":"Registered panel boundary","half_extent":16,"ground":"concrete","equipment":"discovery",
             "solids":[{"id":"panel_host","min":[-2,0,-5],"max":[2,3,-4],"surface":"enamel"}],
             "decorations":[{"solid":"panel_host","face":"south","kind":kind,"center":[0,0],"size":[1,1]}],
@@ -494,7 +496,7 @@ async fn m10_registered_panels_require_current_readers_even_without_mission_fact
         ] {
             for role in ["human", "agent", "spectator"] {
                 let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-                socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Panel reader","gameplay_version":version,"geometry_version":2}).to_string())).await.unwrap();
+                socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Panel reader","gameplay_version":version,"geometry_version":2}).to_string().into())).await.unwrap();
                 tokio::time::timeout(Duration::from_secs(5), async {
                     let mut welcomed = false;
                     let mut frames = crate::protocol::WorldReader::new();

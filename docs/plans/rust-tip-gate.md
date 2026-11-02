@@ -14,7 +14,7 @@ itself.
 
 ## Change
 
-- New workspace crate `tools/tip-gate` (`fragr-tip-gate`), binary
+- New workspace crate `tools/tip-gate` (`localexception-tip-gate`), binary
   `gate-tip-jammer-orange OUT_DIR`. Its only dependency is `image` 0.25 with
   the `png` feature, already in `Cargo.lock` through `tools/spritegen`, so no
   new third-party crate enters the lockfile.
@@ -24,7 +24,7 @@ itself.
   usage). An unreadable PNG now reports `cannot read` and exits 1 where Python
   exited 1 with a traceback.
 - `tools/capture_tip_screenshots.sh` calls it through
-  `cargo run -p fragr-tip-gate --release --locked`.
+  `cargo run -p localexception-tip-gate --release --locked`.
 - `AGENTS.md` and `docs/ROADMAP.md` no longer carry the Python exception. No
   other `*.py`, `*.pyc` or `__pycache__` path is tracked.
 
@@ -50,7 +50,7 @@ Receipts: `.agents/spawnq/gatecases/`.
 Repository checks, local Windows, logs under `.agents/verify-port/`: fmt,
 strict Clippy, the release benchmark, release build, `cargo deny`, the playtest
 smoke and the six-map roster pass, and `cargo llvm-cov --workspace` passes every
-test at 93.97 percent of lines. Two `fragr-brain` bot tests
+test at 93.97 percent of lines. Two `localexception-brain` bot tests
 (`failed_calls_fall_back_and_still_count`,
 `a_bad_key_switches_the_brain_off_after_one_call`) failed intermittently in
 local `cargo test --workspace` runs and passed on rerun; the first also fails

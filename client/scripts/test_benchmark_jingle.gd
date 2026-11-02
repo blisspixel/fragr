@@ -27,8 +27,8 @@ func _run() -> void:
 	# a mixer turn, so retire them before the harness exits.
 	var retirement: ClientRetirement = ClientRetirement.for_tree(self)
 	_path = "user://test-benchmark-jingle-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", _path)
-	set_meta("fragr_benchmark_dir", ProjectSettings.globalize_path("user://test-benchmark-jingle-results-%d" % OS.get_process_id()))
+	set_meta("localexception_settings_path", _path)
+	set_meta("localexception_benchmark_dir", ProjectSettings.globalize_path("user://test-benchmark-jingle-results-%d" % OS.get_process_id()))
 	_check_setting()
 	_check_takes()
 	await _check_completion()
@@ -44,14 +44,14 @@ func _run() -> void:
 
 
 func _check_setting() -> void:
-	var preferences: FragrSettings = FragrSettings.new(_path)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(_path)
 	_check(BenchmarkJingle.chosen_take(preferences) == "1a", "the default take is concept 1 take A")
 	for bad: Variant in ["9z", "1A", 2, null, ["1b"]]:
 		preferences.set_value("audio", "benchmark_jingle", bad)
 		_check(BenchmarkJingle.chosen_take(preferences) == "1a", "an unknown take falls back to 1A: " + str(bad))
 	preferences.set_value("audio", "benchmark_jingle", "2b")
 	_check(preferences.save_to_disk() == OK, "the take saves")
-	var reloaded: FragrSettings = FragrSettings.new(_path)
+	var reloaded: LocalExceptionSettings = LocalExceptionSettings.new(_path)
 	reloaded.load_from_disk()
 	_check(BenchmarkJingle.chosen_take(reloaded) == "2b", "the take survives a restart")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(_path))
@@ -96,7 +96,7 @@ func _report(state: String) -> Dictionary:
 
 
 func _view(state: String, announcer: int) -> BenchmarkResults:
-	var preferences: FragrSettings = FragrSettings.new(_path)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(_path)
 	preferences.load_from_disk()
 	preferences.set_value("audio", "announcer", announcer)
 	var view: BenchmarkResults = BenchmarkResults.new()
@@ -117,7 +117,7 @@ func _level(node: Node) -> bool:
 
 
 func _check_completion() -> void:
-	var view: BenchmarkResults = _view("complete", FragrSettings.ANNOUNCER_ON)
+	var view: BenchmarkResults = _view("complete", LocalExceptionSettings.ANNOUNCER_ON)
 	await process_frame
 	var jingle: BenchmarkJingle = view.jingle
 	_check(jingle != null and jingle.is_inside_tree(), "a completed run gets the jingle")
@@ -150,7 +150,7 @@ func _check_completion() -> void:
 
 
 func _check_announcer_off() -> void:
-	var view: BenchmarkResults = _view("complete", FragrSettings.ANNOUNCER_OFF)
+	var view: BenchmarkResults = _view("complete", LocalExceptionSettings.ANNOUNCER_OFF)
 	await process_frame
 	_check(view.completion_sung == 0 and view.jingle != null and not view.jingle.playing, "Announcer Off keeps the jingle silent")
 	var caption: Label = view.find_child("JingleCaption", true, false) as Label
@@ -159,22 +159,22 @@ func _check_announcer_off() -> void:
 	_check(not view.jingle.playing, "a pick stays silent while the Announcer is Off")
 	view.queue_free()
 	await process_frame
-	_check(BenchmarkJingle.allowed(_report("complete"), FragrSettings.ANNOUNCER_BIG_MOMENTS), "Big moments only still sings: a finished benchmark is one")
+	_check(BenchmarkJingle.allowed(_report("complete"), LocalExceptionSettings.ANNOUNCER_BIG_MOMENTS), "Big moments only still sings: a finished benchmark is one")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(_path))
 
 
 func _check_stopped() -> void:
-	var view: BenchmarkResults = _view("failed", FragrSettings.ANNOUNCER_ON)
+	var view: BenchmarkResults = _view("failed", LocalExceptionSettings.ANNOUNCER_ON)
 	await process_frame
 	_check(view.jingle == null and view.find_child("Jingle", true, false) == null, "a stopped run has no jingle")
-	_check(not BenchmarkJingle.allowed(_report("failed"), FragrSettings.ANNOUNCER_ON), "only a completed run is allowed to sing")
-	_check(not BenchmarkJingle.allowed({"state": "complete", "runs": []}, FragrSettings.ANNOUNCER_ON), "a run without figures does not sing")
+	_check(not BenchmarkJingle.allowed(_report("failed"), LocalExceptionSettings.ANNOUNCER_ON), "only a completed run is allowed to sing")
+	_check(not BenchmarkJingle.allowed({"state": "complete", "runs": []}, LocalExceptionSettings.ANNOUNCER_ON), "a run without figures does not sing")
 	view.queue_free()
 	await process_frame
 
 
 func _check_picker() -> void:
-	var view: BenchmarkResults = _view("complete", FragrSettings.ANNOUNCER_ON)
+	var view: BenchmarkResults = _view("complete", LocalExceptionSettings.ANNOUNCER_ON)
 	await process_frame
 	var pick: Button = view.find_child("JinglePick", true, false) as Button
 	var shipped: Array[String] = BenchmarkJingle.shipped_takes()
@@ -197,13 +197,13 @@ func _check_picker() -> void:
 	_check(sung.size() == shipped.size() and sung.back() == shipped[0], "every take is heard once and the picker comes back round: " + str(sung))
 	var last: String = shipped.back()
 	view.pick_jingle(last)
-	var reloaded: FragrSettings = FragrSettings.new(_path)
+	var reloaded: LocalExceptionSettings = LocalExceptionSettings.new(_path)
 	reloaded.load_from_disk()
 	_check(BenchmarkJingle.chosen_take(reloaded) == last, "the pick is saved in the settings file")
 	_check(view.completion_sung == 1, "picking never counts as another completion")
 	view.queue_free()
 	await process_frame
-	var again: BenchmarkResults = _view("complete", FragrSettings.ANNOUNCER_ON)
+	var again: BenchmarkResults = _view("complete", LocalExceptionSettings.ANNOUNCER_ON)
 	await process_frame
 	_check(again.jingle.take == last and (again.find_child("JinglePick", true, false) as Button).text.ends_with(BenchmarkJingle.label(last)), "the next run sings the saved pick")
 	again.queue_free()

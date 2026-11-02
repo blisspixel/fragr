@@ -22,7 +22,7 @@ stations stay available through manual cycling but should not be the default
 when a populated station exists. An empty catalog stays silent and safe.
 
 Visual test runs use the same default. The existing explicit
-`FRAGR_QA_RADIO_COMPARE=on` is a measured comparison mode that pins one track;
+`LOCALEXCEPTION_QA_RADIO_COMPARE=on` is a measured comparison mode that pins one track;
 it is not normal startup. Keep that opt-in behavior. No campaign song is
 currently assigned by this change; a future authored moment must request its
 specific cue explicitly rather than changing the ordinary radio default.

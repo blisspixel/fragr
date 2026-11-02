@@ -1,5 +1,5 @@
 {
-  "comment": "The hold-Tab board on a contested live CTF match (#536): a real Sector 9 server, eight rule bots, capture limit 3, so the round goes on past the first capture and returns. The tour waits for the server's own objective credits (a capture and a return on the rows) and holds the board as a watcher (both sides whole) and then as a joined fighter. Run with FRAGR_QA_MODE=ctf FRAGR_QA_MAP=4 FRAGR_QA_BOTS=8 FRAGR_QA_CAPTURE_LIMIT=3 FRAGR_QA_SEED=42 FRAGR_QA_MANIFEST=res://qa/scoreboard-ctf-live.json; the size comes from the manifest copy's width and height.",
+  "comment": "The hold-Tab board on a contested live CTF match (#536): a real Sector 9 server, eight rule bots, capture limit 3, so the round goes on past the first capture and returns. The tour waits for the server's own objective credits (a capture and a return on the rows) and holds the board as a watcher (both sides whole) and then as a joined fighter. Run with LOCALEXCEPTION_QA_MODE=ctf LOCALEXCEPTION_QA_MAP=4 LOCALEXCEPTION_QA_BOTS=8 LOCALEXCEPTION_QA_CAPTURE_LIMIT=3 LOCALEXCEPTION_QA_SEED=42 LOCALEXCEPTION_QA_MANIFEST=res://qa/scoreboard-ctf-live.json; the size comes from the manifest copy's width and height.",
   "width": 1280,
   "height": 800,
   "states": [

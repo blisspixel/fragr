@@ -1,10 +1,10 @@
 //! Every prepared late-campaign world must be usable by the actual readers.
-use fragr_server::maps::{AuthoredSource, RuntimeMap};
-use fragr_server::protocol::{validate_decorations, MissionId, MissionObjectiveAction};
-use fragr_server::sim::GameState;
+use localexception_server::maps::{AuthoredSource, RuntimeMap};
+use localexception_server::protocol::{validate_decorations, MissionId, MissionObjectiveAction};
+use localexception_server::sim::GameState;
 
 #[tokio::test]
-async fn late_campaign_admission_requires_each_mission_floor_before_any_world() {
+async fn late_campaign_admission_requires_current_contract_before_any_world() {
     use futures_util::{SinkExt, StreamExt};
     use std::time::Duration;
     use tokio_tungstenite::{connect_async, tungstenite::Message};
@@ -14,11 +14,11 @@ async fn late_campaign_admission_requires_each_mission_floor_before_any_world() 
         MissionId::AllSystemsNormal,
         MissionId::CivicPressureValve,
     ] {
-        let floor = mission.gameplay_version();
+        let floor = localexception_server::protocol::GAMEPLAY_VERSION;
         let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
         let (stop_tx, stop_rx) = tokio::sync::oneshot::channel();
-        let server = tokio::spawn(fragr_server::run::run_server(
-            fragr_server::run::ServerOptions {
+        let server = tokio::spawn(localexception_server::run::run_server(
+            localexception_server::run::ServerOptions {
                 bind: "127.0.0.1:0".into(),
                 bots: 0,
                 authored: Some(AuthoredSource::Mission(mission)),
@@ -40,8 +40,9 @@ async fn late_campaign_admission_requires_each_mission_floor_before_any_world() 
                     .send(Message::Text(
                         serde_json::json!({"type":"hello", "role":role,
                     "name":"Late mission reader", "gameplay_version":version,
-                    "geometry_version":fragr_server::protocol::GEOMETRY_VERSION})
-                        .to_string(),
+                    "geometry_version":localexception_server::protocol::GEOMETRY_VERSION})
+                        .to_string()
+                        .into(),
                     ))
                     .await
                     .unwrap();
@@ -154,7 +155,7 @@ fn late_campaign_worlds_preserve_controls_and_reachable_objectives() {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../client/golden/late_campaign_worlds.json");
     let bytes = serde_json::to_string_pretty(&fixtures).unwrap() + "\n";
-    if std::env::var_os("FRAGR_UPDATE_LATE_CAMPAIGN_WORLDS").is_some() {
+    if std::env::var_os("LOCALEXCEPTION_UPDATE_LATE_CAMPAIGN_WORLDS").is_some() {
         std::fs::write(&path, &bytes).unwrap();
     }
     assert_eq!(std::fs::read_to_string(path).unwrap(), bytes);

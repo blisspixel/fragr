@@ -1,10 +1,10 @@
 //! Local Exception: the campaign's last level over the public session API.
-use fragr_server::maps::{AuthoredSource, RuntimeMap};
-use fragr_server::protocol::{
+use localexception_server::maps::{AuthoredSource, RuntimeMap};
+use localexception_server::protocol::{
     M20CrewPhase, MissionId, MissionPhase, MissionReady, Role, ServerMessage, M20_GAMEPLAY_VERSION,
     M20_REFUGE_BASE, M20_SIX_MINUTES,
 };
-use fragr_server::session::GameSession;
+use localexception_server::session::GameSession;
 use uuid::Uuid;
 
 #[test]

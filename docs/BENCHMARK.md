@@ -14,7 +14,7 @@ report with the tested commit, CPU model, power mode, and any competing workload
 Run repeated samples before interpreting a small performance difference.
 
 ```bash
-cargo run -p fragr-server --release --locked -- --bench 16 --bench-ticks 1200 --map 1 --seed 42 --bench-check --bench-assert
+cargo run -p localexception-server --release --locked -- --bench 16 --bench-ticks 1200 --map 1 --seed 42 --bench-check --bench-assert
 ```
 
 The CPU fixture runs free-for-all under the `full-arsenal` mutator, so every
@@ -86,9 +86,9 @@ has been Larak Lot since 2026-10-23; matrix rows recorded before that date ran
 on the retired Arena Duel field and are not comparable:
 
 ```bash
-cargo run -p fragr-playtest --release --locked -- --fanout-matrix --fanout-seconds 10 --report .agents/fanout/matrix.json
-cargo run -p fragr-playtest --release --locked -- --fanout-matrix --fanout-stress --fanout-seconds 30 --report .agents/fanout/stress.json
-cargo run -p fragr-playtest --release --locked -- --traffic --map 6 --traffic-fighters 48 --traffic-spectators 16 --traffic-bots 32 --traffic-hz 60 --traffic-seconds 15 --seed 42 --report .agents/traffic/sat.json
+cargo run -p localexception-playtest --release --locked -- --fanout-matrix --fanout-seconds 10 --report .agents/fanout/matrix.json
+cargo run -p localexception-playtest --release --locked -- --fanout-matrix --fanout-stress --fanout-seconds 30 --report .agents/fanout/stress.json
+cargo run -p localexception-playtest --release --locked -- --traffic --map 6 --traffic-fighters 48 --traffic-spectators 16 --traffic-bots 32 --traffic-hz 60 --traffic-seconds 15 --seed 42 --report .agents/traffic/sat.json
 ```
 
 Each row starts a fresh server and records sample counts. The fighters are
@@ -208,7 +208,7 @@ hardware threads, release builds, seed 42. The host was shared with other
 lanes' builds and playtests, so every step logged the load average beside its
 report; each cell is the median of three runs. Two harnesses: the in-process
 stress rows above (stage-separated server timings; clients share the process)
-and the traffic generator against the `fragr-server` binary as a child
+and the traffic generator against the `localexception-server` binary as a child
 process (its own resident set, CPU time, sockets and tick trace; clients in
 the harness process). Server crate commit `8a5528c8`; the stress harness
 commit is `ea59ea97`, which changes only how probes time input. Kernel
@@ -479,7 +479,7 @@ whole: a connection's first world, the first after `MapInfo` or `Mission`, a
 world that replaced an unsent one, and every world for a reader below 61.
 The wire types and the one Rust reader (`protocol::WorldReader`) live in
 `server/src/protocol/delta.rs`; the MCP adapter, playtest harness, brain and
-`fragr-wire` read through it, and the Godot client rebuilds the world in
+`localexception-wire` read through it, and the Godot client rebuilds the world in
 `client/scripts/snapshot_delta.gd` before its usual snapshot validation.
 Tests on both sides apply the same vectors
 (`client/golden/snapshot_delta_vectors.json`), and a seeded 400-tick fight
@@ -487,7 +487,7 @@ rebuilds every world byte for byte. The server parses JSON with
 `serde_json`'s `float_roundtrip`, so a value a delta repeats keeps the exact
 shortest text of the full world.
 
-Measured 2026-10-28 with the traffic generator against the `fragr-server`
+Measured 2026-10-28 with the traffic generator against the `localexception-server`
 binary: Larak Lot, human fighters at 60 Hz plus spectators, no bots, 15 s
 held, seed 42, one run per row. Before is `009797ce` (load 12 to 17); after
 is the branch head (load 14 to 15, with a workspace test run on the same
@@ -565,7 +565,7 @@ Two server-side changes ride with it, neither a wire change:
   worlds come from the same serializer; the golden test checks the recorded
   deltas of fought worlds against it.
 
-Measured 2026-10-28 with the traffic generator against the `fragr-server`
+Measured 2026-10-28 with the traffic generator against the `localexception-server`
 binary, the same setup as the table above: Larak Lot, human fighters at
 60 Hz plus spectators, no bots, 15 s held, seed 42. Three interleaved runs
 per row on an AMD Ryzen 7 7840U shared with other sessions (load 3 to 4).
@@ -573,7 +573,7 @@ Before is `1a8574c8` (gameplay 62), after is the wave 15 branch. Values are
 the mean of three runs; ranges where runs differed visibly.
 
 ```bash
-cargo run -p fragr-playtest --release --locked -- --traffic --map 1 --traffic-fighters 48 --traffic-spectators 16 --traffic-bots 0 --traffic-hz 60 --traffic-seconds 15 --seed 42 --report .agents/traffic/after-48-16.json
+cargo run -p localexception-playtest --release --locked -- --traffic --map 1 --traffic-fighters 48 --traffic-spectators 16 --traffic-bots 0 --traffic-hz 60 --traffic-seconds 15 --seed 42 --report .agents/traffic/after-48-16.json
 ```
 
 | Connections (fighters + spectators) | Mean delta bytes before / after | KiB/s per client, all frames, before / after | Of which worlds | Server egress MiB/s | Tick encode p50 ms | Tick encode p99 ms | Server CPU cores |
@@ -638,7 +638,7 @@ local prediction uses other fighters as contact bodies; a body 0.5 mm off
 can change a replayed contact step by that much until the next `Ack`
 corrects it.
 
-Measured 2026-10-28 with the traffic generator against the `fragr-server`
+Measured 2026-10-28 with the traffic generator against the `localexception-server`
 binary, the same setup as the wave 15 table: Larak Lot, human fighters at
 60 Hz plus spectators, no bots, 15 s held, seed 42. Three interleaved runs
 per row on an AMD Ryzen 7 7840U shared with other sessions (load 4 to 8).
@@ -646,7 +646,7 @@ Before is `989d9b68` (main, gameplay 63), after is the wave 16 branch.
 Bytes are the mean of three runs, encode times the median run.
 
 ```bash
-cargo run -p fragr-playtest --release --locked -- --traffic --map 1 --traffic-fighters 48 --traffic-spectators 16 --traffic-bots 0 --traffic-hz 60 --traffic-seconds 15 --seed 42 --report .agents/traffic/after-48-16.json
+cargo run -p localexception-playtest --release --locked -- --traffic --map 1 --traffic-fighters 48 --traffic-spectators 16 --traffic-bots 0 --traffic-hz 60 --traffic-seconds 15 --seed 42 --report .agents/traffic/after-48-16.json
 ```
 
 | Connections (fighters + spectators) | Mean delta bytes before / after | KiB/s per client, all frames, before / after | Of which worlds | Server egress MiB/s | Tick encode p50 ms | Tick encode p99 ms | Server CPU cores |
@@ -679,7 +679,7 @@ cargo run -p fragr-playtest --release --locked -- --traffic --map 1 --traffic-fi
 ### Simulated links (#434, wave 16)
 
 There is no root, `tc netem` or container on the measuring host, so the
-harness carries its own link: `fragr_playtest::link`, a TCP relay in the
+harness carries its own link: `localexception_playtest::link`, a TCP relay in the
 playtest process between real WebSocket clients and the real server. It
 shapes the byte stream the way a TCP connection over such a link delivers
 it: each direction serializes at the link's capacity, adds a one-way delay
@@ -719,7 +719,7 @@ kbit row read a picture 1.2 s old at the median and its link counted as
 full for 29 of 30 s.
 
 ```bash
-cargo run -p fragr-playtest --release --locked -- --fanout-matrix --fanout-link --fanout-seconds 30 --report .agents/fanout/links.json
+cargo run -p localexception-playtest --release --locked -- --fanout-matrix --fanout-link --fanout-seconds 30 --report .agents/fanout/links.json
 ```
 
 | Link (down capacity, one-way delay, extra) | Linked picture age p50 / p99 / max ms | Worlds read whole / as deltas | Link full (no room), s per watcher | Peak link queue, bytes | Replaced worlds / per-reader deltas | Linked watchers closed |
@@ -805,7 +805,7 @@ tick: 100 to 150 ms at 0 ms RTT, 250 to 300 ms at 150 ms RTT. A strafer at
 7 m/s moves 0.9 m in the 125 ms a loopback client still trails, more than the
 0.5 m body radius.
 
-**Method.** `fragr-playtest --rewind-matrix` is deterministic and in process
+**Method.** `localexception-playtest --rewind-matrix` is deterministic and in process
 (no sockets, no wall clock). Each trial: a still human with a Rail (first
 shot, no bloom) 16 m from an agent strafing on a seeded schedule (runs of 3
 to 12 ticks, reversals and stops) on Arena Duel. The client is modelled
@@ -817,7 +817,7 @@ Fixed one-way delays only: no jitter, loss or TCP retransmission, so these
 rates are a floor on real misses, not a field measurement.
 
 ```bash
-cargo run -p fragr-playtest --release --locked -- --rewind-matrix --seed 42 --report .agents/rewind/after.json
+cargo run -p localexception-playtest --release --locked -- --rewind-matrix --seed 42 --report .agents/rewind/after.json
 ```
 
 Measured 2026-10-28, seed 42, 1000 trials per row. Before is the rewind-off
@@ -844,7 +844,7 @@ keeps it: it covers LAN and same-region play in full in this model and lets
 a victim be struck at most 200 ms after reaching cover. 250 ms would also
 cover 150 ms RTT, but widening what a victim can be shot through is a fairness
 decision this lane does not take. A 150 ms bound would not even cover 100 ms
-RTT, because fragr's view trails by the whole round trip plus the buffer.
+RTT, because Local Exception's view trails by the whole round trip plus the buffer.
 
 **Cost at the 64-connection cap.** History: 64 fighters x 5 ticks x 40-byte
 volumes = 12,800 bytes, reused in place every tick (asserted in
@@ -894,7 +894,7 @@ fixed rows above reproduced exactly. Still a model in process, no sockets.
 60 Hz frames; the table below is the two-tick client of wave 16.)
 
 ```bash
-cargo run -p fragr-playtest --release --locked -- --rewind-matrix --rewind-jitter --seed 42 --report .agents/rewind/jitter.json
+cargo run -p localexception-playtest --release --locked -- --rewind-matrix --rewind-jitter --seed 42 --report .agents/rewind/jitter.json
 ```
 
 Measured 2026-10-28, seed 42, 1000 trials per row; deterministic. Misses
@@ -957,14 +957,14 @@ quiet machines in the hardware matrix, with the commands below.
 
 ```bash
 # Quiet machine, release build; one terminal, nothing else running.
-cargo build -p fragr-server -p fragr-playtest --release --locked
-target/release/fragr-playtest --peek-probe --peek-trials 100 --seed 42 --assert --report .agents/peek/quiet.json
-target/release/fragr-playtest --peek-probe --peek-trials 100 --peek-jitter-ms 20 --seed 42 --report .agents/peek/quiet-jitter20.json
-target/release/fragr-playtest --rewind-matrix --rewind-jitter --seed 42 --report .agents/rewind/jitter.json
-target/release/fragr-playtest --ledge-scan --report .agents/ledges.json
-# Rendered: input to photon at 60 fps (FRAGR_FEEL_FPS changes the cap) and the
+cargo build -p localexception-server -p localexception-playtest --release --locked
+target/release/localexception-playtest --peek-probe --peek-trials 100 --seed 42 --assert --report .agents/peek/quiet.json
+target/release/localexception-playtest --peek-probe --peek-trials 100 --peek-jitter-ms 20 --seed 42 --report .agents/peek/quiet-jitter20.json
+target/release/localexception-playtest --rewind-matrix --rewind-jitter --seed 42 --report .agents/rewind/jitter.json
+target/release/localexception-playtest --ledge-scan --report .agents/ledges.json
+# Rendered: input to photon at 60 fps (LOCALEXCEPTION_FEEL_FPS changes the cap) and the
 # remote clock; three runs, compare medians. Writes feel.json and feel.md.
-FRAGR_FEEL_FPS=60 tools/qa_feel.sh .agents/feel/quiet-1
+LOCALEXCEPTION_FEEL_FPS=60 tools/qa_feel.sh .agents/feel/quiet-1
 ```
 
 **What changed.** `client/scripts/remote_presentation.gd` draws other fighters
@@ -1082,7 +1082,7 @@ them.) The server half, `tests::frame_rate`, sends one Action per frame at
 the four rates through `GameState` for a 48-tick run, jump, dodge and crouch
 script and asserts identical bodies at every tick.
 
-**Ledge heights.** `fragr-playtest --ledge-scan` (`server/src/maps/ledges.rs`)
+**Ledge heights.** `localexception-playtest --ledge-scan` (`server/src/maps/ledges.rs`)
 measures the standing running jump's reach on the live step (1.26 m, below
 the 1.3 m apex because the body must rise over the lip while moving) and
 walks every edge of every solid top at least a body wide, at 0.25 m spacing,
@@ -1190,7 +1190,7 @@ shared with other sessions (load 4 to 12) on 2026-11-01: **diagnostic on a
 busy shared machine**. Before is `5e0ee3da` (main, gameplay 65), after is the
 wave 22 fair play branch.
 
-**Pop-in at corners.** `fragr-playtest --interest-survey` runs a seeded
+**Pop-in at corners.** `localexception-playtest --interest-survey` runs a seeded
 eight-bot free-for-all on every arena map for 120 s at each round trip and
 treats every bot as a connected reader. A reveal is a reader and target pair
 turning visible (any line from the reader's predicted eye to the target's
@@ -1202,8 +1202,8 @@ bots rather than people, and not the TCP link shaper; `--peek-probe` covers
 the shaped socket path, where the holder now watches.
 
 ```bash
-cargo run -p fragr-playtest --release --locked -- --interest-survey --seed 42 --assert --report .agents/interest/survey.json
-cargo run -p fragr-playtest --release --locked -- --interest-survey --seed 42 --interest-jitter 2 --interest-rtt 0,50,100 --assert --report .agents/interest/jitter.json
+cargo run -p localexception-playtest --release --locked -- --interest-survey --seed 42 --assert --report .agents/interest/survey.json
+cargo run -p localexception-playtest --release --locked -- --interest-survey --seed 42 --interest-jitter 2 --interest-rtt 0,50,100 --assert --report .agents/interest/jitter.json
 ```
 
 | Round trip | Fight-range reveals, all maps | Late (pop-in) | Late, all ranges | Longest late, ticks | Rows withheld | Withheld rows heard | Rows sent while no line reached the body |
@@ -1239,7 +1239,7 @@ the worst case, since a live server cuts views only for fighters with a
 socket. Three interleaved runs each, all identical within a bucket.
 
 ```bash
-cargo run -p fragr-server --release --locked -- --bench 64 --bench-ticks 1200 --seed 42 --map 1
+cargo run -p localexception-server --release --locked -- --bench 64 --bench-ticks 1200 --seed 42 --map 1
 ```
 
 | Fighters (all readers) | Tick p50 before / after ms | Tick p99 before / after ms | `interest_ms` mean | Lines traced per tick, mean |
@@ -1262,7 +1262,7 @@ binary, as in the wave 15 and 16 tables: Larak Lot, human fighters at 60 Hz
 plus spectators, no bots, 15 s held, seed 42, three interleaved runs, means.
 
 ```bash
-cargo run -p fragr-playtest --release --locked -- --traffic --map 1 --traffic-fighters 48 --traffic-spectators 0 --traffic-bots 0 --traffic-hz 60 --traffic-seconds 15 --seed 42 --report .agents/traffic/after-48-0.json
+cargo run -p localexception-playtest --release --locked -- --traffic --map 1 --traffic-fighters 48 --traffic-spectators 0 --traffic-bots 0 --traffic-hz 60 --traffic-seconds 15 --seed 42 --report .agents/traffic/after-48-0.json
 ```
 
 | Connections (fighters + spectators) | KiB/s per client, all frames, before / after | Server egress MiB/s | Server CPU cores | Tick handler p99 ms (three runs) |
@@ -1291,8 +1291,8 @@ on 2026-11-01: **diagnostic on a busy shared machine**. Both builds play the
 identical match (same trace hash), so the bytes differ only by the cut.
 
 ```bash
-cargo run -p fragr-server --release --locked -- --bench 16 --bench-ticks 1200 --seed 42 --map 1
-cargo run -p fragr-server --release --locked -- --bench 64 --bench-ticks 1200 --seed 42 --map 1
+cargo run -p localexception-server --release --locked -- --bench 16 --bench-ticks 1200 --seed 42 --map 1
+cargo run -p localexception-server --release --locked -- --bench 64 --bench-ticks 1200 --seed 42 --map 1
 ```
 
 | Fighters (all readers) | World bytes per reader per tick, mean, before / after | `interest_ms` mean, three runs, before | after | Lines traced per tick, mean |
@@ -1314,10 +1314,10 @@ stepping off the bay wall onto the line x 140.97 and seeing each other
 x 140.7) and the bay dividers (from x 141.0). Not water and not vehicles:
 geometry no lead can predict. The dividers now reach the revetments
 (`maps/holdfast.rs`, with a test that no coastal line is open), and the
-margins are unchanged. `fragr-playtest --interest-survey --seed 42`:
+margins are unchanged. `localexception-playtest --interest-survey --seed 42`:
 
 ```bash
-cargo run -p fragr-playtest --release --locked -- --interest-survey --seed 42 --assert --report .agents/interest/survey.json
+cargo run -p localexception-playtest --release --locked -- --interest-survey --seed 42 --assert --report .agents/interest/survey.json
 ```
 
 | Round trip | Holdfast Atoll fight-range late, wave 22 / now | All maps fight-range late, now | All maps late, all ranges, now | Longest late, ticks |
@@ -1354,7 +1354,7 @@ tick includes authoritative map geometry. This is an offline format, not a new
 network protocol. The server exports shared wire types without a second DTO copy.
 
 ```bash
-cargo run -p fragr-server --release --locked -- --bench-verify-trace .agents/match.ndjson
+cargo run -p localexception-server --release --locked -- --bench-verify-trace .agents/match.ndjson
 ```
 
 Verification streams one record at a time with an 8 MiB record limit. Unsupported
@@ -1498,8 +1498,8 @@ readable at 30 m, no new text, no tilted text.
 
 ```bash
 # Forward+ (the shipped renderer; Ultra draws only here), then Compatibility.
-FRAGR_RENDER_DRIVER=vulkan FRAGR_QA_MANIFEST=res://qa/tiers.json tools/qa_tour.sh .agents/qa/tiers-vulkan
-FRAGR_QA_MANIFEST=res://qa/tiers.json tools/qa_tour.sh .agents/qa/tiers-opengl
+LOCALEXCEPTION_RENDER_DRIVER=vulkan LOCALEXCEPTION_QA_MANIFEST=res://qa/tiers.json tools/qa_tour.sh .agents/qa/tiers-vulkan
+LOCALEXCEPTION_QA_MANIFEST=res://qa/tiers.json tools/qa_tour.sh .agents/qa/tiers-opengl
 ```
 
 **Revisions.** Bump `RenderQuality.RENDER_COST_REVISION` in any change to a
@@ -1604,7 +1604,7 @@ play with more than half the windows failing, the record gets
 | FSR 1, FSR 2 | yes | no |
 | SSAO | yes | yes (4.6+) |
 | SSIL, volumetric fog, SSR | yes | no |
-| Light fixture shadows | yes | off in fragr (#521) |
+| Light fixture shadows | yes | off in Local Exception (#521) |
 | Omni shadows | cube or dual paraboloid | cube |
 | V-Sync modes | all | enabled only |
 | Adapter type | reported | OTHER (seed keys on the name) |
@@ -1685,17 +1685,17 @@ needs its row above.
 
 ```bash
 # Release build of the server; close other applications; plugged in.
-cargo build -p fragr-server --release --locked
+cargo build -p localexception-server --release --locked
 # A real auto-tune through the menu, isolated settings and results (repeat
 # five times for variance; compare the candidates' 1% lows and the choice).
-FRAGR_QA_DIR=.agents/autotune/run1 godot --path client --rendering-driver vulkan --script res://scripts/qa_auto_tune.gd
+LOCALEXCEPTION_QA_DIR=.agents/autotune/run1 godot --path client --rendering-driver vulkan --script res://scripts/qa_auto_tune.gd
 # The same under Compatibility.
-FRAGR_QA_DIR=.agents/autotune/gl1 godot --path client --rendering-driver opengl3 --script res://scripts/qa_auto_tune.gd
+LOCALEXCEPTION_QA_DIR=.agents/autotune/gl1 godot --path client --rendering-driver opengl3 --script res://scripts/qa_auto_tune.gd
 # The first-launch card alone.
-FRAGR_QA_DIR=.agents/autotune/card godot --path client --script res://scripts/qa_auto_tune.gd -- --card-only
+LOCALEXCEPTION_QA_DIR=.agents/autotune/card godot --path client --script res://scripts/qa_auto_tune.gd -- --card-only
 # Forced fallback: no Vulkan driver. Verified on the dev host with 4.7.2: Godot
 # warns, switches to OpenGL 3 and runs Compatibility; the tuner then caps at High.
-VK_ICD_FILENAMES=/nonexistent FRAGR_QA_DIR=.agents/autotune/fallback godot --path client --script res://scripts/qa_auto_tune.gd
+VK_ICD_FILENAMES=/nonexistent LOCALEXCEPTION_QA_DIR=.agents/autotune/fallback godot --path client --script res://scripts/qa_auto_tune.gd
 ```
 
 On a Steam Deck: Desktop Mode, the native Linux build, Quick Access frame
@@ -1722,8 +1722,8 @@ cost one boolean test per hook while off. The
 [stutter diagnosis plan](plans/stutter-diagnosis-20261023.md) holds the first
 measurements and their limits.
 
-**Server tick trace version 1.** `fragr-server --tick-trace PATH` (or
-`FRAGR_TICK_TRACE` set to an absolute path, which a client-launched desktop or
+**Server tick trace version 1.** `localexception-server --tick-trace PATH` (or
+`LOCALEXCEPTION_TICK_TRACE` set to an absolute path, which a client-launched desktop or
 campaign host inherits) truncates `PATH` and writes UTF-8 NDJSON: a `header`
 (`version`, `tick_us`, `build`, `started_unix_us`), one `tick` record per served
 tick and a `complete` footer (`ticks`, `dropped`, `over_budget`,
@@ -1739,7 +1739,7 @@ overflows. A writer thread owns the file behind a bounded 1,024-record queue;
 a full queue drops and counts records rather than delay a tick. An unwritable
 path fails the start. The flag is refused beside `--bench`,
 `--bench-verify-trace` and `--local-run-preview`, which run no served tick
-loop, and beside `--local-mission`, which reads only `FRAGR_TICK_TRACE`. Every
+loop, and beside `--local-mission`, which reads only `LOCALEXCEPTION_TICK_TRACE`. Every
 host process the client starts truncates the same file, so copy a trace before
 hosting or starting a mission again.
 

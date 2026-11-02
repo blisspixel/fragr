@@ -509,11 +509,12 @@ async fn m11_real_admission_refuses_all_old_roles_and_delivers_map_before_facts(
         crate::protocol::RELOAD_GAMEPLAY_VERSION,
         crate::protocol::M11_GAMEPLAY_VERSION,
         crate::protocol::ASSESSOR_GAMEPLAY_VERSION,
+        crate::protocol::GAMEPLAY_VERSION - 1,
         crate::protocol::GAMEPLAY_VERSION,
     ] {
         for role in ["human", "agent", "spectator"] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-            socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Tender reader","gameplay_version":version,"geometry_version":crate::protocol::GEOMETRY_VERSION}).to_string())).await.unwrap();
+            socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Tender reader","gameplay_version":version,"geometry_version":crate::protocol::GEOMETRY_VERSION}).to_string().into())).await.unwrap();
             tokio::time::timeout(Duration::from_secs(5), async {
                 let mut welcomed = false;
                 let mut mapped = false;
@@ -522,13 +523,13 @@ async fn m11_real_admission_refuses_all_old_roles_and_delivers_map_before_facts(
                         continue;
                     };
                     let value: serde_json::Value = serde_json::from_str(&text).unwrap();
-                    if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
+                    if version < crate::protocol::GAMEPLAY_VERSION {
                         assert_eq!(value["type"], "error");
                         assert_eq!(value["code"], "unsupported_gameplay");
-                        assert!(value["message"].as_str().unwrap().contains(&format!(
-                            "version {}",
-                            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
-                        )));
+                        assert!(value["message"]
+                            .as_str()
+                            .unwrap()
+                            .contains(&format!("version {}", crate::protocol::GAMEPLAY_VERSION)));
                         break;
                     }
                     match value["type"].as_str().unwrap() {

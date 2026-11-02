@@ -346,7 +346,7 @@ mod tests {
         let data = serde_json::json!({"version":1,"dt":0.05,"sweep_cases":[{"name":"head_on","expected":sweep_time(&a,&b),"a":a,"b":b}],"cases":cases});
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("../client/golden/actor_contact_vectors.json");
-        if std::env::var_os("FRAGR_REGENERATE_CONTACT_GOLDENS").is_some() {
+        if std::env::var_os("LOCALEXCEPTION_REGENERATE_CONTACT_GOLDENS").is_some() {
             std::fs::write(
                 &path,
                 format!("{}\n", serde_json::to_string_pretty(&data).unwrap()),

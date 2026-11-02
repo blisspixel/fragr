@@ -91,7 +91,7 @@ requirements without claiming that those behaviors exist.
 
 Verification: 348 relative Markdown destinations/anchors checked across 58
 changed/new documents, no missing targets; palette loads through the existing
-`fragr-spritegen` test; `cargo +1.98.1 fmt --all -- --check` and `git diff --check`
+`localexception-spritegen` test; `cargo +1.98.1 fmt --all -- --check` and `git diff --check`
 pass. The refined logo was visually inspected and retains the bone wordmark and
 signal while removing the broadcast badge. PNG metadata cleanup preserved image
 data. No campaign playtest or completed character animation is claimed.

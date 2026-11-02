@@ -116,8 +116,8 @@ exposes repetitive materials that need authored variation in M01.
 Reproduce the capture with a real framebuffer after importing the client:
 
 ```bash
-cargo test -p fragr-server export_enclosed_capture --locked -- --ignored
-FRAGR_QA_DIR="$PWD/.agents/qa/enclosed-opengl" "$GODOT_BIN" --path client --rendering-driver opengl3 --windowed --resolution 1280x720 --script res://scripts/qa_enclosed.gd
+cargo test -p localexception-server export_enclosed_capture --locked -- --ignored
+LOCALEXCEPTION_QA_DIR="$PWD/.agents/qa/enclosed-opengl" "$GODOT_BIN" --path client --rendering-driver opengl3 --windowed --resolution 1280x720 --script res://scripts/qa_enclosed.gd
 ```
 
 Use `--rendering-driver vulkan` and a separate output directory for the second

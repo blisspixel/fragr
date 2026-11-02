@@ -1,5 +1,7 @@
-use fragr_server::movement::{water, Arena, MoveInput, MoveState, Solid, BODY_HEIGHT, DUCK_HEIGHT};
-use fragr_server::protocol::WaterRegion;
+use localexception_server::movement::{
+    water, Arena, MoveInput, MoveState, Solid, BODY_HEIGHT, DUCK_HEIGHT,
+};
+use localexception_server::protocol::WaterRegion;
 
 fn main() {
     let flat = Arena {

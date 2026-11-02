@@ -1,6 +1,6 @@
 # The Higgsfield art pipeline
 
-How fragr makes pictures. `tools/spritegen` is the program, `docs/ART-GENERATION-SPEC.md` is the contract it executes, and this file is what was measured against the live API so the next run does not have to rediscover it.
+How Local Exception makes pictures. `tools/spritegen` is the program, `docs/ART-GENERATION-SPEC.md` is the contract it executes, and this file is what was measured against the live API so the next run does not have to rediscover it.
 
 Higgsfield is the existing image provider; ElevenLabs is the existing audio provider.
 Code-native surfaces and effects also belong in the game. Paid calls never run in
@@ -37,7 +37,7 @@ Measured, per image, through the free estimate endpoint on 2026-10-23 (`api-chec
 | `recraft/v4.1/pro/text-to-image` | 2k png | $0.210 | $0.210 | Has real palette and background-colour fields |
 | `higgsfield-ai/soul/standard` | v1 | not rechecked | $0.094 | Superseded. Fifteen times the price of v2 for no gain |
 
-Requests with reference `image_urls` price differently from the bare probe payload; the 2026-10-23 round budgets about $0.16 for a medium request with references and about $0.41 for a high edit, as estimates. Prices drift, so these rows are dated evidence: run `fragr-spritegen price` on the exact spec before every paid run.
+Requests with reference `image_urls` price differently from the bare probe payload; the 2026-10-23 round budgets about $0.16 for a medium request with references and about $0.41 for a high edit, as estimates. Prices drift, so these rows are dated evidence: run `localexception-spritegen price` on the exact spec before every paid run.
 
 The shape of the spend follows from that table: **explore wide at about two cents and promote only keepers at about twelve**. Generating everything at `high` costs about twenty times as much and, as the next section shows, does not buy a better sprite.
 
@@ -55,7 +55,7 @@ The rendered set collapsed into mud. The stylised set survived and came out cris
 
 The reason is value contrast, not resolution. A model asked for a photoreal prop lights it photographically: olive on olive, a narrow band of middle values, detail carried by subtle shading that does not exist any more once the sprite is 180 pixels tall. A model asked for a limited palette returns high value separation, and value separation is the only thing that survives a large downscale.
 
-Boltgun's pipeline works because human artists control the contrast and palette of the render. A prompt cannot control that tightly enough. So fragr asks the generator for the end state and enforces the rest locally.
+Boltgun's pipeline works because human artists control the contrast and palette of the render. A prompt cannot control that tightly enough. So Local Exception asks the generator for the end state and enforces the rest locally.
 
 **For directly generated final sprite frames, ask for the stylised sprite and
 quantise it against `docs/palette.json`.** This earlier comparison is not a
@@ -106,7 +106,7 @@ Match the frame and its recorded request to the provider dashboard, then attach
 the verified request ID locally:
 
 ```bash
-cargo run -p fragr-spritegen --locked -- recover --out art/raw/weapons-bakeoff --frame-id px_tack_issued --request-id VERIFIED_REQUEST_ID
+cargo run -p localexception-spritegen --locked -- recover --out art/raw/weapons-bakeoff --frame-id px_tack_issued --request-id VERIFIED_REQUEST_ID
 ```
 
 `recover` needs no key and sends no network request. It advances a Reserved or
@@ -140,16 +140,16 @@ is not a guarantee against disk failure or every network-filesystem lock model.
 
 ```
 # Free. Assembles and prints the prompts, sends nothing.
-cargo run -p fragr-spritegen -- prompts --spec tools/spritegen/specs/weapons-viewmodel-bakeoff.json
+cargo run -p localexception-spritegen -- prompts --spec tools/spritegen/specs/weapons-viewmodel-bakeoff.json
 
 # Free. Prices the run against the live estimate endpoint.
-cargo run -p fragr-spritegen -- price --spec tools/spritegen/specs/weapons-viewmodel-bakeoff.json
+cargo run -p localexception-spritegen -- price --spec tools/spritegen/specs/weapons-viewmodel-bakeoff.json
 
 # Spends money. Refuses without a cap, and refuses if the priced run exceeds it.
-cargo run -p fragr-spritegen -- gen --spec tools/spritegen/specs/weapons-viewmodel-bakeoff.json --max-spend-usd 0.30
+cargo run -p localexception-spritegen -- gen --spec tools/spritegen/specs/weapons-viewmodel-bakeoff.json --max-spend-usd 0.30
 
 # Free, local, no network.
-cargo run -p fragr-spritegen -- reduce --input art/raw/weapons-bakeoff --out art/sprites/weapons \
+cargo run -p localexception-spritegen -- reduce --input art/raw/weapons-bakeoff --out art/sprites/weapons \
   --height 180 --palette docs/palette.json --preview-scale 4
 ```
 
@@ -172,7 +172,7 @@ rather than the human role now specified in `ENEMIES.md`.
 
 ## What is not done yet
 
-- **Reference lifetime.** `fragr-spritegen upload --file <png> --out <dir>` sends a
+- **Reference lifetime.** `localexception-spritegen upload --file <png> --out <dir>` sends a
   keeper through `POST /files/generate-upload-url` and the presigned PUT (free,
   no credential sent to storage) and records the public URL in
   `<dir>/references.jsonl`. Uploads are tagged temporary, so a spec citing them
@@ -191,7 +191,7 @@ offline tests and live free probe recorded below.
 API-level checker before model production. Reuse the existing Rust CLI,
 dotenv loader, bounded HTTP transport and fake-transport test convention.
 
-`fragr-spritegen api-check` accepts an optional JSON probe specification and
+`localexception-spritegen api-check` accepts an optional JSON probe specification and
 JSON report. Its only authenticated operations are
 `POST /estimate/<validated-model-path>`, documented in the official
 [billing guidance](https://docs.higgsfield.ai/docs/concepts/billing-and-retention).
@@ -238,8 +238,8 @@ was superseded on 2026-10-18 by the funded balances (see the ceiling rule above)
 From the repository root, with the existing ignored `.env` credential:
 
 ```sh
-cargo run -p fragr-spritegen --locked -- api-check
-cargo run -p fragr-spritegen --locked -- api-check \
+cargo run -p localexception-spritegen --locked -- api-check
+cargo run -p localexception-spritegen --locked -- api-check \
   --spec tools/spritegen/specs/api-capabilities.json \
   --report .agents/api-check.json
 ```

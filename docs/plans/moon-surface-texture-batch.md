@@ -36,7 +36,7 @@ Each is a full opaque square albedo tile. No baked directional light, cast shado
 
 ## Price and spending boundary
 
-Use the existing release `fragr-spritegen` price command against the exact eight assembled prompts. No generation POST is authorized by this plan alone. Root allocates the shared round ledger across all image lanes before generation and supplies this lane's explicit maximum. The current model's [official direct-image API](https://open.higgsfield.ai/models/marketing-studio/image/api-reference), checked 2026-10-01, supports square 2k output and `enhance_prompt:false`. Proposed quality is medium, subject to fresh exact estimates. No top-up, overage or cash purchase is enabled. Keep the earlier image reservations and billing uncertainty separate.
+Use the existing release `localexception-spritegen` price command against the exact eight assembled prompts. No generation POST is authorized by this plan alone. Root allocates the shared round ledger across all image lanes before generation and supplies this lane's explicit maximum. The current model's [official direct-image API](https://open.higgsfield.ai/models/marketing-studio/image/api-reference), checked 2026-10-01, supports square 2k output and `enhance_prompt:false`. Proposed quality is medium, subject to fresh exact estimates. No top-up, overage or cash purchase is enabled. Keep the earlier image reservations and billing uncertainty separate.
 
 The candidate output directory and durable request ledger are separate from prior possession and story batches. An accepted uncertain request is recovered by its saved ID through the existing strict official-origin seam; it is not resubmitted automatically. No credentials or signed download links belong in public receipts.
 

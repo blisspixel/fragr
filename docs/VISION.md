@@ -1,6 +1,6 @@
-# fragr vision
+# Local Exception vision
 
-fragr is an original retro-styled 3D FPS: authored single-player,
+Local Exception is an original retro-styled 3D FPS: authored single-player,
 multiple multiplayer modes, human and agent players, and first-class spectating.
 The current arena slice is a foundation, not the definition of the full game.
 
@@ -129,7 +129,7 @@ match. Local rules work for free; paid reasoning stays optional and capped.
 
 The door is open when a person can watch an agent in a bot match in about five
 minutes from a fresh clone: one release build of the server and the adapter,
-then one MCP config line (`fragr-agent-adapter mcp --local --name MyAgent`).
+then one MCP config line (`localexception-agent-adapter mcp --local --name MyAgent`).
 The first three calls are `round_state`, `observe`, and `act`. `observe`
 defaults to a compact brief a model can poll. `round_state` and `observe`
 return MCP `content` a client can read, including a booth spectator who never

@@ -5,10 +5,10 @@ extends "res://scripts/qa_tour.gd"
 ## Latch says and on a chase behind the agent with Latch in frame.
 ## Observations only; the agent's inputs are its own.
 ##
-## Run against `fragr-server --bots 0 --map-file server/maps/<level>.json`
-## with `fragr-agent-adapter scripted-bot` joined:
-## `FRAGR_QA_MANIFEST=res://qa/latch-live-review.json
-## FRAGR_QA_SCRIPT=res://qa/latch_live_review.gd tools/qa_tour.sh <out>`.
+## Run against `localexception-server --bots 0 --map-file server/maps/<level>.json`
+## with `localexception-agent-adapter scripted-bot` joined:
+## `LOCALEXCEPTION_QA_MANIFEST=res://qa/latch-live-review.json
+## LOCALEXCEPTION_QA_SCRIPT=res://qa/latch_live_review.gd tools/qa_tour.sh <out>`.
 const MANIFEST: String = "res://qa/latch-live-review.json"
 const CHASE_BACK: float = 4.6
 const CHASE_UP: float = 2.2

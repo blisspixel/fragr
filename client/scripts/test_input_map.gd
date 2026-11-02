@@ -54,7 +54,7 @@ func _key(code: Key) -> InputEventKey:
 
 func _run() -> void:
 	_path = "user://input-map-%d.cfg" % OS.get_process_id()
-	var prefs: FragrSettings = FragrSettings.new(_path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(_path)
 	prefs.reset_all()
 	prefs.apply_controls()
 	_test_defaults(prefs)
@@ -63,13 +63,13 @@ func _run() -> void:
 	_test_prompt_templates()
 	_test_old_custom_files()
 	InputDevice.reset()
-	FragrSettings.new(_path + ".unused").apply_controls()
+	LocalExceptionSettings.new(_path + ".unused").apply_controls()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(_path))
 	if _failures == 0:
 		print("test_input_map: PASS defaults are conflict free per context, bound on keyboard and pad where intended, and named per pad family")
 	quit(0 if _failures == 0 else 1)
 
-func _test_defaults(prefs: FragrSettings) -> void:
+func _test_defaults(prefs: LocalExceptionSettings) -> void:
 	var conflicts: Array[Dictionary] = InputBindings.conflicts(prefs)
 	_check(conflicts.is_empty(), "default layout has no conflicts within a context: " + str(conflicts))
 	for action: String in InputBindings.ACTIONS:
@@ -155,11 +155,11 @@ func _test_prompt_templates() -> void:
 ## are refused whole, never migrated, and the rest of the file still loads.
 func _test_old_custom_files() -> void:
 	var older: ConfigFile = ConfigFile.new()
-	older.set_value("meta", "controls_layout", FragrSettings.CONTROLS_LAYOUT - 1)
+	older.set_value("meta", "controls_layout", LocalExceptionSettings.CONTROLS_LAYOUT - 1)
 	older.set_value("bindings", "interact", "key:70|key:4194309|pad:b2")
 	older.set_value("audio", "music", 0.25)
 	_check(older.save(_path) == OK, "older layout fixture saves")
-	var loaded: FragrSettings = FragrSettings.new(_path)
+	var loaded: LocalExceptionSettings = LocalExceptionSettings.new(_path)
 	loaded.load_from_disk()
 	_check(loaded.controls_refused, "custom bindings from an older layout are refused")
 	_check(InputBindings.slots_for(loaded, "interact") == InputBindings.default_slots("interact") and InputBindings.slots_for(loaded, "reload")[2] == "pad:b2", "the current layout is in force instead")
@@ -171,16 +171,16 @@ func _test_old_custom_files() -> void:
 	loaded.load_from_disk()
 	_check(loaded.controls_refused and InputBindings.slots_for(loaded, "speak") == InputBindings.default_slots("speak"), "a file without a layout stamp is refused too")
 	# Saving stamps the current layout, so the player's next rebind sticks.
-	var current: FragrSettings = FragrSettings.new(_path)
+	var current: LocalExceptionSettings = LocalExceptionSettings.new(_path)
 	current.reset_all()
 	var moved: Array[String] = InputBindings.assign(current, "speak", InputBindings.PAD_SLOT, "pad:b1")
 	_check(moved == (["duck"] as Array[String]), "B leaves crouch for the custom speak: " + str(moved))
 	_check(loaded.commit(current) == OK and not loaded.controls_refused, "a save clears the notice")
-	var again: FragrSettings = FragrSettings.new(_path)
+	var again: LocalExceptionSettings = LocalExceptionSettings.new(_path)
 	again.load_from_disk()
 	_check(not again.controls_refused and InputBindings.slots_for(again, "speak")[2] == "pad:b1", "current-layout customs load as saved")
 	_check(InputBindings.conflicts(again).is_empty(), "the saved custom layout stays conflict free: " + str(InputBindings.conflicts(again)))
-	var defaults: FragrSettings = FragrSettings.new(_path)
+	var defaults: LocalExceptionSettings = LocalExceptionSettings.new(_path)
 	defaults.reset_all()
 	_check(defaults.save_to_disk() == OK, "defaults save")
 	defaults.load_from_disk()

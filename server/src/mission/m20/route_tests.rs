@@ -246,7 +246,7 @@ fn an_unseen_surveyor_does_not_stall_the_sluice_lesson() {
 }
 
 #[test]
-#[ignore = "seed survey: cargo test -p fragr-server --lib seed_survey -- --ignored --nocapture"]
+#[ignore = "seed survey: cargo test -p localexception-server --lib seed_survey -- --ignored --nocapture"]
 fn m20_pier_seed_survey() {
     crate::mission::route_skill::survey("M20 pier, Standard", 0..16, |seed| {
         let run = drive(

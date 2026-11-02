@@ -20,9 +20,9 @@ pub const DEFAULT_SLOTS_FILE: &str = "client/assets/audio/score/slots.json";
 pub const DEFAULT_SCORE_DIR: &str = "client/assets/audio/score";
 /// Where `score-picks --save` writes by default (ignored scratch).
 pub const DEFAULT_PICKS_FILE: &str = ".agents/score-picks.json";
-/// Godot's `config/name` for the client, which names its user data folder.
-pub const PROJECT_NAME: &str = "fragr";
-/// The client's settings file inside that folder (`FragrSettings.PATH`).
+/// Godot's `config/custom_user_dir_name`, separate from the display title.
+pub const PROJECT_NAME: &str = "localexception";
+/// The client's settings file inside that folder (`LocalExceptionSettings.PATH`).
 pub const SETTINGS_FILE: &str = "settings.cfg";
 pub const TAKES: [&str; 2] = ["a", "b"];
 const TAKE_EXTENSION: &str = "mp3";
@@ -69,18 +69,14 @@ pub fn load_slots(path: &Path) -> Result<Vec<Slot>, Error> {
 /// the platform and its environment. `None` when the needed variable is unset.
 pub fn settings_path_for(os: &str, env: &dyn Fn(&str) -> Option<String>) -> Option<PathBuf> {
     let base = match os {
-        "windows" => PathBuf::from(env("APPDATA")?).join("Godot"),
-        "macos" => PathBuf::from(env("HOME")?).join("Library/Application Support/Godot"),
+        "windows" => PathBuf::from(env("APPDATA")?),
+        "macos" => PathBuf::from(env("HOME")?).join("Library/Application Support"),
         _ => match env("XDG_DATA_HOME").filter(|value| !value.is_empty()) {
-            Some(data) => PathBuf::from(data).join("godot"),
-            None => PathBuf::from(env("HOME")?).join(".local/share/godot"),
+            Some(data) => PathBuf::from(data),
+            None => PathBuf::from(env("HOME")?).join(".local/share"),
         },
     };
-    Some(
-        base.join("app_userdata")
-            .join(PROJECT_NAME)
-            .join(SETTINGS_FILE),
-    )
+    Some(base.join(PROJECT_NAME).join(SETTINGS_FILE))
 }
 
 pub fn default_settings_path() -> Option<PathBuf> {
@@ -377,7 +373,7 @@ mod tests {
 
     fn temp(name: &str) -> PathBuf {
         let dir = std::env::temp_dir().join(format!(
-            "fragr-audiogen-score-{name}-{}",
+            "localexception-audiogen-score-{name}-{}",
             std::process::id()
         ));
         let _ = fs::remove_dir_all(&dir);
@@ -435,17 +431,15 @@ mod tests {
         };
         assert_eq!(
             settings_path_for("linux", &env(&[("HOME", "/home/n")])).unwrap(),
-            PathBuf::from("/home/n/.local/share/godot/app_userdata/fragr/settings.cfg")
+            PathBuf::from("/home/n/.local/share/localexception/settings.cfg")
         );
         assert_eq!(
             settings_path_for("linux", &env(&[("HOME", "/h"), ("XDG_DATA_HOME", "/x")])).unwrap(),
-            PathBuf::from("/x/godot/app_userdata/fragr/settings.cfg")
+            PathBuf::from("/x/localexception/settings.cfg")
         );
         assert_eq!(
             settings_path_for("macos", &env(&[("HOME", "/Users/n")])).unwrap(),
-            PathBuf::from(
-                "/Users/n/Library/Application Support/Godot/app_userdata/fragr/settings.cfg"
-            )
+            PathBuf::from("/Users/n/Library/Application Support/localexception/settings.cfg")
         );
         assert_eq!(
             settings_path_for(
@@ -453,7 +447,7 @@ mod tests {
                 &env(&[("APPDATA", "C:/Users/n/AppData/Roaming")])
             )
             .unwrap(),
-            PathBuf::from("C:/Users/n/AppData/Roaming/Godot/app_userdata/fragr/settings.cfg")
+            PathBuf::from("C:/Users/n/AppData/Roaming/localexception/settings.cfg")
         );
         assert!(settings_path_for("windows", &env(&[])).is_none());
         assert!(default_settings_path().is_some() || std::env::var("HOME").is_err());

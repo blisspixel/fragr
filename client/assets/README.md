@@ -1,4 +1,4 @@
-# client/assets - fragr Godot pack (sprites-as-code v2)
+# client/assets - Local Exception Godot pack (sprites-as-code v2)
 
 RGBA pixel sprites. Import: **Nearest**, mipmaps **off**. Use base sizes (32/64/16).
 
@@ -50,10 +50,12 @@ All of `shots/` and `blast/` is baked from code by
 repo root; `ShotVfx` (`client/scripts/shot_vfx.gd`) owns the tables that use them.
 
 ## ui
-- `boot_splash.png` is the approved `docs/fragr-logo-refined.png`, baked with
+- `boot_splash.png` is baked from `docs/localexception-logo.png` with
   `godot --headless --path client --script ../tools/bake_boot_splash.gd` from the
-  repo root. The bake preserves decoded pixels. Engine startup uses aspect-fit
-  scaling and nearest filtering; regenerate from the source when branding changes.
+  repo root. The bake preserves decoded pixels, including the faction figures.
+  Engine startup uses aspect-fit scaling and nearest filtering. The title edit
+  preserves the original artwork at `docs/fragr-logo-refined.png`; provenance is
+  in `docs/localexception-logo.json`.
 - `on_air.png` `contested_frequency.png` `hangar_candy.png` `chrome-strip.png` - broadcast plates (Contested Frequency, ON AIR and the Hangar Candy sponsor), kept as reference art for the radio's own UI. Dull, not neon. The match HUD carries no radio ident; its badge crops were removed.
 
 ## factions/free_coalition

@@ -1,5 +1,5 @@
 extends RefCounted
-class_name FragrSettings
+class_name LocalExceptionSettings
 
 ## Canonical, validated preferences. Unknown keys are ignored.
 signal changed
@@ -191,8 +191,8 @@ const RANGES: Dictionary = {
 }
 
 ## Harnesses supply an isolated path before scenes enter the tree.
-static func for_tree(tree: SceneTree) -> FragrSettings:
-	return FragrSettings.new(str(tree.get_meta("fragr_settings_path", PATH)))
+static func for_tree(tree: SceneTree) -> LocalExceptionSettings:
+	return LocalExceptionSettings.new(str(tree.get_meta("localexception_settings_path", PATH)))
 
 func _init(path: String = PATH) -> void:
 	storage_path = path
@@ -288,13 +288,13 @@ func set_value(section: String, key: String, value: Variant) -> void:
 		value = Footsteps.valid_take(value)
 	(_values[section] as Dictionary)[key] = value
 
-func draft() -> FragrSettings:
-	var copy: FragrSettings = FragrSettings.new(storage_path)
+func draft() -> LocalExceptionSettings:
+	var copy: LocalExceptionSettings = LocalExceptionSettings.new(storage_path)
 	copy._values = _values.duplicate(true)
 	return copy
 
 ## Keep active values unchanged on failed writes. The owner applies on changed.
-func commit(candidate: FragrSettings) -> Error:
+func commit(candidate: LocalExceptionSettings) -> Error:
 	var result: Error = candidate.save_to_disk()
 	if result != OK:
 		return result
@@ -375,7 +375,7 @@ func pinned(key: String) -> bool:
 
 ## Pin every pinnable option that differs from `previous`: the player chose it
 ## by hand, so auto settings work around it from now on.
-func pin_changes(previous: FragrSettings) -> void:
+func pin_changes(previous: LocalExceptionSettings) -> void:
 	var pins: Array = (get_value("video", "pinned") as Array).duplicate()
 	for key: String in PINNABLE:
 		if get_value("video", key) != previous.get_value("video", key) and not pins.has(key):

@@ -91,7 +91,7 @@ func _remote_control(action: String, key: Key, pending: String) -> void:
 
 func _run() -> void:
 	path = "user://grenade-controls-%d.cfg" % OS.get_process_id()
-	var prefs: FragrSettings = FragrSettings.new(path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	_check(InputBindings.default_slots("throw_grenade") == (["key:71", "mouse:3", "pad:b11"] as Array[String]), "independent throw defaults to G, middle mouse and D-pad up")
 	_check(InputBindings.conflicts(prefs).is_empty(), "fresh defaults do not conflict")
 	_check(InputBindings.default_slots("place_remote_mine") == (["key:86", "", "pad:b7"] as Array[String]), "remote placement uses V and the left stick click, never the system Guide button")
@@ -104,7 +104,7 @@ func _run() -> void:
 	_check(InputBindings.slots_for(prefs, "throw_grenade") == (["", "", "pad:b11"] as Array[String])
 		and InputBindings.slots_for(prefs, "scope")[2] == "", "the rebind leaves the grenade and scope slots empty")
 	_check(prefs.save_to_disk() == OK, "custom controls save")
-	var again: FragrSettings = FragrSettings.new(path)
+	var again: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	again.load_from_disk()
 	_check(not again.controls_refused and InputBindings.slots_for(again, "throw_grenade") == (["", "", "pad:b11"] as Array[String]), "explicit unbound slots survive reload")
 	_check(InputBindings.conflicts(again).is_empty(), "a saved rebind introduces no conflict")
@@ -155,7 +155,7 @@ func _run() -> void:
 	old_remote.set_value("bindings", "move_left", "key:86||pad:b7")
 	old_remote.set_value("bindings", "move_right", "key:72||pad:b8")
 	_check(old_remote.save(path) == OK, "unstamped custom controls fixture saved")
-	var remote_prefs: FragrSettings = FragrSettings.new(path)
+	var remote_prefs: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	remote_prefs.load_from_disk()
 	_check(remote_prefs.controls_refused, "custom controls without the current layout stamp are refused, not migrated")
 	_check(InputBindings.slots_for(remote_prefs, "place_remote_mine") == InputBindings.default_slots("place_remote_mine")

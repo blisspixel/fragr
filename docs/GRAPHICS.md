@@ -1,13 +1,13 @@
 # Graphics and auto settings
 
-How fragr picks its graphics for your computer, what each setting costs and
+How Local Exception picks its graphics for your computer, what each setting costs and
 how to change any of it. Everything here runs on your machine; nothing is
 sent anywhere. The developer contract (how tiers are defined and measured, the
 hardware matrix) is in [BENCHMARK.md](BENCHMARK.md#tiers-and-auto-settings).
 
 ## Auto settings in one paragraph
 
-The first time fragr opens a window, a card says **Tuning graphics for this
+The first time Local Exception opens a window, a card says **Tuning graphics for this
 computer**, about 90 seconds, with **Start now** and **Skip**. It starts by
 itself after eight seconds. It plays a short local fight with ten bots on
 Larak Lot, tries a few settings while that fight replays, and keeps the best
@@ -16,7 +16,7 @@ shows one card that says what it chose and why. **Skip** (or Esc) uses a guess
 from a small list of known graphics chips and says it was not measured. Run it
 again any time from **Benchmark > Auto settings**. It never runs again by
 itself; when your graphics hardware, driver, renderer or display changes, or a
-new version of fragr draws differently, the main menu says so and offers
+new version of Local Exception draws differently, the main menu says so and offers
 **Tune graphics again**.
 
 ## What the tuner does
@@ -129,7 +129,7 @@ tuner measures.
 
 ## World pixels and dither
 
-World pixels are part of fragr's look, not a performance knob. The 3D world is
+World pixels are part of Local Exception's look, not a performance knob. The 3D world is
 drawn on a coarse grid and scaled up by a whole number with nearest filtering,
 so every world pixel is the same size and the HUD stays native. **Fine** aims
 at 540 world lines: 2x at 1080p, native at 720p and on the Steam Deck's 800p,
@@ -156,7 +156,7 @@ page says so once.
 ## In-match adjustments
 
 Real fights can be heavier than the benchmark scene, and laptops slow down
-when hot. While you play, fragr scores the frame rate in 30-second windows.
+when hot. While you play, Local Exception scores the frame rate in 30-second windows.
 After three windows in a row below your target it lowers one costly effect,
 only at a safe moment (your death, a respawn, a checkpoint or the end of a
 round), never mid-fight, and says so in one line in the feed, for example
@@ -173,7 +173,7 @@ main menu offers to tune again.
 
 ## Laptops, battery, monitors and high refresh
 
-- **Battery.** On Linux (including the Steam Deck) fragr reads whether you are
+- **Battery.** On Linux (including the Steam Deck) Local Exception reads whether you are
   plugged in; a tune on battery says so and suggests tuning again on power.
   Windows and macOS do not tell a game, so the card does not mention it there.
 - **Heat.** A 90-second tune on a cool laptop can overestimate. The 10 percent
@@ -182,13 +182,13 @@ main menu offers to tune again.
   to another display and the Graphics page and Benchmark page say **Tuned for
   another display**; tune again there if you want.
 - **Hybrid laptops** (Intel plus NVIDIA or AMD): the card names the adapter it
-  measured. If that is the integrated chip, set fragr to the discrete GPU in
+  measured. If that is the integrated chip, set Local Exception to the discrete GPU in
   the driver's control panel or in Windows Graphics settings, or start with
   `--gpu-index 1`.
 
 ## Steam Deck
 
-fragr runs natively on SteamOS through Vulkan; Proton is not needed.
+Local Exception runs natively on SteamOS through Vulkan; Proton is not needed.
 
 - **Default: 40 fps at 40 Hz.** In the Quick Access menu, set Refresh Rate to
   40 Hz. Every frame is new, motion is steady, and battery life is close to
@@ -196,7 +196,7 @@ fragr runs natively on SteamOS through Vulkan; Proton is not needed.
   Deck's settings, caps at 40 and turns V-Sync on. Ultra is never chosen.
 - **60 fps** is chosen on AC power when the Deck measured a 1% low of 66 or
   more, or whenever you pick 60 as the target. On battery the default stays 40.
-- **60 Hz panel.** If the panel is at 60 Hz and 60 does not hold, fragr caps
+- **60 Hz panel.** If the panel is at 60 Hz and 60 does not hold, Local Exception caps
   at 40 and the card says: "Set Refresh Rate to 40 Hz in the Quick Access menu
   for steady motion." 40 fps on a 60 Hz panel judders.
 - **Deck OLED at 90 Hz**: 45 fps, an even half of the refresh.
@@ -213,22 +213,22 @@ row appears in the hardware matrix.
 
 ## Old or weak graphics chips
 
-fragr's default renderer is **Forward+** (Vulkan on Windows and Linux, Metal on
+Local Exception's default renderer is **Forward+** (Vulkan on Windows and Linux, Metal on
 Apple silicon). Graphics chips without Vulkan 1.0, Direct3D 12 or Metal 3 get
 the **Compatibility** renderer (OpenGL 3.3) automatically when Forward+ cannot
-start. Compatibility draws every fragr shader, the pixel look and SSAO, but has
+start. Compatibility draws every Local Exception shader, the pixel look and SSAO, but has
 no FSR, no Ultra (no bounce light, volumetric fog or reflections), no light
-fixture shadows in fragr (a stability choice), plainer glow, and only on or off
+fixture shadows in Local Exception (a stability choice), plainer glow, and only on or off
 V-Sync.
 
 When even Potato falls short and the graphics chip is the limit, the result
 card offers **Try Compatibility**. The game restarts in Compatibility, tunes
 again and keeps Compatibility only if it measured faster than Forward+ did;
 otherwise the next start goes back to Forward+ and the card says so. The choice
-lives in `renderer_override.cfg` in fragr's user folder (Linux
-`~/.local/share/godot/app_userdata/fragr/`, Windows
-`%APPDATA%\Godot\app_userdata\fragr\`, macOS
-`~/Library/Application Support/Godot/app_userdata/fragr/`). If the game will
+lives in `renderer_override.cfg` in Local Exception's user folder (Linux
+`~/.local/share/localexception/`, Windows
+`%APPDATA%\localexception\`, macOS
+`~/Library/Application Support/localexception/`). If the game will
 not start after a renderer change, delete that file, or start it with
 `--rendering-method forward_plus` (or `gl_compatibility`). `--rendering-driver`
 picks the API (`vulkan`, `d3d12`, `opengl3`) and `--gpu-index` the adapter.

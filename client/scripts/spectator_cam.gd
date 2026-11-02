@@ -160,7 +160,7 @@ var _dip_rate: float = 0.0
 var _eye_y: float = NAN
 var _eye_vy: float = 0.0
 
-func apply_preferences(preferences: FragrSettings) -> void:
+func apply_preferences(preferences: LocalExceptionSettings) -> void:
 	reduced_motion = bool(preferences.get_value("accessibility", "reduced_motion"))
 	if reduced_motion:
 		camera_shake_intensity = 0.0

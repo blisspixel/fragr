@@ -5,8 +5,8 @@
 //! the returned coordinate through the existing ordinary movement controller.
 //! This is an explicit survey memory model. The server's private arcade
 //! `sim::bot_senses` remains its separate runtime owner with its own timings.
-use fragr_server::protocol::{PlayerState, Snapshot};
-use fragr_server::sim::PLAYER_FLOOR_Y;
+use localexception_server::protocol::{PlayerState, Snapshot};
+use localexception_server::sim::PLAYER_FLOOR_Y;
 use std::collections::BTreeMap;
 use uuid::Uuid;
 
@@ -134,9 +134,9 @@ impl Search {
 mod tests {
     use super::*;
     use crate::campaign::{Perception, PROFILES};
-    use fragr_server::movement::Arena;
-    use fragr_server::protocol::{Role, ShotResult};
-    use fragr_server::session::GameSession;
+    use localexception_server::movement::Arena;
+    use localexception_server::protocol::{Role, ShotResult};
+    use localexception_server::session::GameSession;
 
     fn scene() -> (Snapshot, Arena, Uuid, Uuid) {
         // Isolated observation fixture, not an earned campaign route.

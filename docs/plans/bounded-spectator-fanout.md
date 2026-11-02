@@ -75,7 +75,7 @@ and closed errors. The [watch receiver documentation](https://docs.rs/tokio/late
 confirms `changed` is cancellation safe for a reader shutdown signal. Keep the
 repository's pinned crate unless a measured need justifies a version change.
 
-Local baseline at `7f9070d` on Windows: `cargo test -p fragr-server --locked
+Local baseline at `7f9070d` on Windows: `cargo test -p localexception-server --locked
 --quiet` passed 394 server library tests (two ignored) plus integration tests.
 This establishes behavior before the queue change; it is not a fan-out load
 measurement.
@@ -87,7 +87,7 @@ Ryzen 7 7840U (16 logical processors), loopback WebSocket JSON, seed 42, ten
 measured seconds per row. The final verification used the branch candidate
 based on `6783306`; the measured release executable SHA-256 was
 `43180746fd1434b9df2ce56a3805c3e179f78ae5e62ab61d64e832f4c8c5065d`.
-The command was `cargo run -p fragr-playtest --release --locked
+The command was `cargo run -p localexception-playtest --release --locked
 -- --fanout-matrix --fanout-seconds 10 --report
 .agents/fanout/matrix-final-verify.json`. Each row starts a new match after all
 fighters and watchers receive their initial geometry. The server timing sink is

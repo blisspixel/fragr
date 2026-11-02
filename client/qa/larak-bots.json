@@ -1,5 +1,5 @@
 {
-  "comment": "Larak Lot rule bots in motion: the Pit with its Rocket, the Roof with the Custody Plate, and a watched bot, as strips. Run with FRAGR_QA_MAP=1 FRAGR_QA_BOTS=6 FRAGR_QA_MANIFEST=res://qa/larak-bots.json. Behaviour evidence for rule bots (Rocket use, Plate timing), not a fun verdict; the numbers live in fragr-playtest --bot-survey --survey-lot.",
+  "comment": "Larak Lot rule bots in motion: the Pit with its Rocket, the Roof with the Custody Plate, and a watched bot, as strips. Run with LOCALEXCEPTION_QA_MAP=1 LOCALEXCEPTION_QA_BOTS=6 LOCALEXCEPTION_QA_MANIFEST=res://qa/larak-bots.json. Behaviour evidence for rule bots (Rocket use, Plate timing), not a fun verdict; the numbers live in localexception-playtest --bot-survey --survey-lot.",
   "width": 1280,
   "height": 720,
   "states": [

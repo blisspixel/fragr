@@ -192,7 +192,8 @@ fn earned_m01_exit_survives_disk_m02_death_and_reopened_retry() {
     let mut hashes: ContentHashes = [[0; 32]; crate::mission::run_file::store::CAMPAIGN_STAGES];
     hashes[0] = run.session.state.map.content_sha256().unwrap();
     hashes[1] = m02.state.map.content_sha256().unwrap();
-    let directory = std::env::temp_dir().join(format!("fragr-earned-carry-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-earned-carry-{}", Uuid::new_v4()));
     let store = RunStore::open_with_hashes(&directory, hashes).unwrap();
     store.save(&exit).unwrap();
     assert_eq!(store.load().unwrap().unwrap(), exit);

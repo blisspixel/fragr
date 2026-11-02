@@ -41,7 +41,7 @@ class FrameEnd extends Node:
 	func _process(_delta: float) -> void:
 		stamped_usec = Time.get_ticks_usec()
 
-var preferences: FragrSettings
+var preferences: LocalExceptionSettings
 var trace: StutterTrace = null
 
 var _mode: int = OFF

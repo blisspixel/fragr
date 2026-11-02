@@ -1,5 +1,5 @@
 {
-  "comment": "Profile look picker (issue 530): the live preview of a chosen look and accent. Run FRAGR_QA_MANIFEST=res://qa/roster-profile.json tools/qa_tour.sh. The tour keeps its own settings file.",
+  "comment": "Profile look picker (issue 530): the live preview of a chosen look and accent. Run LOCALEXCEPTION_QA_MANIFEST=res://qa/roster-profile.json tools/qa_tour.sh. The tour keeps its own settings file.",
   "width": 1280,
   "height": 720,
   "states": [

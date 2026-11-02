@@ -70,7 +70,7 @@ balance. The Jammer first appears in level 3. This remains a development
 mission, not a finished level.
 
 ```bash
-cargo run -p fragr-server --locked -- --local-mission persons_unknown
+cargo run -p localexception-server --locked -- --local-mission persons_unknown
 ```
 
 That development child prints its loopback readiness line and serves the
@@ -92,7 +92,7 @@ unchanged. The input-driven route lives in `client/qa/m03-scheduled-service.json
 its accurate aim establishes authoring evidence, not fresh-player acceptance.
 
 ```bash
-cargo run -p fragr-server --locked -- --local-mission scheduled_service
+cargo run -p localexception-server --locked -- --local-mission scheduled_service
 ```
 
 This practice child has no save. The local menu can also resume a completed M02
@@ -111,7 +111,7 @@ gates departure. Three secrets are authored; the awning is reached by stairs,
 and the meal medkit is at the table's open edge rather than under its top.
 
 ```bash
-cargo run -p fragr-server --locked -- --local-mission notice_to_vacate
+cargo run -p localexception-server --locked -- --local-mission notice_to_vacate
 ```
 
 This development child has no save. Continue Run promotes a compatible M03
@@ -132,7 +132,7 @@ physical Arrival objectives and freight watch to open the single gate, then
 aim at and use the ship panel with the living ready party aboard.
 
 ```bash
-cargo run -p fragr-server --locked -- --local-mission no_forwarding_address
+cargo run -p localexception-server --locked -- --local-mission no_forwarding_address
 ```
 
 Every role in all five live authored missions requires capability 26. The
@@ -202,7 +202,7 @@ owns verification and open acceptance.
 For M01, from the repository root:
 
 ```bash
-cargo run -p fragr-server --locked -- --bind 127.0.0.1:6767 --bots 0 --map-file server/maps/m01-recall-notice.json
+cargo run -p localexception-server --locked -- --bind 127.0.0.1:6767 --bots 0 --map-file server/maps/m01-recall-notice.json
 ```
 
 Add `--campaign-run` for a solo human or agent with three explicit mission-start
@@ -379,16 +379,16 @@ the same local run ID. Separate development parties have no disk save.
 ## Verification
 
 ```bash
-cargo test -p fragr-server maps::authored --locked
-cargo test -p fragr-server --test authored_maps --locked
-cargo test -p fragr-server --lib mission::m02 --locked
-FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01.json bash tools/qa_tour.sh .agents/qa/m01
-FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-discovery.json bash tools/qa_tour.sh .agents/qa/m01-discovery
-FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-encounters.json bash tools/qa_tour.sh .agents/qa/m01-encounters
-FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-maintenance.json bash tools/qa_tour.sh .agents/qa/m01-maintenance
-FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-facility.json bash tools/qa_tour.sh .agents/qa/m01-facility
-FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" FRAGR_QA_MANIFEST=res://qa/m01-records.json bash tools/qa_tour.sh .agents/qa/m01-records
-FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE="$PWD/server/maps/m02-persons-unknown.json" FRAGR_QA_MANIFEST=res://qa/m02-graybox.json bash tools/qa_tour.sh .agents/qa/m02-graybox
+cargo test -p localexception-server maps::authored --locked
+cargo test -p localexception-server --test authored_maps --locked
+cargo test -p localexception-server --lib mission::m02 --locked
+LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" LOCALEXCEPTION_QA_MANIFEST=res://qa/m01.json bash tools/qa_tour.sh .agents/qa/m01
+LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" LOCALEXCEPTION_QA_MANIFEST=res://qa/m01-discovery.json bash tools/qa_tour.sh .agents/qa/m01-discovery
+LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" LOCALEXCEPTION_QA_MANIFEST=res://qa/m01-encounters.json bash tools/qa_tour.sh .agents/qa/m01-encounters
+LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" LOCALEXCEPTION_QA_MANIFEST=res://qa/m01-maintenance.json bash tools/qa_tour.sh .agents/qa/m01-maintenance
+LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" LOCALEXCEPTION_QA_MANIFEST=res://qa/m01-facility.json bash tools/qa_tour.sh .agents/qa/m01-facility
+LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MAP_FILE="$PWD/server/maps/m01-recall-notice.json" LOCALEXCEPTION_QA_MANIFEST=res://qa/m01-records.json bash tools/qa_tour.sh .agents/qa/m01-records
+LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MAP_FILE="$PWD/server/maps/m02-persons-unknown.json" LOCALEXCEPTION_QA_MANIFEST=res://qa/m02-graybox.json bash tools/qa_tour.sh .agents/qa/m02-graybox
 ```
 
 The tour uses human input through a live server, never teleportation. Inspect
@@ -399,7 +399,7 @@ defend against nearby threats during travel in the opt-in full mission tour. Tha
 named guard deaths across rooms, so an early defeat cannot replace another guard
 or disappear from evidence with corpse cleanup. Accurate aim is a regression
 tool, not evidence of human difficulty. Set
-`FRAGR_RENDER_DRIVER=vulkan` for the second renderer. Do not use `--publish` with
+`LOCALEXCEPTION_RENDER_DRIVER=vulkan` for the second renderer. Do not use `--publish` with
 these specialized manifests. The full release
 tour remains a separate check. Story and room purposes belong to
 [`docs/campaign/m01-recall-notice.md`](../../docs/campaign/m01-recall-notice.md).

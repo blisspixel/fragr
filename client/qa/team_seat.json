@@ -1,5 +1,5 @@
 {
-  "comment": "Team deathmatch death as a seat (#510): a joined fighter stands on Larak Lot until a rule bot frags it, the death view shows the killer for a beat, then the camera rides the nearest living teammate's eyes. Run with FRAGR_QA_MODE=tdm FRAGR_QA_BOTS=7 FRAGR_QA_MANIFEST=res://qa/team_seat.json.",
+  "comment": "Team deathmatch death as a seat (#510): a joined fighter stands on Larak Lot until a rule bot frags it, the death view shows the killer for a beat, then the camera rides the nearest living teammate's eyes. Run with LOCALEXCEPTION_QA_MODE=tdm LOCALEXCEPTION_QA_BOTS=7 LOCALEXCEPTION_QA_MANIFEST=res://qa/team_seat.json.",
   "width": 1280,
   "height": 720,
   "states": [

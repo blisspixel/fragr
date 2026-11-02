@@ -197,7 +197,8 @@ fn m12_current_save_requires_exact_completed_outcome_and_retains_real_arc_counts
     exit.equipment.selected = WeaponType::Repeater;
     assert!(absent_find.validate(m09_tests::HASHES[11]).is_err());
 
-    let directory = std::env::temp_dir().join(format!("fragr-m12-receipt-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-m12-receipt-{}", Uuid::new_v4()));
     let store = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
     store.save(&completed).unwrap();
     assert_eq!(store.load().unwrap().unwrap(), completed);
@@ -241,7 +242,8 @@ fn m12_locked_promotion_recovers_an_interrupted_replace() {
     let promoted = source
         .promote_next(MissionId::TermsOfCooperation, m09_tests::HASHES[11])
         .unwrap();
-    let directory = std::env::temp_dir().join(format!("fragr-m12-promotion-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-m12-promotion-{}", Uuid::new_v4()));
     let store = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
     assert!(RunStore::open_with_hashes(&directory, m09_tests::HASHES).is_err());
     store.save(&source).unwrap();

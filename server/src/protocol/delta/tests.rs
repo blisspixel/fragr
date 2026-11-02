@@ -546,8 +546,8 @@ fn client_cases() -> Value {
     json!({ "cases": cases })
 }
 
-/// Regenerate with `FRAGR_DELTA_GOLDEN=$PWD/client/golden/snapshot_delta_vectors.json
-/// cargo test -p fragr-server --lib write_snapshot_delta_golden -- --ignored`.
+/// Regenerate with `LOCALEXCEPTION_DELTA_GOLDEN=$PWD/client/golden/snapshot_delta_vectors.json
+/// cargo test -p localexception-server --lib write_snapshot_delta_golden -- --ignored`.
 #[test]
 fn the_client_golden_is_the_server_delta() {
     let golden: Value = serde_json::from_str(include_str!(
@@ -585,7 +585,7 @@ fn the_client_golden_is_the_server_delta() {
 #[test]
 #[ignore = "writes the delta vectors the client harness applies"]
 fn write_snapshot_delta_golden() {
-    let Ok(path) = std::env::var("FRAGR_DELTA_GOLDEN") else {
+    let Ok(path) = std::env::var("LOCALEXCEPTION_DELTA_GOLDEN") else {
         return;
     };
     let text = serde_json::to_string_pretty(&client_cases()).expect("serialize vectors");
@@ -618,7 +618,7 @@ fn a_value_reader_rebuilds_the_same_world_as_a_typed_one() {
 
 /// Where the tick's world encode spends its time at 48 fighters, stage by
 /// stage. A measurement, not a gate:
-/// `cargo test -p fragr-server --release --lib delta_encode_cost -- --ignored --nocapture`.
+/// `cargo test -p localexception-server --release --lib delta_encode_cost -- --ignored --nocapture`.
 #[test]
 #[ignore]
 fn delta_encode_cost_at_48_fighters() {

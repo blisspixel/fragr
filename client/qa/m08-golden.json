@@ -1,5 +1,5 @@
 {
-  "comment": "M08 golden-slice art review. Eye-height spectator views of every beat on the authored route through the custody archive, before any guard wakes. Run with FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m08_custodian_of_record.json. Look at each still against docs/design/moon.md, the art bible and the Recall Notice bar; this is art review, not combat or fresh-player evidence. Guards, the Auditor's channel, the Proximity Mine and the machine's fall appear through client/qa/m08-golden-guards.json and the combat route in client/qa/m08_custodian_of_record.json.",
+  "comment": "M08 golden-slice art review. Eye-height spectator views of every beat on the authored route through the custody archive, before any guard wakes. Run with LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MAP_FILE=server/maps/m08_custodian_of_record.json. Look at each still against docs/design/moon.md, the art bible and the Recall Notice bar; this is art review, not combat or fresh-player evidence. Guards, the Auditor's channel, the Proximity Mine and the machine's fall appear through client/qa/m08-golden-guards.json and the combat route in client/qa/m08_custodian_of_record.json.",
   "width": 1280,
   "height": 720,
   "states": [

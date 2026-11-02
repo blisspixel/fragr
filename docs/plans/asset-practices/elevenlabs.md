@@ -1,4 +1,4 @@
-# ElevenLabs: current practice vs fragr audiogen (2026-10-24)
+# ElevenLabs: current practice vs Local Exception audiogen (2026-10-24)
 
 Read-only research. No paid calls. Free calls made: GET /v1/models, GET /v1/audio-effects/catalog,
 GET /v1/voices/{id} (2 ids), GET /v1/user/subscription, public OpenAPI (https://api.elevenlabs.io/openapi.json).
@@ -90,7 +90,7 @@ Live /v1/models: eleven_v4 (10,000 chars, cost multiplier 1.0), eleven_v4_turbo 
 | No stems | none | `stems` command: POST stem-separation, unzip to candidate dir, record in manifest | S |
 | Music format 44.1k MP3 128 | lib.rs DEFAULT_MUSIC_FORMAT | request `pcm_48000` masters (Pro), encode to Ogg Vorbis for Godot | S |
 | Expiring voices | E-1 and E-9 use default voices | recast on owned/library voices before 12-31; record voice id + model + settings per role | M (casting) |
-| No pronunciation dictionary | none | one fragr PLS lexicon (Latch, Tern, Edda, Splice, Mara, Unmetered, Continuance, place names) uploaded once, locator in every TTS item | S |
+| No pronunciation dictionary | none | one Local Exception PLS lexicon (Latch, Tern, Edda, Splice, Mara, Unmetered, Continuance, place names) uploaded once, locator in every TTS item | S |
 | Loudness/clip unaddressed at source | E-3/E-4/E-7 every take near 0 dBFS with clip runs | not an API parameter for SFX; keep the offline gate (already good), add v3 pilot; never ask for "headroom" in prompt (proven no effect in E-4) | - |
 | `wav_*` not parsed | parse_format | accept `wav_*` (file already has header) | XS |
 

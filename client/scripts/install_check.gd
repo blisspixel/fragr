@@ -1,6 +1,6 @@
 class_name InstallCheck
 extends Node
-## `fragr --headless -- --check-install` asks the bundled fragr-server for a run
+## `localexception --headless -- --check-install` asks the bundled localexception-server for a run
 ## preview, then verifies owned arena readiness, real snapshots and shutdown.
 ## In an exported build the server must sit beside the game executable.
 
@@ -136,7 +136,7 @@ func _ready() -> void:
 			return
 	var path: String = _local.executable_path()
 	if path.is_empty():
-		_finish(false, "no fragr-server beside %s" % OS.get_executable_path())
+		_finish(false, "no localexception-server beside %s" % OS.get_executable_path())
 		return
 	if not OS.has_feature("editor") and path.get_base_dir() != OS.get_executable_path().get_base_dir():
 		_finish(false, "an exported build resolved %s outside its own directory" % path)
@@ -206,7 +206,7 @@ func _process(_delta: float) -> void:
 		if not _host.process.retirement_confirmed:
 			_finish(false, "owned arena retirement was not confirmed after Stop")
 			return
-		print("fragr install check: arena ", "tdm" if _preset == 0 else "5v5 sabotage", " ready, wire and owned Stop PASS")
+		print("localexception install check: arena ", "tdm" if _preset == 0 else "5v5 sabotage", " ready, wire and owned Stop PASS")
 		_owns_host = false
 		if _preset == 0:
 			_preset = 1
@@ -292,7 +292,7 @@ func _finish(passed: bool, detail: String) -> void:
 			_host.process.drain_errors()
 			var diagnostic: String = _host.process.diagnostics()
 			if not diagnostic.is_empty():
-				print("fragr install check: owned arena diagnostics: ", diagnostic)
+				print("localexception install check: owned arena diagnostics: ", diagnostic)
 	_close_peer()
 	if _owns_host and is_instance_valid(_host):
 		_host.stop()
@@ -318,9 +318,9 @@ func _complete_finish(passed: bool, detail: String) -> void:
 	if _local.run_preview_changed.is_connected(_on_preview):
 		_local.run_preview_changed.disconnect(_on_preview)
 	if passed:
-		print("fragr install check: PASS, ", detail)
+		print("localexception install check: PASS, ", detail)
 	else:
-		printerr("fragr install check: FAIL, " + detail)
+		printerr("localexception install check: FAIL, " + detail)
 	finished.emit(passed)
 	if quit_when_done:
 		get_tree().quit(0 if passed else 1)

@@ -11,9 +11,9 @@ var _last_frame_ms: int = -1000
 var _capturing: bool = false
 
 func _run() -> void:
-	var directory: String = OS.get_environment("FRAGR_QA_DIR")
-	_mission = OS.get_environment("FRAGR_EDDA_MISSION")
-	var carry: String = OS.get_environment("FRAGR_EDDA_CARRY")
+	var directory: String = OS.get_environment("LOCALEXCEPTION_QA_DIR")
+	_mission = OS.get_environment("LOCALEXCEPTION_EDDA_MISSION")
+	var carry: String = OS.get_environment("LOCALEXCEPTION_EDDA_CARRY")
 	if not directory.is_absolute_path() or _mission not in ["m09", "m10"] or carry not in ["eligible", "omitted"]:
 		push_error("edda_live_tour: absolute output, m09/m10 and eligible/omitted carry required")
 		quit(1)
@@ -23,7 +23,7 @@ func _run() -> void:
 	if DirAccess.make_dir_recursive_absolute(directory_run) != OK or not _write_fixture(directory_run):
 		quit(1)
 		return
-	OS.set_environment("FRAGR_RUN_DIR", directory_run)
+	OS.set_environment("LOCALEXCEPTION_RUN_DIR", directory_run)
 	_owned = LocalMatch.for_tree(self)
 	if not _owned.start_mission("standard", "resume", MissionState.M09_ID if _mission == "m09" else MissionState.M10_ID):
 		push_error("edda_live_tour: owned saved-run promotion refused")
@@ -37,7 +37,7 @@ func _run() -> void:
 		_owned.stop()
 		quit(1)
 		return
-	set_meta("fragr_boot", {"mode":"campaign", "host":_owned.url, "run_mode":"resume", "play_arrival":true})
+	set_meta("localexception_boot", {"mode":"campaign", "host":_owned.url, "run_mode":"resume", "play_arrival":true})
 	await super._run()
 
 func _load_manifest() -> Dictionary:

@@ -1,7 +1,7 @@
 //! Real executable desktop arena ownership, without a campaign run directory.
-use fragr_server::local::ArenaReady;
-use fragr_server::protocol::{ClientMessage, GameMode, Role, ServerMessage};
 use futures_util::{SinkExt, StreamExt};
+use localexception_server::local::ArenaReady;
+use localexception_server::protocol::{ClientMessage, GameMode, Role, ServerMessage};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::process::{Child, ChildStdout, Command, Stdio};
 use std::time::{Duration, Instant};
@@ -25,12 +25,13 @@ async fn enter(
                 body: None,
                 dress: None,
                 seat: None,
-                geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
+                geometry_version: localexception_server::protocol::GEOMETRY_VERSION,
                 gameplay_version: ready.gameplay_version,
                 ticket: None,
                 resume,
             })
-            .unwrap(),
+            .unwrap()
+            .into(),
         ))
         .await
         .unwrap();
@@ -110,7 +111,8 @@ async fn population(
                 tokio::time::sleep(Duration::from_millis(50)).await;
                 continue;
             };
-            let status: fragr_server::protocol::LiveStatus = serde_json::from_str(&body).unwrap();
+            let status: localexception_server::protocol::LiveStatus =
+                serde_json::from_str(&body).unwrap();
             last = Some((status.humans, status.agents, status.bots, status.tick));
             if (status.humans, status.agents, status.bots) == (humans, agents, bots) {
                 assert_eq!(status.fighters, humans + agents + bots);
@@ -132,11 +134,11 @@ impl Drop for OwnedChild {
 }
 
 fn command() -> Command {
-    let mut command = Command::new(env!("CARGO_BIN_EXE_fragr-server"));
+    let mut command = Command::new(env!("CARGO_BIN_EXE_localexception-server"));
     command
         .current_dir(std::env::temp_dir())
-        .env_remove("FRAGR_JOIN_SECRET")
-        .env("RUST_LOG", "fragr_server=debug")
+        .env_remove("LOCALEXCEPTION_JOIN_SECRET")
+        .env("RUST_LOG", "localexception_server=debug")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::null());
@@ -163,7 +165,7 @@ fn start(args: &[&str]) -> (OwnedChild, ArenaReady, BufReader<ChildStdout>) {
     assert_eq!(ready.kind, "arena");
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::GAMEPLAY_VERSION
+        localexception_server::protocol::GAMEPLAY_VERSION
     );
     (child, ready, reader)
 }
@@ -197,12 +199,13 @@ async fn prove_wire(ready: &ArenaReady) {
                     body: None,
                     dress: None,
                     seat: None,
-                    geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
+                    geometry_version: localexception_server::protocol::GEOMETRY_VERSION,
                     gameplay_version: ready.gameplay_version,
                     ticket: None,
                     resume: None,
                 })
-                .unwrap(),
+                .unwrap()
+                .into(),
             ))
             .await
             .unwrap();
@@ -229,7 +232,7 @@ async fn prove_wire(ready: &ArenaReady) {
                         if ready.map_id == 8 {
                             assert_eq!(
                                 sabotage,
-                                fragr_server::sim::MapKind::LowWater.sabotage_map()
+                                localexception_server::sim::MapKind::LowWater.sabotage_map()
                             );
                         }
                         assert!(mission.is_none());
@@ -248,9 +251,12 @@ async fn prove_wire(ready: &ArenaReady) {
 
 #[tokio::test]
 async fn tdm_child_serves_real_players_and_eof_retires_listener_without_campaign_storage() {
-    let run = std::env::temp_dir().join(format!("fragr-arena-no-run-{}", uuid::Uuid::new_v4()));
+    let run = std::env::temp_dir().join(format!(
+        "localexception-arena-no-run-{}",
+        uuid::Uuid::new_v4()
+    ));
     let mut cmd = command();
-    cmd.env("FRAGR_RUN_DIR", &run).args([
+    cmd.env("LOCALEXCEPTION_RUN_DIR", &run).args([
         "--desktop-host",
         "--mode",
         "tdm",
@@ -305,7 +311,7 @@ async fn low_water_owned_child_advertises_original_sites_and_eof_retires_its_lis
     assert!(ready.five_vs_five);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::GAMEPLAY_VERSION
+        localexception_server::protocol::GAMEPLAY_VERSION
     );
     prove_wire(&ready).await;
     drop(child.0.stdin.take());
@@ -393,7 +399,10 @@ async fn automatic_owned_rooms_yield_real_seats_preserve_resume_and_refill_after
         }
         let (mut child, ready, mut reader) = start(&args);
         let count = target.parse::<usize>().unwrap();
-        assert_eq!(ready.bot_policy, fragr_server::bot_fill::BotPolicy::Auto);
+        assert_eq!(
+            ready.bot_policy,
+            localexception_server::bot_fill::BotPolicy::Auto
+        );
         assert_eq!((ready.bots, ready.fill_target), (0, count));
         let (mut watcher, _, _) = enter(&ready, Role::Spectator, None).await;
         let watcher_reader = tokio::spawn(async move { while watcher.next().await.is_some() {} });
@@ -410,13 +419,13 @@ async fn automatic_owned_rooms_yield_real_seats_preserve_resume_and_refill_after
         population(&ready, 1, 1, count - 2, Duration::from_secs(5)).await;
         resumed
             .send(Message::Text(
-                serde_json::to_string(&ClientMessage::Leave).unwrap(),
+                serde_json::to_string(&ClientMessage::Leave).unwrap().into(),
             ))
             .await
             .unwrap();
         agent
             .send(Message::Text(
-                serde_json::to_string(&ClientMessage::Leave).unwrap(),
+                serde_json::to_string(&ClientMessage::Leave).unwrap().into(),
             ))
             .await
             .unwrap();
@@ -609,9 +618,9 @@ async fn ordinary_dedicated_server_does_not_treat_stdin_eof_as_shutdown() {
         mode: GameMode::Tdm,
         five_vs_five: false,
         bots: 0,
-        bot_policy: fragr_server::bot_fill::BotPolicy::Fixed,
+        bot_policy: localexception_server::bot_fill::BotPolicy::Fixed,
         fill_target: 0,
-        gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+        gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
     })
     .await;
     assert!(child.0.try_wait().unwrap().is_none());

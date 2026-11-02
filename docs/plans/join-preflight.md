@@ -79,12 +79,12 @@ release is cut.
 Local, 2026-10-06, on this machine:
 
 - `cargo fmt --all -- --check`
-- `cargo clippy -p fragr-server --all-targets --locked -- -D warnings`
-- `cargo test -p fragr-server --locked --lib preflight` (the join filter,
+- `cargo clippy -p localexception-server --all-targets --locked -- -D warnings`
+- `cargo test -p localexception-server --locked --lib preflight` (the join filter,
   schema 1 without a retry, a live loopback probe, and a busy reply)
-- `cargo test -p fragr-server --locked --lib a_busy_status` (a held status
+- `cargo test -p localexception-server --locked --lib a_busy_status` (a held status
   lock answers HTTP 503, then the next probe is schema 2)
-- `cargo test -p fragr-server --locked --lib late_connections_receive_authoritative`
+- `cargo test -p localexception-server --locked --lib late_connections_receive_authoritative`
   (a real process reports ready only after its own status line)
 - Godot 4.7.2 headless `test_frontend.gd`: PASS. The missing-status sentence
   stays exact, and the new timeout, size, and busy sentences are checked.

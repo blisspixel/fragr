@@ -27,15 +27,15 @@ func _fail(message: String) -> void:
 	_failed = true
 
 func _run() -> void:
-	_out_dir = OS.get_environment("FRAGR_WATCH_DIR")
-	var brain_receipt: String = OS.get_environment("FRAGR_WATCH_VERIFY_BRAIN")
+	_out_dir = OS.get_environment("LOCALEXCEPTION_WATCH_DIR")
+	var brain_receipt: String = OS.get_environment("LOCALEXCEPTION_WATCH_VERIFY_BRAIN")
 	if not brain_receipt.is_empty():
 		_verify_receipt(brain_receipt)
 		return
-	_target_id = OS.get_environment("FRAGR_WATCH_ID").strip_edges()
-	_target_name = OS.get_environment("FRAGR_WATCH_NAME").strip_edges()
+	_target_id = OS.get_environment("LOCALEXCEPTION_WATCH_ID").strip_edges()
+	_target_name = OS.get_environment("LOCALEXCEPTION_WATCH_NAME").strip_edges()
 	if _out_dir.is_empty() or (_target_id.is_empty() and _target_name.is_empty()):
-		_fail("set FRAGR_WATCH_DIR and a target ID or callsign")
+		_fail("set LOCALEXCEPTION_WATCH_DIR and a target ID or callsign")
 		quit(1)
 		return
 	_out_dir = ProjectSettings.globalize_path(_out_dir)
@@ -43,14 +43,14 @@ func _run() -> void:
 		_fail("could not create output directory")
 		quit(1)
 		return
-	set_meta("fragr_settings_path", _out_dir.path_join("settings.cfg"))
-	set_meta("fragr_records_path", _out_dir.path_join("service-record"))
+	set_meta("localexception_settings_path", _out_dir.path_join("settings.cfg"))
+	set_meta("localexception_records_path", _out_dir.path_join("service-record"))
 	root.mode = Window.MODE_WINDOWED
 	root.size = Vector2i(1280, 720)
-	var host: String = OS.get_environment("FRAGR_SERVER").strip_edges()
+	var host: String = OS.get_environment("LOCALEXCEPTION_SERVER").strip_edges()
 	if host.is_empty():
 		host = "127.0.0.1:6767"
-	set_meta("fragr_boot", {"mode": "spectate", "host": host})
+	set_meta("localexception_boot", {"mode": "spectate", "host": host})
 	if change_scene_to_file("res://scenes/main.tscn") != OK:
 		_fail("could not load the match scene")
 		quit(1)

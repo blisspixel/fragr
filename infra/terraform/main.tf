@@ -1,4 +1,4 @@
-# fragr container host. Plan-only until a priced deployment is approved.
+# localexception container host. Plan-only until a priced deployment is approved.
 
 terraform {
   required_version = ">= 1.7.0"
@@ -6,7 +6,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 8.4.0"
+      version = "~> 8.9.0"
     }
   }
 }
@@ -17,7 +17,7 @@ provider "google" {
 }
 
 locals {
-  image_ref = "${var.region}-docker.pkg.dev/${var.project_id}/${var.artifact_repository}/fragr-server@sha256:${var.image_sha256}"
+  image_ref = "${var.region}-docker.pkg.dev/${var.project_id}/${var.artifact_repository}/localexception-server@sha256:${var.image_sha256}"
 }
 
 resource "google_project_service" "compute" {
@@ -27,14 +27,14 @@ resource "google_project_service" "compute" {
 }
 
 resource "google_compute_network" "vpc" {
-  name                    = "fragr-vpc"
+  name                    = "localexception-vpc"
   auto_create_subnetworks = false
   routing_mode            = "REGIONAL"
   depends_on              = [google_project_service.compute]
 }
 
 resource "google_compute_subnetwork" "subnet" {
-  name                     = "fragr-subnet"
+  name                     = "localexception-subnet"
   ip_cidr_range            = var.network_cidr
   region                   = var.region
   network                  = google_compute_network.vpc.id
@@ -44,7 +44,7 @@ resource "google_compute_subnetwork" "subnet" {
 # Empty source ranges create no game ingress.
 resource "google_compute_firewall" "game_port_tcp" {
   count   = var.enable_external_ipv4 && length(var.game_source_ranges) > 0 ? 1 : 0
-  name    = "fragr-allow-game-tcp"
+  name    = "localexception-allow-game-tcp"
   network = google_compute_network.vpc.name
 
   allow {
@@ -53,12 +53,12 @@ resource "google_compute_firewall" "game_port_tcp" {
   }
 
   source_ranges = var.game_source_ranges
-  target_tags   = ["fragr-game-server"]
+  target_tags   = ["localexception-game-server"]
   description   = "Allow reviewed TCP WebSocket game traffic on port 6767"
 }
 
 resource "google_compute_firewall" "iap_ssh" {
-  name    = "fragr-allow-iap-ssh"
+  name    = "localexception-allow-iap-ssh"
   network = google_compute_network.vpc.name
 
   allow {
@@ -67,13 +67,13 @@ resource "google_compute_firewall" "iap_ssh" {
   }
 
   source_ranges = ["35.235.240.0/20"]
-  target_tags   = ["fragr-game-server"]
+  target_tags   = ["localexception-game-server"]
   description   = "Allow SSH only through Identity-Aware Proxy TCP forwarding"
 }
 
 resource "google_service_account" "game_server" {
-  account_id   = "fragr-game-server"
-  display_name = "fragr Game Server Service Account"
+  account_id   = "localexception-game-server"
+  display_name = "localexception Game Server Service Account"
   description  = "Pulls one game image and reads one pinned join secret"
 }
 
@@ -97,7 +97,7 @@ resource "google_compute_instance" "game_server" {
   name         = var.instance_name
   machine_type = var.machine_type
   zone         = var.zone
-  tags         = ["fragr-game-server"]
+  tags         = ["localexception-game-server"]
 
   boot_disk {
     initialize_params {

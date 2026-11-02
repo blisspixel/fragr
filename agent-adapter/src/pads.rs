@@ -10,8 +10,8 @@
 //! A gun dropped on death (`dropped`) is not a pad: a joined agent learns of
 //! it only once it has seen it, the way a rule bot does, and an unseen drop
 //! is left out of `observe` altogether.
-use fragr_server::movement::Solid;
-use fragr_server::protocol::{PickupState, PlayerState, Snapshot, SupplyClaim};
+use localexception_server::movement::Solid;
+use localexception_server::protocol::{PickupState, PlayerState, Snapshot, SupplyClaim};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::f32::consts::{FRAC_PI_3, PI, TAU};
@@ -63,7 +63,7 @@ fn sees(solids: &[Solid], me: &PlayerState, pad: &PickupState) -> bool {
     if !distance.is_finite() || distance > PAD_SIGHT {
         return false;
     }
-    let feet = me.y - fragr_server::sim::PLAYER_FLOOR_Y;
+    let feet = me.y - localexception_server::sim::PLAYER_FLOOR_Y;
     if distance <= UNDERFOOT && (feet - (pad.y - PAD_LIFT)).abs() <= 2.0 {
         return true;
     }
@@ -72,10 +72,14 @@ fn sees(solids: &[Solid], me: &PlayerState, pad: &PickupState) -> bool {
     }
     let eye = [
         me.x,
-        feet + fragr_server::combat::stance_eye(me.campaign, me.ducking),
+        feet + localexception_server::combat::stance_eye(me.campaign, me.ducking),
         me.z,
     ];
-    fragr_server::combat::line_of_sight(eye, [pad.x, pad.y - PAD_LIFT + 0.2, pad.z], solids)
+    localexception_server::combat::line_of_sight(
+        eye,
+        [pad.x, pad.y - PAD_LIFT + 0.2, pad.z],
+        solids,
+    )
 }
 
 impl PadView {
@@ -139,7 +143,7 @@ impl PadView {
     /// view stays believed, exactly as for a rule bot.
     fn observe_drops(&mut self, snapshot: &Snapshot, me: Option<&PlayerState>) {
         let tick = snapshot.tick;
-        let lifetime = u64::from(fragr_server::sim::drops::DROPPED_GUN_TICKS);
+        let lifetime = u64::from(localexception_server::sim::drops::DROPPED_GUN_TICKS);
         for belief in self.drops.values_mut() {
             belief.in_view = false;
         }
@@ -201,7 +205,7 @@ impl PadView {
     /// every pad claim is public as before, but the claim of a dropped gun
     /// is heard only by the one who took it, or while the fighter sees it.
     pub fn hears_pickup(&self, pickup_id: &str, by_me: bool) -> bool {
-        if by_me || !pickup_id.starts_with(fragr_server::sim::drops::DROPPED_GUN_PREFIX) {
+        if by_me || !pickup_id.starts_with(localexception_server::sim::drops::DROPPED_GUN_PREFIX) {
             return true;
         }
         self.drops
@@ -255,8 +259,8 @@ impl PadView {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use fragr_server::protocol::Role;
-    use fragr_server::sim::GameState;
+    use localexception_server::protocol::Role;
+    use localexception_server::sim::GameState;
 
     fn arena() -> (GameState, Uuid) {
         let mut state = GameState::new();
@@ -281,7 +285,7 @@ mod tests {
         let player = state.players.iter_mut().find(|p| p.id == me).unwrap();
         player.x = x - yaw.cos() * back;
         player.z = z - yaw.sin() * back;
-        player.y = floor + fragr_server::sim::PLAYER_FLOOR_Y;
+        player.y = floor + localexception_server::sim::PLAYER_FLOOR_Y;
         player.yaw = yaw;
     }
 
@@ -403,7 +407,7 @@ mod tests {
             weapon: "Rocket".into(),
             amount: Some(3),
             x,
-            y: mine.y - fragr_server::sim::PLAYER_FLOOR_Y + PAD_LIFT,
+            y: mine.y - localexception_server::sim::PLAYER_FLOOR_Y + PAD_LIFT,
             z,
             available: true,
             dropped: true,
@@ -458,7 +462,7 @@ mod tests {
 
         // The reckoned lifetime runs out unseen: forgotten.
         let mut later = state.snapshot();
-        later.tick = seen.tick + u64::from(fragr_server::sim::drops::DROPPED_GUN_TICKS);
+        later.tick = seen.tick + u64::from(localexception_server::sim::drops::DROPPED_GUN_TICKS);
         view.observe(&later, Some(me));
         assert!(rows(&view, &later).is_empty());
 

@@ -1,10 +1,10 @@
 //! A host's fun metrics, read back as the tables the bot survey and the 1.0
 //! bar use. Records are folded by mode, map and bot tier with the same
 //! `MatchTally::add` and the same [`shared_row`] the bot survey
-//! (`fragr-playtest --bot-survey`) uses, so a host's frag a minute is the
+//! (`localexception-playtest --bot-survey`) uses, so a host's frag a minute is the
 //! survey's frag a minute. One implementation serves both readers:
-//! `fragr-server --fun-summary` on a release package and
-//! `fragr-playtest --fun-summary` in a checkout. Reading only: the summary
+//! `localexception-server --fun-summary` on a release package and
+//! `localexception-playtest --fun-summary` in a checkout. Reading only: the summary
 //! never writes into the host's folder.
 use super::{per_minute, share, spread, FunRecord, MatchTally, Spread, TickHealth, WeaponTable};
 use crate::protocol::{GameMode, WeaponType};
@@ -465,8 +465,8 @@ pub fn summarise(records: &[FunRecord]) -> Vec<SummaryRow> {
         .collect()
 }
 
-/// What `fragr-server --fun-summary` prints: the summary table of `folder`,
-/// or of the host's own folder under its run directory (`FRAGR_RUN_DIR`, or
+/// What `localexception-server --fun-summary` prints: the summary table of `folder`,
+/// or of the host's own folder under its run directory (`LOCALEXCEPTION_RUN_DIR`, or
 /// the platform's user data folder) when none is named. A folder that is not
 /// there is an error that says how to make one, never an empty table.
 pub fn host_report(folder: Option<&Path>) -> std::io::Result<String> {
@@ -675,7 +675,8 @@ mod tests {
 
     #[test]
     fn a_folder_is_read_and_its_strangers_refused() {
-        let dir = std::env::temp_dir().join(format!("fragr-fun-summary-{}", std::process::id()));
+        let dir =
+            std::env::temp_dir().join(format!("localexception-fun-summary-{}", std::process::id()));
         let store = crate::fun_metrics::FunStore::open(&dir).unwrap();
         store
             .write(&record(GameMode::Ffa, 10, 20), std::time::SystemTime::now())
@@ -689,7 +690,8 @@ mod tests {
 
     #[test]
     fn a_host_s_report_names_a_missing_folder_and_reads_a_real_one() {
-        let dir = std::env::temp_dir().join(format!("fragr-fun-report-{}", std::process::id()));
+        let dir =
+            std::env::temp_dir().join(format!("localexception-fun-report-{}", std::process::id()));
         let missing = host_report(Some(&dir)).expect_err("no folder, no table");
         assert_eq!(missing.kind(), std::io::ErrorKind::NotFound);
         assert!(missing.to_string().contains("--fun-metrics"), "{missing}");

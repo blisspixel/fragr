@@ -30,7 +30,7 @@ variable "zone" {
 variable "instance_name" {
   description = "Single game host name"
   type        = string
-  default     = "fragr-game-server"
+  default     = "localexception-game-server"
   validation {
     condition     = can(regex("^[a-z]([-a-z0-9]*[a-z0-9])?$", var.instance_name))
     error_message = "Use a lowercase Compute Engine instance name."
@@ -67,7 +67,7 @@ variable "artifact_repository" {
 }
 
 variable "image_sha256" {
-  description = "Published fragr-server image digest, exactly 64 lowercase hexadecimal characters"
+  description = "Published localexception-server image digest, exactly 64 lowercase hexadecimal characters"
   type        = string
   validation {
     condition     = can(regex("^[0-9a-f]{64}$", var.image_sha256))
@@ -85,7 +85,7 @@ variable "join_secret_id" {
 }
 
 variable "join_secret_version" {
-  description = "Pinned enabled Secret Manager version number for FRAGR_JOIN_SECRET"
+  description = "Pinned enabled Secret Manager version number for LOCALEXCEPTION_JOIN_SECRET"
   type        = string
   validation {
     condition     = can(regex("^[1-9][0-9]*$", var.join_secret_version))
@@ -132,7 +132,7 @@ variable "labels" {
   description = "Resource labels"
   type        = map(string)
   default = {
-    project    = "fragr"
+    project    = "localexception"
     managed_by = "terraform"
   }
 }

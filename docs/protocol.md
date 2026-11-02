@@ -1,4 +1,4 @@
-# fragr Network Protocol
+# Local Exception Network Protocol
 
 WebSocket JSON protocol between clients and the authoritative server.
 
@@ -6,8 +6,14 @@ WebSocket JSON protocol between clients and the authoritative server.
 **Format:** JSON text messages
 **Tick rate:** ~20 Hz (50ms per tick)
 
-Current contract, 2026-10-23: matching readers advertise gameplay 55 and geometry
-2. Shared arcade rooms require the aggregate gameplay contract. Every live
+Current contract: matching readers advertise gameplay 68 and geometry 2.
+Contract 68 is the Local Exception identity boundary. Every production door
+requires it, including campaign sessions. Earlier clients receive an update
+refusal. Join-ticket HMAC domains are `localexception-join-v1` and
+`localexception-join-v2`; LAN discovery is `LOCALEXCEPTION/1 <tcp-port>\n`.
+Both ticket formats retain their existing roles and replay policies.
+The capabilities below record when content entered the protocol, not permission
+to join with an old client. Shared arcade rooms require the aggregate gameplay contract. Every live
 campaign map requires at least gameplay 43 and campaign rules revision 4;
 Terms of Cooperation requires 44 and Low Water Sabotage requires 45. The
 Rocket Launcher contract is 46. The Weight of Permission requires 47 and places
@@ -116,19 +122,19 @@ Initial handshake message. Must be sent immediately after connection.
   - `agent`: Bot/MCP agent, receives snapshots, sends actions
 - `name`: Display name (shown in game and logs)
 - `ticket`: optional. Absent when the server has no join secret. When
-  `FRAGR_JOIN_SECRET` is set, a `human` or `agent` hello must carry a ticket.
+  `LOCALEXCEPTION_JOIN_SECRET` is set, a `human` or `agent` hello must carry a ticket.
   `v1.<unix exp>.<human|agent>.<64 lowercase hex>` stays valid when the process
-  has no required audience. The hex is HMAC-SHA256 over `fragr-join-v1`, the
+  has no required audience. The hex is HMAC-SHA256 over `localexception-join-v1`, the
   expiry, and the role, using that secret. The server accepts an expiry from
   15 seconds ago through 75 seconds ahead. A spectator hello is not ticketed
-  unless `FRAGR_SPECTATOR_TICKET` is set together with the join secret. A bad
+  unless `LOCALEXCEPTION_SPECTATOR_TICKET` is set together with the join secret. A bad
   ticket is `join_rejected` before a seat is taken. Without a required
   audience, the same v1 ticket can be presented again until it expires.
   `v2.<unix exp>.<role>.<32 lowercase hex nonce>.<unpadded url-safe base64 audience>.<mac>`
-  signs `fragr-join-v2`, the expiry, the role, the nonce, and the audience.
+  signs `localexception-join-v2`, the expiry, the role, the nonce, and the audience.
   The audience is the canonical `ws://` or `wss://` URL with an explicit port.
   A v2 nonce is accepted once on that process until it expires. When
-  `FRAGR_JOIN_AUDIENCE` is set, only a v2 ticket for that exact audience is
+  `LOCALEXCEPTION_JOIN_AUDIENCE` is set, only a v2 ticket for that exact audience is
   accepted. The native client sends v2, and it does not attach a ticket on
   public cleartext `ws`. A ticket does not name the player and it does not by
   itself resume a dropped pawn.
@@ -342,7 +348,7 @@ spectator set still leaves room for a participant. New joins, not resumes, are
 also capped per address over a short window, and the process caps live plus
 parked participant pawns. A parked pawn stays on the server and is omitted
 from snapshots until it reconnects. A browser `Origin` header is refused
-unless it is an exact value in `FRAGR_ORIGIN_ALLOW`. A missing Origin, which
+unless it is an exact value in `LOCALEXCEPTION_ORIGIN_ALLOW`. A missing Origin, which
 native clients omit, is allowed. Past a connection cap the server sends
 `connection_limit` or `address_limit` and closes. A stalled handshake or a
 client that never says hello releases its slot. Further inbound text, including actions, is limited
@@ -402,18 +408,17 @@ message and then a policy close whose reason is the same code:
 **Protocol version.** There is no single `protocol_version` in `Hello`.
 `gameplay_version` and `geometry_version` are the two contracts. A shared
 arcade room, including free-for-all, team play, capture the flag, Sabotage,
-and the night list, requires the current gameplay contract (`67`) and geometry `2`. An older hello
+and the night list, requires the current gameplay contract (`68`) and geometry `2`. An older hello
 and a newer hello are both refused before `Welcome`, with
 `unsupported_gameplay` or `unsupported_geometry`. The message names version
-67 or geometry 2. An older hello is also sent to
+68 or geometry 2. An older hello is also sent to
 `https://github.com/blisspixel/fragr/releases/latest` and told to check the
 archive against `SHA256SUMS.txt` on that page. Join does not fetch the page.
 The join page can offer to download that archive after the player asks.
 That offer is not a status field, and a host that omits its version is not
-fetched. A newer hello is told which version this process speaks. A campaign or local
-mission keeps its content floor, so a reader between that floor and 67 can
-still enter that mission, and a hello above 67 or geometry above 2 is refused
-there too. The envelope itself
+fetched. A newer hello is told which version this process speaks. A campaign or
+local mission also requires gameplay 68 at the identity boundary. A hello above
+68 or geometry above 2 is refused there too. The envelope itself
 (JSON text frames tagged by `type`) has not changed. A breaking envelope
 change would add that field then, with its own rejection. `GET /status` may
 include both versions. A missing field does not make the host unreadable,
@@ -448,7 +453,7 @@ first bytes. A `GET /status` inside that wait is still this probe. A line
 that is clearly not status is a game handshake at once.
 
 A process that is not bound to loopback also broadcasts UDP `6768` every two
-seconds. The packet is exactly `FRAGR/1 <tcp-port>\n`. It names the game port
+seconds. The packet is exactly `LOCALEXCEPTION/1 <tcp-port>\n`. It names the game port
 and nothing else: no map, callsign, ticket, or token. It is not a join and not
 the game transport. A loopback bind does not send it. The client listens only
 while the join page is open, then confirms the host with `GET /status`.
@@ -469,9 +474,9 @@ second after start); a reader that does not know them ignores them:
   meaning or is removed:
   - `build`: `crate_version` (the server crate, not the release tag), `release`
     and `commit` baked in at build time. A release build may set
-    `FRAGR_BUILD_VERSION` and `FRAGR_BUILD_COMMIT`. Otherwise the build script
+    `LOCALEXCEPTION_BUILD_VERSION` and `LOCALEXCEPTION_BUILD_COMMIT`. Otherwise the build script
     uses `git describe --tags --always` and `git rev-parse HEAD`. `release` is
-    the same string as `fragr-server --version` and the MCP `serverInfo.version`.
+    the same string as `localexception-server --version` and the MCP `serverInfo.version`.
     If git is unavailable and neither variable is set, `release` falls back to
     the crate version and `commit` stays `unknown`.
   - `process`: `started_unix_s` (wall clock at start) and `uptime_s`
@@ -3085,7 +3090,7 @@ S→C: {"type": "event", "event": "round_start", "round_number": 2, "frag_limit"
 
 ## Desktop process bootstrap
 
-`fragr-server --local-mission recall_notice` is a child-process contract, separate
+`localexception-server --local-mission recall_notice` is a child-process contract, separate
 from WebSocket messages. It loads the registered map from the committed JSON
 embedded at build time, binds `127.0.0.1:0`, and writes one ASCII JSON line to
 stdout after map preparation and bind:
@@ -3198,9 +3203,9 @@ disposes only the PID it created. No process-name or port-based cleanup is used.
 ## Campaign run file
 
 A durable solo campaign is one local JSON document, `run.json`, in the
-directory named by `FRAGR_RUN_DIR` or the platform data folder
-(`$XDG_DATA_HOME/fragr/runs` or `~/.local/share/fragr/runs`,
-`~/Library/Application Support/fragr/runs`, `%LOCALAPPDATA%\fragr\runs`). `server/src/mission/run_file.rs` owns the
+directory named by `LOCALEXCEPTION_RUN_DIR` or the platform data folder
+(`$XDG_DATA_HOME/localexception/runs` or `~/.local/share/localexception/runs`,
+`~/Library/Application Support/localexception/runs`, `%LOCALAPPDATA%\localexception\runs`). `server/src/mission/run_file.rs` owns the
 document and its validation; `run_file/store.rs` owns disk access. The file is
 private to the local child and never appears on the wire.
 
@@ -4252,7 +4257,7 @@ require 60.
 Gameplay 63 lets the server send a world as the change from the world the
 reader holds. Owner: `server/src/protocol/delta.rs`; the Godot decoder is
 `client/scripts/snapshot_delta.gd`, and every Rust reader (the MCP adapter,
-the playtest harness, the brain, `fragr-wire`) reads frames through
+the playtest harness, the brain, `localexception-wire`) reads frames through
 `protocol::WorldReader`, so callers only ever see full `Snapshot`s. Gameplay
 61 introduced deltas that named every carried fighter by `id`; that shape is
 no longer sent, and a reader at 61 or 62 receives every world whole.

@@ -10,7 +10,7 @@ class Beneath extends Node:
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
-	set_meta("fragr_settings_path", "")
+	set_meta("localexception_settings_path", "")
 	_run.call_deferred()
 
 func _check(value: bool, message: String) -> void:

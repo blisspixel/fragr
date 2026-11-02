@@ -25,7 +25,8 @@ fn completed_town() -> RunDocument {
 
 #[test]
 fn town_exit_promotes_exact_gear_and_outcomes_into_m08_without_refill() {
-    let directory = std::env::temp_dir().join(format!("fragr-m08-carry-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-m08-carry-{}", Uuid::new_v4()));
     let store = RunStore::open_with_hashes(&directory, HASHES).unwrap();
     let source = completed_town();
     store.save(&source).unwrap();
@@ -305,7 +306,8 @@ fn live_m08_retry_restores_entry_mines_and_completion_saves_actual_exit() {
         RunStore::inspect_bytes(&bytes, [hash; CAMPAIGN_STAGES]),
         RunProbe::Compatible(_)
     ));
-    let directory = std::env::temp_dir().join(format!("fragr-m08-exit-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-m08-exit-{}", Uuid::new_v4()));
     let store = RunStore::open_with_hashes(&directory, [hash; CAMPAIGN_STAGES]).unwrap();
     store.save(&completed).unwrap();
     assert_eq!(store.load().unwrap().unwrap(), completed);

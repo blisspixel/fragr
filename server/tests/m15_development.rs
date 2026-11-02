@@ -1,7 +1,7 @@
-use fragr_server::maps::{AuthoredMap, RuntimeMap};
-use fragr_server::navigation::{RouteStatus, SEARCH_LIMIT};
-use fragr_server::protocol::EquipmentPolicy;
-use fragr_server::sim::GameState;
+use localexception_server::maps::{AuthoredMap, RuntimeMap};
+use localexception_server::navigation::{RouteStatus, SEARCH_LIMIT};
+use localexception_server::protocol::EquipmentPolicy;
+use localexception_server::sim::GameState;
 use serde_json::Value;
 
 const SOURCE: &[u8] = include_bytes!("../maps/test/m15_civic_pressure_development.json");

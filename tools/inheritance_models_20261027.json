@@ -32,7 +32,7 @@
    "placement": "PaverRig.MODEL_PATH, presented by EnemyView at the server feet; the source faces +Z and PaverRig turns it to +X; projector lens at 1.64 m",
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -43,7 +43,7 @@
      "keyed_sha256": "4f29f3437e315043b60b60f122e3e6130ccad27ace8a68305a1330810977872d"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-t2",
      "spec": "tools/spritegen/specs/m-w11-paver-meshy-20261027.json",
@@ -82,14 +82,14 @@
    "placement": "SurveyorRig.SOURCE_SCENE, presented by EnemyView at the server feet; the source lens faces +Z and SurveyorRig turns it to +X",
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "spec": "tools/spritegen/specs/h1a-keeper-20261023.json",
      "frame": "surveyor_keeper",
      "url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/70a4a934-07c6-477c-b5a5-d15fe44fd065.png"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/m1-inheritance-enemies-meshy-20261023.json",

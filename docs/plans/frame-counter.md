@@ -34,7 +34,7 @@ richer graphics settings, which are separate plans:
 
 `client/scripts/performance_overlay.gd` (`PerformanceOverlay`) is a CanvasLayer
 at layer 127, just under the console. The boot menu and the match manager each
-mount one beside their console, give it the shared `FragrSettings`, and it
+mount one beside their console, give it the shared `LocalExceptionSettings`, and it
 follows the store's `changed` signal. It reads only engine timing and never
 touches the match, the wire or the server. In arena play the corner sits above
 the combat feed's top edge; in campaign the feed is bottom left.

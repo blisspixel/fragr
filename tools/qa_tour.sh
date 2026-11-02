@@ -7,25 +7,25 @@
 # every still comes back empty, so the client gets an X display: on a Wayland
 # desktop the tour starts its own rootful Xwayland, rendered on the GPU, with a
 # free display number so parallel tours never collide; elsewhere it starts
-# Xvfb, rendered in software. FRAGR_QA_DISPLAY names an existing X display
+# Xvfb, rendered in software. LOCALEXCEPTION_QA_DISPLAY names an existing X display
 # instead. A tiling compositor may resize the nested window; stills and frame
 # timing read Godot's own viewport at the manifest size, not the screen.
 #
-# FRAGR_QA_SCRIPT names a review script that extends the tour (for example
+# LOCALEXCEPTION_QA_SCRIPT names a review script that extends the tour (for example
 # res://qa/m06_combat_review.gd); the default is res://scripts/qa_tour.gd.
 #
-# FRAGR_QA_QUALITY=potato|low|medium|high|ultra runs the whole tour on that
+# LOCALEXCEPTION_QA_QUALITY=potato|low|medium|high|ultra runs the whole tour on that
 # graphics tier; a state's own "graphics" options still win for that state.
 #
 # The tour renders what players get (#537): Forward+ (client/project.godot),
 # on Vulkan under Linux and the platform's default driver elsewhere.
-# FRAGR_QA_RENDERER=compatibility runs the Compatibility (OpenGL) fallback
-# instead, as its own labelled check; FRAGR_RENDER_DRIVER still names a
+# LOCALEXCEPTION_QA_RENDERER=compatibility runs the Compatibility (OpenGL) fallback
+# instead, as its own labelled check; LOCALEXCEPTION_RENDER_DRIVER still names a
 # driver outright. Every manifest records the renderer, driver and preset that
 # actually drew it, and the wrapper says so when Godot fell back. Xvfb has no
 # Vulkan, so a software display runs the Compatibility pass only.
 #
-# FRAGR_QA_LOCAL_MISSION=<mission id> with FRAGR_QA_RUN_FIXTURE=<directory
+# LOCALEXCEPTION_QA_LOCAL_MISSION=<mission id> with LOCALEXCEPTION_QA_RUN_FIXTURE=<directory
 # holding a saved run.json> photographs a carried campaign run instead: the
 # fixture is copied into the tour's own run directory and the tour resumes it
 # through the same durable local child the desktop menu launches
@@ -51,19 +51,19 @@ if [ "${1:-}" = "--publish" ]; then
   shift
 fi
 OUT_DIR="${1:-$ROOT/.agents/qa/$STAMP}"
-SERVER_PORT="${FRAGR_PORT:-6767}"
-SERVER_URL="${FRAGR_SERVER:-127.0.0.1:$SERVER_PORT}"
-BOTS="${FRAGR_QA_BOTS:-5}"
-case "${FRAGR_QA_RENDERER:-forward_plus}" in
+SERVER_PORT="${LOCALEXCEPTION_PORT:-6767}"
+SERVER_URL="${LOCALEXCEPTION_SERVER:-127.0.0.1:$SERVER_PORT}"
+BOTS="${LOCALEXCEPTION_QA_BOTS:-5}"
+case "${LOCALEXCEPTION_QA_RENDERER:-forward_plus}" in
   forward_plus|forward+) QA_RENDERER=forward_plus ;;
   compatibility|gl_compatibility) QA_RENDERER=gl_compatibility ;;
-  *) echo "qa_tour: FRAGR_QA_RENDERER must be forward_plus or compatibility" >&2; exit 1 ;;
+  *) echo "qa_tour: LOCALEXCEPTION_QA_RENDERER must be forward_plus or compatibility" >&2; exit 1 ;;
 esac
 
 # An unrelated listener can satisfy the readiness probe while this server
 # fails to bind. Refuse that port before building or launching the tour.
 if (exec 3<>"/dev/tcp/127.0.0.1/$SERVER_PORT") 2>/dev/null; then
-  echo "qa_tour: port $SERVER_PORT is already in use; choose FRAGR_PORT" >&2
+  echo "qa_tour: port $SERVER_PORT is already in use; choose LOCALEXCEPTION_PORT" >&2
   exit 1
 fi
 
@@ -74,13 +74,13 @@ OUT_DIR="$(cd "$OUT_DIR" && pwd)"
 # The boot menu previews the local campaign run. Give this tour its own
 # absolute save directory so captures never depend on a player's real run.
 if command -v cygpath >/dev/null 2>&1; then
-  export FRAGR_RUN_DIR="$(cygpath -w "$OUT_DIR/run")"
+  export LOCALEXCEPTION_RUN_DIR="$(cygpath -w "$OUT_DIR/run")"
 else
-  export FRAGR_RUN_DIR="$OUT_DIR/run"
+  export LOCALEXCEPTION_RUN_DIR="$OUT_DIR/run"
 fi
 
-# Godot 4.7.2. FRAGR_GODOT wins; then the console binary on Windows; then PATH.
-GODOT_BIN="${FRAGR_GODOT:-${GODOT_BIN:-}}"
+# Godot 4.7.2. LOCALEXCEPTION_GODOT wins; then the console binary on Windows; then PATH.
+GODOT_BIN="${LOCALEXCEPTION_GODOT:-${GODOT_BIN:-}}"
 if [ -z "$GODOT_BIN" ]; then
   for candidate in \
     "/c/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe" \
@@ -97,7 +97,7 @@ if [ -z "$GODOT_BIN" ]; then
   fi
 fi
 if [ -z "$GODOT_BIN" ]; then
-  echo "qa_tour: no Godot 4.7.2 found. Set FRAGR_GODOT to the binary." >&2
+  echo "qa_tour: no Godot 4.7.2 found. Set LOCALEXCEPTION_GODOT to the binary." >&2
   exit 1
 fi
 
@@ -105,52 +105,52 @@ echo "qa_tour: godot   $GODOT_BIN"
 echo "qa_tour: output  $OUT_DIR"
 
 # A server with bots, so the tour has a match to photograph.
-cargo build -p fragr-server --release --locked >"$OUT_DIR/build.log" 2>&1 || {
+cargo build -p localexception-server --release --locked >"$OUT_DIR/build.log" 2>&1 || {
   echo "qa_tour: server build failed" >&2; exit 1; }
 SERVER_ARGS=(--bind "127.0.0.1:$SERVER_PORT" --bots "$BOTS")
-if [ -n "${FRAGR_QA_MAP_FILE:-}" ]; then
-  SERVER_ARGS+=(--map-file "$FRAGR_QA_MAP_FILE")
+if [ -n "${LOCALEXCEPTION_QA_MAP_FILE:-}" ]; then
+  SERVER_ARGS+=(--map-file "$LOCALEXCEPTION_QA_MAP_FILE")
 else
-  SERVER_ARGS+=(--map "${FRAGR_QA_MAP:-1}")
+  SERVER_ARGS+=(--map "${LOCALEXCEPTION_QA_MAP:-1}")
 fi
-if [ -n "${FRAGR_QA_DIFFICULTY:-}" ]; then
-  SERVER_ARGS+=(--difficulty "$FRAGR_QA_DIFFICULTY")
+if [ -n "${LOCALEXCEPTION_QA_DIFFICULTY:-}" ]; then
+  SERVER_ARGS+=(--difficulty "$LOCALEXCEPTION_QA_DIFFICULTY")
 fi
-if [ "${FRAGR_QA_CAMPAIGN_RUN:-0}" = "1" ]; then
+if [ "${LOCALEXCEPTION_QA_CAMPAIGN_RUN:-0}" = "1" ]; then
   SERVER_ARGS+=(--campaign-run)
 fi
-if [ "${FRAGR_QA_SOLO_BROADCAST:-0}" = "1" ]; then
+if [ "${LOCALEXCEPTION_QA_SOLO_BROADCAST:-0}" = "1" ]; then
   SERVER_ARGS+=(--solo-broadcast)
 fi
-if [ "${FRAGR_QA_NO_ROUND_EVENTS:-0}" = "1" ]; then
+if [ "${LOCALEXCEPTION_QA_NO_ROUND_EVENTS:-0}" = "1" ]; then
   SERVER_ARGS+=(--no-round-events)
 fi
-# A rule set for the tour server: FRAGR_QA_MODE=tdm, FRAGR_QA_MUTATORS="rail-only two-lives".
-if [ -n "${FRAGR_QA_MODE:-}" ]; then
-  SERVER_ARGS+=(--mode "$FRAGR_QA_MODE")
+# A rule set for the tour server: LOCALEXCEPTION_QA_MODE=tdm, LOCALEXCEPTION_QA_MUTATORS="rail-only two-lives".
+if [ -n "${LOCALEXCEPTION_QA_MODE:-}" ]; then
+  SERVER_ARGS+=(--mode "$LOCALEXCEPTION_QA_MODE")
 fi
-if [ -n "${FRAGR_QA_FRAG_LIMIT:-}" ]; then
-  SERVER_ARGS+=(--frag-limit "$FRAGR_QA_FRAG_LIMIT")
+if [ -n "${LOCALEXCEPTION_QA_FRAG_LIMIT:-}" ]; then
+  SERVER_ARGS+=(--frag-limit "$LOCALEXCEPTION_QA_FRAG_LIMIT")
 fi
-if [ -n "${FRAGR_QA_CAPTURE_LIMIT:-}" ]; then
-  SERVER_ARGS+=(--capture-limit "$FRAGR_QA_CAPTURE_LIMIT")
+if [ -n "${LOCALEXCEPTION_QA_CAPTURE_LIMIT:-}" ]; then
+  SERVER_ARGS+=(--capture-limit "$LOCALEXCEPTION_QA_CAPTURE_LIMIT")
 fi
-if [ -n "${FRAGR_QA_SEED:-}" ]; then
-  SERVER_ARGS+=(--seed "$FRAGR_QA_SEED")
+if [ -n "${LOCALEXCEPTION_QA_SEED:-}" ]; then
+  SERVER_ARGS+=(--seed "$LOCALEXCEPTION_QA_SEED")
 fi
-for mutator in ${FRAGR_QA_MUTATORS:-}; do
+for mutator in ${LOCALEXCEPTION_QA_MUTATORS:-}; do
   SERVER_ARGS+=(--mutator "$mutator")
 done
-# Fun metrics on the tour server: FRAGR_QA_FUN_METRICS=1. The files land in
+# Fun metrics on the tour server: LOCALEXCEPTION_QA_FUN_METRICS=1. The files land in
 # the tour's own run directory, never a host's.
-if [ "${FRAGR_QA_FUN_METRICS:-0}" = "1" ]; then
+if [ "${LOCALEXCEPTION_QA_FUN_METRICS:-0}" = "1" ]; then
   SERVER_ARGS+=(--fun-metrics)
 fi
-# Rotation and the podium's map vote: FRAGR_QA_MAP_ROTATE=1, and
-# FRAGR_QA_MAP_OFF="7 8" for maps the rotation skips.
-if [ "${FRAGR_QA_MAP_ROTATE:-0}" = "1" ]; then
+# Rotation and the podium's map vote: LOCALEXCEPTION_QA_MAP_ROTATE=1, and
+# LOCALEXCEPTION_QA_MAP_OFF="7 8" for maps the rotation skips.
+if [ "${LOCALEXCEPTION_QA_MAP_ROTATE:-0}" = "1" ]; then
   SERVER_ARGS+=(--map-rotate)
-  for off in ${FRAGR_QA_MAP_OFF:-}; do
+  for off in ${LOCALEXCEPTION_QA_MAP_OFF:-}; do
     SERVER_ARGS+=(--map-off "$off")
   done
 fi
@@ -168,7 +168,7 @@ trap cleanup EXIT
 start_server() {
   local log="$1"
   shift
-  "${CARGO_TARGET_DIR:-$ROOT/target}/release/fragr-server" "$@" >"$log" 2>&1 &
+  "${CARGO_TARGET_DIR:-$ROOT/target}/release/localexception-server" "$@" >"$log" 2>&1 &
   SERVER_PID=$!
   local up=0
   for _ in $(seq 1 50); do
@@ -198,9 +198,9 @@ stop_server() {
 render_args() {
   local method="$1"
   if [ "$method" = "gl_compatibility" ]; then
-    echo "--rendering-method gl_compatibility --rendering-driver ${FRAGR_RENDER_DRIVER:-opengl3}"
-  elif [ -n "${FRAGR_RENDER_DRIVER:-}" ]; then
-    echo "--rendering-method forward_plus --rendering-driver $FRAGR_RENDER_DRIVER"
+    echo "--rendering-method gl_compatibility --rendering-driver ${LOCALEXCEPTION_RENDER_DRIVER:-opengl3}"
+  elif [ -n "${LOCALEXCEPTION_RENDER_DRIVER:-}" ]; then
+    echo "--rendering-method forward_plus --rendering-driver $LOCALEXCEPTION_RENDER_DRIVER"
   elif [ "$(uname -s)" = "Linux" ]; then
     echo "--rendering-method forward_plus --rendering-driver vulkan"
   else
@@ -220,27 +220,27 @@ run_client() {
   local run=("$GODOT_BIN" --path "$ROOT/client")
   # shellcheck disable=SC2207 # render_args prints flags without spaces in values
   run+=($(render_args "$method"))
-  run+=(--windowed --resolution 1280x720 --script "${FRAGR_QA_SCRIPT:-res://scripts/qa_tour.gd}")
-  if [ -n "${FRAGR_QA_POSITION:-}" ]; then
-    run+=(--position "$FRAGR_QA_POSITION")
+  run+=(--windowed --resolution 1280x720 --script "${LOCALEXCEPTION_QA_SCRIPT:-res://scripts/qa_tour.gd}")
+  if [ -n "${LOCALEXCEPTION_QA_POSITION:-}" ]; then
+    run+=(--position "$LOCALEXCEPTION_QA_POSITION")
   fi
-  # A shared host can keep the tour off its sound card (FRAGR_QA_AUDIO_DRIVER=Dummy,
-  # or FRAGR_AUDIO_DRIVER); audio-level states then measure nothing.
-  local audio_driver="${FRAGR_QA_AUDIO_DRIVER:-${FRAGR_AUDIO_DRIVER:-}}"
+  # A shared host can keep the tour off its sound card (LOCALEXCEPTION_QA_AUDIO_DRIVER=Dummy,
+  # or LOCALEXCEPTION_AUDIO_DRIVER); audio-level states then measure nothing.
+  local audio_driver="${LOCALEXCEPTION_QA_AUDIO_DRIVER:-${LOCALEXCEPTION_AUDIO_DRIVER:-}}"
   if [ -n "$audio_driver" ]; then
     run+=(--audio-driver "$audio_driver")
   fi
   local status
   if [ "$(uname -s)" != "Linux" ]; then
-    FRAGR_QA_DIR="$dir" FRAGR_QA_MANIFEST="$manifest" "${run[@]}" >"$dir/client.log" 2>&1
+    LOCALEXCEPTION_QA_DIR="$dir" LOCALEXCEPTION_QA_MANIFEST="$manifest" "${run[@]}" >"$dir/client.log" 2>&1
     status=$?
   elif [ "$QA_SOFTWARE" = "1" ]; then
     env -u WAYLAND_DISPLAY DISPLAY="$QA_DISPLAY" LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
-      FRAGR_QA_DIR="$dir" FRAGR_QA_MANIFEST="$manifest" "${run[@]}" >"$dir/client.log" 2>&1
+      LOCALEXCEPTION_QA_DIR="$dir" LOCALEXCEPTION_QA_MANIFEST="$manifest" "${run[@]}" >"$dir/client.log" 2>&1
     status=$?
   else
     env -u WAYLAND_DISPLAY DISPLAY="$QA_DISPLAY" \
-      FRAGR_QA_DIR="$dir" FRAGR_QA_MANIFEST="$manifest" "${run[@]}" >"$dir/client.log" 2>&1
+      LOCALEXCEPTION_QA_DIR="$dir" LOCALEXCEPTION_QA_MANIFEST="$manifest" "${run[@]}" >"$dir/client.log" 2>&1
     status=$?
   fi
   cat "$dir/client.log"
@@ -264,7 +264,7 @@ run_client() {
   fi
 }
 
-export FRAGR_SERVER="$SERVER_URL"
+export LOCALEXCEPTION_SERVER="$SERVER_URL"
 
 # Import the project first. Running a script against a project Godot has never
 # imported gives a client with no textures: every scene that references one
@@ -280,7 +280,7 @@ if grep -qiE 'SCRIPT ERROR|Parse Error|(^|[[:space:]])ERROR:' "$OUT_DIR/import.l
   exit 1
 fi
 
-QA_DISPLAY="${FRAGR_QA_DISPLAY:-}"
+QA_DISPLAY="${LOCALEXCEPTION_QA_DISPLAY:-}"
 QA_SOFTWARE=0
 if [ "$(uname -s)" = "Linux" ] && [ -z "$QA_DISPLAY" ]; then
   if [ -n "${WAYLAND_DISPLAY:-}" ] && command -v Xwayland >/dev/null 2>&1; then
@@ -315,7 +315,7 @@ if [ "$(uname -s)" = "Linux" ] && [ -z "$QA_DISPLAY" ]; then
     QA_DISPLAY=":$display_number"
   else
     command -v Xvfb >/dev/null 2>&1 || {
-      echo "qa_tour: Linux needs Xwayland under Wayland, Xvfb or FRAGR_QA_DISPLAY for a framebuffer" >&2; exit 1; }
+      echo "qa_tour: Linux needs Xwayland under Wayland, Xvfb or LOCALEXCEPTION_QA_DISPLAY for a framebuffer" >&2; exit 1; }
     DISPLAY_NUM="${DISPLAY_NUM:-99}"
     Xvfb ":$DISPLAY_NUM" -screen 0 1280x720x24 >/dev/null 2>&1 &
     DISPLAY_PID=$!
@@ -340,16 +340,16 @@ echo "qa_tour: renderer $QA_RENDERER"
 # until the tour ends.
 start_local_run() {
   local log="$1"
-  [ -f "${FRAGR_QA_RUN_FIXTURE:-}/run.json" ] || {
-    echo "qa_tour: FRAGR_QA_LOCAL_MISSION needs FRAGR_QA_RUN_FIXTURE with a run.json" >&2; exit 1; }
+  [ -f "${LOCALEXCEPTION_QA_RUN_FIXTURE:-}/run.json" ] || {
+    echo "qa_tour: LOCALEXCEPTION_QA_LOCAL_MISSION needs LOCALEXCEPTION_QA_RUN_FIXTURE with a run.json" >&2; exit 1; }
   mkdir -p "$OUT_DIR/run"
-  cp "$FRAGR_QA_RUN_FIXTURE/run.json" "$OUT_DIR/run/run.json" || exit 1
+  cp "$LOCALEXCEPTION_QA_RUN_FIXTURE/run.json" "$OUT_DIR/run/run.json" || exit 1
   LEASE="$OUT_DIR/run.lease"
   rm -f "$LEASE"
   mkfifo "$LEASE" || exit 1
   exec 7<>"$LEASE"
-  FRAGR_RUN_DIR="$OUT_DIR/run" "${CARGO_TARGET_DIR:-$ROOT/target}/release/fragr-server" \
-    --local-mission "$FRAGR_QA_LOCAL_MISSION" --run-mode resume --seed "${FRAGR_QA_SEED:-42}" \
+  LOCALEXCEPTION_RUN_DIR="$OUT_DIR/run" "${CARGO_TARGET_DIR:-$ROOT/target}/release/localexception-server" \
+    --local-mission "$LOCALEXCEPTION_QA_LOCAL_MISSION" --run-mode resume --seed "${LOCALEXCEPTION_QA_SEED:-42}" \
     <"$LEASE" >"$OUT_DIR/ready.json" 2>"$log" &
   SERVER_PID=$!
   local url=""
@@ -364,13 +364,13 @@ start_local_run() {
     tail -5 "$log" >&2
     exit 1
   fi
-  export FRAGR_SERVER="$url"
-  echo "qa_tour: local run $FRAGR_QA_LOCAL_MISSION ready at $url"
+  export LOCALEXCEPTION_SERVER="$url"
+  echo "qa_tour: local run $LOCALEXCEPTION_QA_LOCAL_MISSION ready at $url"
 }
 
-if [ -n "${FRAGR_QA_LOCAL_MISSION:-}" ]; then
+if [ -n "${LOCALEXCEPTION_QA_LOCAL_MISSION:-}" ]; then
   start_local_run "$OUT_DIR/server.log"
-  run_client "$OUT_DIR" "${FRAGR_QA_MANIFEST:-}"
+  run_client "$OUT_DIR" "${LOCALEXCEPTION_QA_MANIFEST:-}"
   kill "$SERVER_PID" >/dev/null 2>&1
   wait "$SERVER_PID" 2>/dev/null
   SERVER_PID=""
@@ -378,7 +378,7 @@ if [ -n "${FRAGR_QA_LOCAL_MISSION:-}" ]; then
   rm -f "$LEASE"
 else
   start_server "$OUT_DIR/server.log" "${SERVER_ARGS[@]}"
-  run_client "$OUT_DIR" "${FRAGR_QA_MANIFEST:-}"
+  run_client "$OUT_DIR" "${LOCALEXCEPTION_QA_MANIFEST:-}"
   stop_server
 fi
 
@@ -415,7 +415,7 @@ if [ "${PUBLISH:-0}" = "1" ]; then
   COMPAT_DIR="$OUT_DIR/compatibility"
   mkdir -p "$COMPAT_DIR"
   start_server "$COMPAT_DIR/server.log" "${SERVER_ARGS[@]}"
-  run_client "$COMPAT_DIR" "${FRAGR_QA_MANIFEST:-}" gl_compatibility
+  run_client "$COMPAT_DIR" "${LOCALEXCEPTION_QA_MANIFEST:-}" gl_compatibility
   stop_server
 
   published=0

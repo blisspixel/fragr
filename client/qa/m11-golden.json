@@ -1,5 +1,5 @@
 {
-  "comment": "Right of Search eye-height art review. Authored tender layout, no campaign completion or fresh-player claim. Run with FRAGR_QA_MAP_FILE=server/maps/m11_right_of_search.json and FRAGR_QA_BOTS=0.",
+  "comment": "Right of Search eye-height art review. Authored tender layout, no campaign completion or fresh-player claim. Run with LOCALEXCEPTION_QA_MAP_FILE=server/maps/m11_right_of_search.json and LOCALEXCEPTION_QA_BOTS=0.",
   "width":1280,"height":720,
   "states":[
     {"name":"entry","scene":"res://scenes/main.tscn","camera":"overview","camera_position":[-16,1.95,-27.5],"camera_look_at":[-3,1.7,-27.5],"allow_empty_roster":true},

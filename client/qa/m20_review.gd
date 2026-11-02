@@ -16,19 +16,19 @@ func _manager() -> Node:
 	return _viewport.get_node_or_null("GameManager") if _viewport != null else null
 
 func _run() -> void:
-	_out_dir = OS.get_environment("FRAGR_QA_DIR")
-	var manifest_path: String = OS.get_environment("FRAGR_QA_MANIFEST")
+	_out_dir = OS.get_environment("LOCALEXCEPTION_QA_DIR")
+	var manifest_path: String = OS.get_environment("LOCALEXCEPTION_QA_MANIFEST")
 	if _out_dir.is_empty() or manifest_path.is_empty():
-		push_error("m20_review: FRAGR_QA_DIR and FRAGR_QA_MANIFEST are required")
+		push_error("m20_review: LOCALEXCEPTION_QA_DIR and LOCALEXCEPTION_QA_MANIFEST are required")
 		quit(1)
 		return
 	DirAccess.make_dir_recursive_absolute(_out_dir)
-	set_meta("fragr_records_path", _out_dir.path_join("service-record"))
+	set_meta("localexception_records_path", _out_dir.path_join("service-record"))
 	var settings_path: String = _out_dir.path_join("settings.cfg")
-	set_meta("fragr_settings_path", settings_path)
-	var settings: FragrSettings = FragrSettings.new(settings_path)
+	set_meta("localexception_settings_path", settings_path)
+	var settings: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	settings.set_value("video", "display_mode", 0)
-	settings.set_value("video", "quality", int(OS.get_environment("FRAGR_QA_QUALITY")) if not OS.get_environment("FRAGR_QA_QUALITY").is_empty() else 2)
+	settings.set_value("video", "quality", int(OS.get_environment("LOCALEXCEPTION_QA_QUALITY")) if not OS.get_environment("LOCALEXCEPTION_QA_QUALITY").is_empty() else 2)
 	settings.save_to_disk()
 	var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string(manifest_path))
 	if not manifest is Dictionary or not manifest.get("states") is Array:
