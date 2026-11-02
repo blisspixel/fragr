@@ -33,6 +33,41 @@ mod roster;
 mod shot_occlusion;
 mod spawns;
 
+#[test]
+fn checkpoint_replay_ids_resume_without_reuse_or_rewind() {
+    let mut original = crate::sim::GameState::new();
+    original.use_replay_ids();
+    for n in 1..=7 {
+        assert_eq!(original.new_entity_id().as_u128(), n);
+    }
+    let saved = original.save_checkpoint_world();
+    let encoded = serde_json::to_vec(&saved).unwrap();
+    let read = serde_json::from_slice(&encoded).unwrap();
+    let mut reopened = crate::sim::GameState::new();
+    reopened.use_replay_ids();
+    reopened.restore_checkpoint_world(&read, 0);
+    assert_eq!(reopened.new_entity_id().as_u128(), 8);
+    reopened.restore_checkpoint_world(&read, 0);
+    assert_eq!(
+        reopened.new_entity_id().as_u128(),
+        9,
+        "retry never rewinds ids"
+    );
+
+    let mut ordinary = crate::sim::GameState::new();
+    ordinary.restore_checkpoint_world(&read, 0);
+    assert!(
+        !ordinary.replay_ids(),
+        "a save never switches identity policy"
+    );
+    let corrupt = String::from_utf8(encoded).unwrap().replace(
+        "\"replay_id_counter\":7",
+        "\"replay_id_counter\":18446744073709551616",
+    );
+    let invalid: crate::sim::WorldSave = serde_json::from_str(&corrupt).unwrap();
+    assert!(invalid.validate().is_err());
+}
+
 #[tokio::test]
 async fn late_connections_receive_authoritative_geometry_for_every_role() {
     use futures_util::{SinkExt, StreamExt};

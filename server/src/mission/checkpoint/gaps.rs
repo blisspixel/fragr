@@ -288,6 +288,12 @@ fn play_until(
                 };
             }
         }
+        combat = reachable_supply(
+            navigation.as_ref().unwrap(),
+            [player.x, player.y - crate::sim::PLAYER_FLOOR_Y, player.z],
+            &snapshot.pickups,
+            combat,
+        );
         futile.observe(&snapshot, &combat);
         let mut action = client.steer_with_equipment(
             &mut navigator,
@@ -319,6 +325,165 @@ fn play_until(
         row.level_seconds = session.state.tick.saturating_sub(started) as f64 / 20.0;
     }
     (row, session)
+}
+
+/// A supply behind a closed gate must not hold the survey off the objective
+/// that opens it. Keep reachable detours, including ones around cover; a
+/// search that runs out of budget is inconclusive and retains its intent.
+/// This only filters pickup intent, never a shot at a world control or actor.
+fn reachable_supply(
+    world: &Navigation,
+    feet: [f32; 3],
+    pickups: &[crate::protocol::PickupState],
+    mut action: Action,
+) -> Action {
+    use crate::navigation::{RouteStatus, SEARCH_LIMIT};
+    let Some(look) = action
+        .look_at
+        .as_ref()
+        .filter(|look| look.player_id.is_none())
+    else {
+        return action;
+    };
+    let (Some(x), Some(y), Some(z)) = (look.x, look.y, look.z) else {
+        return action;
+    };
+    if !pickups
+        .iter()
+        .any(|p| p.available && [p.x, p.y, p.z] == [x, y, z])
+    {
+        return action;
+    }
+    let unreachable = world.coordinate_floor([x, y, z]).is_none_or(|floor| {
+        matches!(
+            world.route(feet, [x, floor, z], SEARCH_LIMIT).status,
+            RouteStatus::Unreachable | RouteStatus::InvalidPoint
+        )
+    });
+    if unreachable {
+        action.look_at = None;
+        action.forward = false;
+    }
+    action
+}
+
+#[test]
+fn persons_unknown_supply_detours_finish_across_seeds() {
+    for seed in [40, 41, 42, 43] {
+        let row = play(MissionId::PersonsUnknown, seed);
+        assert_eq!(row.outcome, "departed", "seed {seed}: {row:?}");
+        assert!(row.longest_gap_seconds <= 180.0, "seed {seed}: {row:?}");
+    }
+}
+
+/// Globally preferring objectives over supplies strands this route at arrival.
+#[test]
+fn common_carrier_keeps_reachable_supply_detours() {
+    let row = play(MissionId::CommonCarrier, 41);
+    assert_eq!(row.outcome, "departed", "{row:?}");
+    assert!(row.longest_gap_seconds <= 180.0, "{row:?}");
+}
+
+#[test]
+fn supply_filter_rejects_closed_routes_but_keeps_detours_and_other_intent() {
+    use crate::movement::{Arena, Solid};
+    use crate::protocol::{LookAt, PickupState, SupplyClaim};
+    let same = |actual: Action, expected: &Action| {
+        assert_eq!(
+            serde_json::to_value(actual).unwrap(),
+            serde_json::to_value(expected).unwrap()
+        );
+    };
+    let feet = [-4.0, 0.0, 0.0];
+    let pickup = PickupState {
+        claim: SupplyClaim::Personal,
+        pool: None,
+        id: "health".into(),
+        kind: "health".into(),
+        weapon: String::new(),
+        amount: None,
+        x: 4.0,
+        y: 0.4,
+        z: 0.0,
+        available: true,
+        dropped: false,
+    };
+    let action = Action {
+        forward: true,
+        reload: true,
+        weapon_swap: Some(WeaponType::Tack),
+        look_at: Some(LookAt {
+            x: Some(pickup.x),
+            y: Some(pickup.y),
+            z: Some(pickup.z),
+            player_id: None,
+        }),
+        ..Default::default()
+    };
+    let pickups = [pickup];
+    let wall = Solid {
+        min_x: -0.5,
+        max_x: 0.5,
+        min_z: -8.0,
+        max_z: 8.0,
+        bottom: 0.0,
+        top: 3.0,
+    };
+    let closed = Navigation::new(Arena {
+        half: 8.0,
+        solids: vec![wall],
+    })
+    .unwrap();
+    let blocked = reachable_supply(&closed, feet, &pickups, action.clone());
+    assert!(blocked.look_at.is_none());
+    assert!(!blocked.forward);
+    assert!(blocked.reload);
+    assert_eq!(blocked.weapon_swap, action.weapon_swap);
+
+    let open = Navigation::new(Arena {
+        half: 8.0,
+        solids: vec![Solid {
+            min_z: -2.0,
+            max_z: 2.0,
+            ..wall
+        }],
+    })
+    .unwrap();
+    assert!(!open.walkable(feet, [4.0, 0.0, 0.0]));
+    same(
+        reachable_supply(&open, feet, &pickups, action.clone()),
+        &action,
+    );
+    same(
+        reachable_supply(&closed, feet, &[], action.clone()),
+        &action,
+    );
+    let actor = Action {
+        look_at: Some(LookAt {
+            player_id: Some(Uuid::from_u128(7)),
+            ..Default::default()
+        }),
+        ..action.clone()
+    };
+    same(
+        reachable_supply(&closed, feet, &pickups, actor.clone()),
+        &actor,
+    );
+
+    let outside = PickupState {
+        x: 20.0,
+        ..pickups[0].clone()
+    };
+    let invalid = Action {
+        look_at: Some(LookAt {
+            x: Some(outside.x),
+            ..action.look_at.clone().unwrap()
+        }),
+        ..action
+    };
+    assert!(reachable_supply(&closed, feet, &[outside], invalid)
+        .look_at
+        .is_none());
 }
 
 #[test]

@@ -11,6 +11,10 @@ use crate::protocol::{CampaignActor, WalkerPhase};
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct WorldSave {
+    /// Deterministic surveys must not reuse an ally's saved identity when
+    /// encounters place new guards after reopening the checkpoint.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    replay_id_counter: Option<u128>,
     #[serde(skip, default = "crate::maps::RuntimeMap::placeholder")]
     map: crate::maps::RuntimeMap,
     pickups: Vec<ArenaPickup>,
@@ -53,6 +57,7 @@ impl GameState {
 
     pub(crate) fn save_checkpoint_world(&self) -> WorldSave {
         WorldSave {
+            replay_id_counter: self.replay_id_counter,
             map: self.map.clone(),
             pickups: self.pickups.clone(),
             vehicles: self.vehicles.clone(),
@@ -74,6 +79,11 @@ impl GameState {
     /// bodies and everything in flight are removed; participants stay and are
     /// restored by the caller.
     pub(crate) fn restore_checkpoint_world(&mut self, save: &WorldSave, shift: u64) {
+        if let (Some(current), Some(saved)) =
+            (self.replay_id_counter.as_mut(), save.replay_id_counter)
+        {
+            *current = (*current).max(saved);
+        }
         self.clear_grenades();
         self.clear_remote_mines();
         self.traveling_shots.clear();
@@ -130,6 +140,14 @@ impl WorldSave {
     /// Bounds a decoded world must keep before it touches the simulation.
     pub(crate) fn validate(&self) -> Result<(), &'static str> {
         const MAX_BODIES: usize = 64;
+        // Keep an entire u64's allocation headroom in the u128 counter, even
+        // when the decoded file was edited rather than written by a survey.
+        if self
+            .replay_id_counter
+            .is_some_and(|counter| counter > u128::from(u64::MAX))
+        {
+            return Err("saved checkpoint replay identity counter is out of bounds");
+        }
         if self.allies.len() > MAX_BODIES
             || self.pickups.len() > 1_024
             || self.mines.len() > 256
