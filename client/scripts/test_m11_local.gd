@@ -137,6 +137,11 @@ func _run() -> void:
 		return
 	if not await _until(func() -> bool: return _gear().get("remote_mines") == 4 and game.remote_place_armed, "real armory supplies four charges"):
 		return
+	# This is a self-blast/retry check. Aim at the floor instead of inheriting
+	# the route's last facing, which can throw the charge beyond lethal range.
+	game.get_node("SpectatorCamera").set("fp_pitch", -1.2)
+	if not await _until(func() -> bool: return float(QaCombat.actor_by_id(game.latest_snapshot, str(game.net_client.player_id)).get("pitch", 0.0)) < -1.1, "server observes downward charge placement aim"):
+		return
 	Input.action_press("place_remote_mine")
 	if not await _until(func() -> bool: return _gear().get("remote_mines") == 3, "ordinary V input spends exactly one charge"):
 		return
@@ -148,6 +153,10 @@ func _run() -> void:
 		return
 	Input.action_release("trigger_remote_mines")
 	_check(_gear().get("remote_mines", 0) == 3 and _gear()["grenades"] == 2 and _gear()["proximity_mines"] == 3, "independent finite counts remain exact")
+	# An empty device list alone does not prove a lethal blast. Require the
+	# actual campaign transition before testing its persistence on restart.
+	if not await _until(func() -> bool: return game.mission_hud.state.get("run", {}).get("status") == "continue", "self blast resolves the authoritative pending continue before shutdown"):
+		return
 	owned.stop()
 	if not await _until(func() -> bool: return owned.state == LocalMatch.State.IDLE, "owned child exits"):
 		return
@@ -155,7 +164,7 @@ func _run() -> void:
 	await process_frame
 	await create_timer(0.5).timeout
 	var saved: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(saved["version"] == RunFixture.VERSION and saved["step"]["mission"] == MissionState.M11_ID and saved["remaining_continues"] == 1, "actual locked writer stores M11 entry without refill")
+	_check(saved["version"] == RunFixture.VERSION and saved["step"]["kind"] == "pending_continue" and saved["step"]["mission"] == MissionState.M11_ID and saved["remaining_continues"] == 1, "actual locked writer stores M11 pending continue without refill")
 	_check(saved["step"]["entry"]["equipment"].get("remote_mines", 0) == 0 and saved["step"]["entry"]["hp"] == 43, "durable entry retains original finite counts")
 	_check(RunFixture.only_live_run(run_directory), "promotion replaces the run without leaving copies")
 	_check(change_scene_to_file("res://scenes/boot_menu.tscn") == OK, "reopen boot")

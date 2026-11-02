@@ -271,7 +271,7 @@ fn a_version_25_run_file_is_refused_as_incompatible() {
     let document = state.campaign_run_document().unwrap().unwrap();
     let hash = fresh().map.content_sha256().unwrap();
     let mut value = serde_json::to_value(&document).unwrap();
-    assert_eq!(value["version"], 26);
+    assert_eq!(value["version"], 27);
     value["version"] = 25.into();
     value.as_object_mut().unwrap().remove("checkpoint");
     let bytes = serde_json::to_vec(&value).unwrap();

@@ -250,7 +250,9 @@ an accurate-aim automation clear.
 
 **Ordinary melee stays available.** Fists and the found Shiv consume no ammunition
 and never break. Article Blade is the explicit exception: its twelve swings
-and plinth lifecycle are visible server facts.
+and plinth lifecycle are visible server facts. It stays in its level: departure
+leaves its remaining swings behind without blocking the exit. If it is held,
+the next level selects the last owned permanent weapon, or Fists.
 
 **A pickup is a fight and a half, not an afternoon.** The exact numbers are in the table. The caps are Doom's, so you can hoard, but a single pad never fills you.
 
@@ -264,7 +266,7 @@ A traced pellet that lands in the head band deals twice the body number, before 
 
 Three rules, and they are the point of the whole design.
 
-**The campaign has no weapon carry cap.** Every found weapon stays owned across
+**The campaign has no weapon carry cap.** Every permanent found weapon stays owned across
 connected missions and can be selected again after resupply. Nothing is dropped
 to make room. Team modes and the `full-arsenal` mutator also retain their explicit kit.
 The older melee/sidearm/two-primary swap is a competitive-mode proposal, not an

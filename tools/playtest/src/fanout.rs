@@ -269,6 +269,16 @@ where
         .unwrap_or(false)
 }
 
+/// Once ready, a stalled reader leaves buffered frames untouched until stop.
+/// Waiting on the value also handles a stop published before this task polls.
+async fn finish_stalled_watch<S>(stream: &mut S, stop: &mut watch::Receiver<bool>) -> bool
+where
+    S: futures_util::Stream<Item = Result<Message, tokio_tungstenite::tungstenite::Error>> + Unpin,
+{
+    let _ = stop.wait_for(|stopping| *stopping).await;
+    drain_closed(stream).await
+}
+
 fn read_message(
     message: Option<Result<Message, tokio_tungstenite::tungstenite::Error>>,
     stopping: bool,
@@ -360,10 +370,11 @@ async fn watcher_task(
     let mut result = WatchResult::default();
     let mut world = localexception_server::protocol::WorldReader::new();
     loop {
-        if kind == WatcherKind::Stalled && start.borrow().is_some() {
-            // Read nothing for the window, then see whether the server closed.
-            let _ = stop.changed().await;
-            result.disconnected = drain_closed(&mut stream).await;
+        if kind == WatcherKind::Stalled && welcomed && mapped {
+            // Handshake completion is the last read. If start and a buffered
+            // snapshot become ready together, select must not consume that
+            // snapshot before the next iteration notices the window opened.
+            result.disconnected = finish_stalled_watch(&mut stream, &mut stop).await;
             break;
         }
         let message = tokio::select! {
@@ -1526,5 +1537,42 @@ mod tests {
         let degraded = stalled.degraded.as_ref().unwrap();
         assert_eq!(degraded.snapshots, 0);
         assert!(stalled.watcher_snapshots > 0);
+    }
+
+    #[tokio::test]
+    async fn stalled_watcher_does_not_read_buffered_frames_until_stop() {
+        use std::cell::Cell;
+        let reads = Cell::new(0);
+        let mut stream = futures_util::stream::iter([
+            Ok(Message::Text("buffered snapshot".into())),
+            Ok(Message::Close(None)),
+        ])
+        .inspect(|_| reads.set(reads.get() + 1));
+        let (stop_tx, mut stop) = watch::channel(false);
+        let mut finish = Box::pin(finish_stalled_watch(&mut stream, &mut stop));
+        assert!(futures_util::poll!(finish.as_mut()).is_pending());
+        assert_eq!(reads.get(), 0, "a ready frame must stay in the socket");
+        stop_tx.send(true).unwrap();
+        assert!(finish.await);
+        assert_eq!(
+            reads.get(),
+            2,
+            "post-window drain observes the server close"
+        );
+    }
+
+    #[tokio::test]
+    async fn stalled_watcher_handles_a_stop_already_seen_or_a_closed_signal() {
+        for stopping in [false, true] {
+            let (stop_tx, mut stop) = watch::channel(stopping);
+            let _ = stop.borrow_and_update();
+            drop(stop_tx);
+            let mut stream = futures_util::stream::iter([Ok(Message::Close(None))]);
+            let mut finish = Box::pin(finish_stalled_watch(&mut stream, &mut stop));
+            assert_eq!(
+                futures_util::poll!(finish.as_mut()),
+                std::task::Poll::Ready(true)
+            );
+        }
     }
 }
