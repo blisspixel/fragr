@@ -37,6 +37,7 @@ touch "$fixture/client/scripts/ordinary.gd" \
 fake="$fixture/fake-godot"
 cat >"$fake" <<'FAKE'
 #!/usr/bin/env bash
+printf '%s\n' "$*" >> "$CALLS_FILE"
 case "$*" in
   *--version*) echo '4.7.2 verifier fixture'; exit 0 ;;
   *--import*)
@@ -45,10 +46,15 @@ case "$*" in
       import-error) echo 'ERROR: import fixture'; exit 0 ;;
     esac
     exit 0 ;;
-  *--check-only*) exit 0 ;;
+  *--check-only*)
+    if [ "$CASE" = ordinary-parse-error ]; then echo 'Parse Error: ordinary fixture'; fi
+    exit 0 ;;
 esac
 name=$(basename "${!#}" .gd)
 case "$CASE" in
+  harness-parse-error)
+    if [ "$name" = test_actor_state ]; then echo 'Parse Error: harness fixture'; exit 0; fi
+    ;;
   timeout|pass-then-timeout)
     if [ "$name" = test_actor_state ]; then
       if [ "$CASE" = pass-then-timeout ]; then echo "$name: PASS"; fi
@@ -78,12 +84,13 @@ echo "$name: PASS"
 if [ "$CASE" = exit-and-pass ]; then exit 9; fi
 FAKE
 chmod +x "$fake"
-for scenario in pass debug-socket import-exit import-error missing-pass error-and-pass exit-and-pass long-error-and-pass long-pass verbose-failure timeout pass-then-timeout; do
+for scenario in pass debug-socket import-exit import-error ordinary-parse-error harness-parse-error missing-pass error-and-pass exit-and-pass long-error-and-pass long-pass verbose-failure timeout pass-then-timeout; do
   status=0
   transcript="$fixture/scenario-$scenario.log"
   guard_diagnostic="$fixture/scenario-$scenario.guard.log"
   echo "BEGIN godot verifier scenario: $scenario ($transcript)"
-  CASE="$scenario" GODOT_BIN="$fake" LOCALEXCEPTION_CHECK_PROCESS_BIN="$runner" \
+  calls="$fixture/calls-$scenario.log"
+  CASE="$scenario" CALLS_FILE="$calls" GODOT_BIN="$fake" LOCALEXCEPTION_CHECK_PROCESS_BIN="$runner" \
     LOCALEXCEPTION_CHECK_ENGINE_SHELL="$BASH" LOCALEXCEPTION_CHECK_TIMEOUT_MS=3000 \
     "$runner" --timeout-ms 30000 --output "$transcript" -- \
     "$BASH" "$fixture/tools/godot_check.sh" 2>"$guard_diagnostic" || status=$?
@@ -124,8 +131,22 @@ for scenario in pass debug-socket import-exit import-error missing-pass error-an
     echo "FAIL godot verifier scenario: $scenario (missing aggregate $summary)"
     exit 1
   fi
+  if [ "$scenario" = pass ]; then
+    for name in ordinary test_actor_state test_second; do
+      if [ "$(grep -cF "res://scripts/$name.gd" "$calls")" -ne 1 ]; then
+        echo "FAIL godot verifier did not check $name exactly once"
+        exit 1
+      fi
+    done
+    if ! grep -qF -- '--check-only --script res://scripts/ordinary.gd' "$calls" ||
+       ! grep -qF -- '--verbose --script res://scripts/test_actor_state.gd' "$calls" ||
+       ! grep -qF -- '--verbose --script res://scripts/test_second.gd' "$calls"; then
+      echo "FAIL godot verifier lost production parsing or harness execution"
+      exit 1
+    fi
+  fi
   if [ "$scenario" != import-exit ] && [ "$scenario" != import-error ]; then
-    if ! grep -qF 'ok   ordinary.gd' <<<"$output" ||
+    if ! grep -qF 'BEGIN ordinary.gd' <<<"$output" ||
        ! grep -qF 'test_actor_state harness' <<<"$output" ||
        ! grep -qF 'test_second harness' <<<"$output"; then
       echo "FAIL godot verifier scenario: $scenario (incomplete script or harness discovery)"
@@ -133,7 +154,7 @@ for scenario in pass debug-socket import-exit import-error missing-pass error-an
     fi
   fi
   if "$expected_pass" && {
-    [ "$(grep -cE '^ok   .*\.gd$' <<<"$output")" -ne 3 ] ||
+    [ "$(grep -cE '^ok   .*\.gd$' <<<"$output")" -ne 1 ] ||
     [ "$(grep -cE '^ok   .* harness$' <<<"$output")" -ne 2 ];
   }; then
     echo "FAIL godot verifier scenario: $scenario (unexpected discovery count)"
