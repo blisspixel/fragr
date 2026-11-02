@@ -139,11 +139,20 @@ longer stall in a narrow corridor.
 
 ### After wave 23
 
-The Local Exception rename (#543) is implemented in this change, including
-crates, binaries, environment variables and paired wire identifiers. Next:
-Sector 9 site B (#520), whose result is hidden by the aggregate win rate, and
-the eight incomplete campaign route surveys (#527), so checkpoint evidence
-covers whole routes. Fighter models follow the November 3 model credit refresh,
+The Local Exception rename (#543) shipped in v0.99.2, including crates,
+binaries, environment variables and paired wire identifiers. Wave 24 fixes
+Sabotage staging that mistook proximity through a wall for a foothold and adds
+a freight stack to break Sector 9's exposed B approach. The 5v5 survey now
+balances both sites across the tuning and held-out seeds; eight-bot site A
+and the scarce comeback opportunities keep #520 open.
+
+The campaign survey now tracks combat intent before navigation replaces aim.
+Levels 13 and 19 finish with bounded checkpoint gaps. Six routes remain
+incomplete: 2, 7, 8, 9, 14 and 15. Level 14 exposes an unresolved encounter
+with an 840-second gap, so the earlier partial-route checkpoint claim is not
+whole-level acceptance. Next: resolve those route blockers (#527), starting
+with Level 2's supply detour and Level 14's encounter, then validate resume
+and the continue rule with human play. Fighter models follow the November 3 model credit refresh,
 alongside a recolour of the pale base agent (#530), the contrast target decision
 (#528), hardware matrix runs for the graphics gate, then call-ins and
 friendly fire (#535). Then the measured fun night and the first human LAN night.
@@ -293,7 +302,7 @@ and finds what the numbers miss; it never replaces a measurement.
 | **Audio** | Running footsteps and landings audible 20 to 30 m away and silent when walking, direction within 45 degrees; mix at -23 to -18 LUFS with true peak at or below -1 dBTP; combat always ducks music and radio | Attenuation-curve test; loudness analysis of tour audio; ducking harness | Footsteps and landings by surface, a limiter and combat ducking; mix -19 LUFS (diagnostic); no blind listening check |
 | **Maps** | Small maps crossed corner to corner in 25 s; Sabotage attackers reach a site in 15 to 25 s, defenders in 8 to 12 s, rotations 10 to 18 s; 10+ frags a minute and 3+ lead changes per free-for-all on every default map; Sabotage sides within 45 to 55% | Navmesh timing tool; bot survey | Frag pace met; lead changes short on three maps; Sabotage attack bias on two (#520) |
 | **Bots** | Four or five difficulty tiers, each beating the one below 65 to 80% of the time; no tier reacts under 150 ms; perception stays honest (sight and sound only); under 5% dithering | Bot survey win matrix; perception tests | Five tiers with zone aim; ladder steps 63 to 78% (top step just under 65%); dithering 4.4% |
-| **Campaign craft** | 8 to 15 min per level; at most 3 min between checkpoints; at most 3 enemy types per encounter outside marked brawls; every new enemy and verb taught without text before it is tested | Campaign survey times and checkpoint gaps; encounter audit | Checkpoints saved to disk; longest gap 86 s or less on every level (eight measured partway); brawl marking enforced |
+| **Campaign craft** | 8 to 15 min per level; at most 3 min between checkpoints; at most 3 enemy types per encounter outside marked brawls; every new enemy and verb taught without text before it is tested | Campaign survey times and checkpoint gaps; encounter audit | Checkpoints saved to disk; 14 complete diagnostic routes stay within 89 s; six routes incomplete, including an unresolved Level 14 encounter with an 840 s gap; brawl marking enforced |
 | **Graphics scale and auto settings** | Floor: the lowest settings hold a 1% low of 60 fps at 720p on a defined low-end reference machine. Ceiling: on a strong machine Local Exception looks great. The benchmark and auto settings choose the highest resolution and quality that still hold a 1% low of 60 fps (or the player's higher target), explain the choice in plain words, keep manual overrides, and rerun when hardware, drivers or rendering cost change. Works on NVIDIA, AMD, Intel and Apple GPUs on Windows, Linux and macOS, with a renderer fallback for very weak GPUs. Runs great on the Steam Deck: a steady 40 fps in its 40 Hz mode (1% low at or above 36) at 1280x800 on its auto-chosen settings, with a 60 fps profile where it holds, legible HUD and menus at 800p and full controller play (a store release is undecided; the research may refine these numbers) | Benchmark runs across a hardware matrix (integrated Intel, AMD APU, an older and a modern NVIDIA and AMD card, Apple Silicon, a Steam Deck); auto-tune tests for search, variance and overrides; player and developer docs ([graphics auto-tune plan](plans/graphics-autotune.md)) | Five tiers, the auto-tune, a safety valve and Steam Deck profiles exist; no hardware matrix row measured (one busy Radeon 780M only) |
 | **Performance and stability** | No frame over 50 ms after warmup on any tier; tick p99 under 25% of budget at 16 fighters and 8 spectators; a 24-hour soak with no crash; no known bug that loses a round or a save | Benchmark scenes and frame stats; bench; soak; issue triage | Tick headroom met; one GPU measured; 120 s soak only |
 | **Fair play** | A client receives only what its fighter could perceive (no wall information to modify); rate and size caps; resume and join tickets | Interest-filter tests; hardening plan checks | Fighters, shots, throws and pickups reach a fighter only as it perceives them; corner pop-in 0.26% or less up to 150 ms; inbound byte cap; no two-machine run |

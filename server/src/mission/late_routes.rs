@@ -265,6 +265,7 @@ fn carried_route(mission: MissionId, seed: u64, mut fixtures: Option<&mut Vec<se
                     };
                 }
             }
+            futile.observe_intent(&snapshot, &combat);
             let mut action = client.steer_with_equipment(
                 &mut navigator,
                 navigation.as_ref().unwrap(),
@@ -282,7 +283,6 @@ fn carried_route(mission: MissionId, seed: u64, mut fixtures: Option<&mut Vec<se
                 action.left = (session.state.tick / 20).is_multiple_of(2);
                 action.right = !action.left;
             }
-            futile.observe(&snapshot, &action);
             let action = tells.evade(&session.state, &snapshot, id, action);
             session.state.set_action(id, action);
             session.tick_messages(0.05);

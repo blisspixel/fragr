@@ -972,6 +972,9 @@ fn sector_9() -> MapDef {
     for (x, z) in [(47.0, 34.0), (-47.0, -34.0)] {
         s.push(Solid::from_center(x, z, 3.0, 3.0));
     }
+    // B's freight approach has no inspection deck to break its firing lane.
+    // A loading stack makes the entry turn, with a passage at either end.
+    s.push(Solid::from_center_top(-31.5, 50.0, 2.0, 3.0, 2.5));
 
     MapDef {
         half_extent: half,

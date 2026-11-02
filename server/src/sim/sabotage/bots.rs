@@ -34,7 +34,7 @@ const HOLD_BREAK: f32 = 8.0;
 const PUSH_LATEST_TICKS: u64 = 20 * 40;
 /// Gathered: within this of the stage.
 const GATHERED: f32 = 12.0;
-/// An attacker this close to its site means the push is on.
+/// An attacker this close with a clear lane to its site means the push is on.
 const PUSHED: f32 = 25.0;
 /// The defence calls a site when it sees an attacker this close to it.
 const CONTACT_RADIUS: f32 = 30.0;
@@ -487,9 +487,21 @@ pub(super) fn coordinate(state: &GameState, sab: &mut Sabotage, layout: &Sabotag
             .filter(|p| horizontal(feet(p), stage) <= GATHERED)
             .count();
         let late = state.tick.saturating_sub(sab.phase_started) >= PUSH_LATEST_TICKS;
-        let near = attackers
-            .iter()
-            .any(|p| horizontal(feet(p), site) <= PUSHED);
+        // Near through a dividing wall is not a foothold. That false signal
+        // sent Sector 9's B attack back through Mid Doors before it staged.
+        let arena = state.current_arena();
+        let near = attackers.iter().any(|p| {
+            horizontal(feet(p), site) <= PUSHED
+                && crate::combat::line_of_sight(
+                    [
+                        p.x,
+                        p.y - PLAYER_FLOOR_Y + crate::combat::stance_eye(p.campaign, p.ducking),
+                        p.z,
+                    ],
+                    [site[0], site[1] + crate::movement::EYE_HEIGHT, site[2]],
+                    &arena.solids,
+                )
+        });
         let ready = !attackers.is_empty() && gathered + 1 >= attackers.len().max(2);
         sab.bot_push = late || near || ready;
     }

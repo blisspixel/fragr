@@ -288,6 +288,7 @@ fn play_until(
                 };
             }
         }
+        futile.observe_intent(&snapshot, &combat);
         let mut action = client.steer_with_equipment(
             &mut navigator,
             navigation.as_ref().unwrap(),
@@ -305,7 +306,6 @@ fn play_until(
             action.left = (session.state.tick / 20).is_multiple_of(2);
             action.right = !action.left;
         }
-        futile.observe(&snapshot, &action);
         let action = tells.evade(&session.state, &snapshot, id, action);
         session.state.set_action(id, action);
         session.tick_messages(0.05);
@@ -367,6 +367,17 @@ fn local_exception_route_keeps_checkpoints_within_three_minutes() {
     let row = play(MissionId::LocalException, 41);
     assert_eq!(row.outcome, "departed", "{row:?}");
     assert!(row.longest_gap_seconds <= 180.0, "{row:?}");
+}
+
+/// Navigation must not hide an ineffective combat pursuit from the route's
+/// target tracker. Both routes previously stayed stuck until the survey cap.
+#[test]
+fn late_campaign_routes_finish_and_keep_checkpoint_gaps_bounded() {
+    for mission in [MissionId::WeightOfPermission, MissionId::PlannedWorks] {
+        let row = play(mission, 41);
+        assert_eq!(row.outcome, "departed", "{row:?}");
+        assert!(row.longest_gap_seconds <= 180.0, "{row:?}");
+    }
 }
 
 /// Every level's first checkpoint, encoded as the run file carries it and read

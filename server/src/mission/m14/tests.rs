@@ -657,6 +657,7 @@ fn ordinary_infantry_seeded(role: Role, jeep_condition: u8, seed: u64) {
                 true,
             )
         } else {
+            futile.observe_intent(&snapshot, &action);
             client.steer_with_equipment(
                 &mut navigator,
                 world,
@@ -678,7 +679,6 @@ fn ordinary_infantry_seeded(role: Role, jeep_condition: u8, seed: u64) {
             action.fire = false;
         }
         reload_held = action.reload;
-        futile.observe(&snapshot, &action);
         let action = tells.evade(&s.state, &snapshot, id, action);
         s.state.set_action(id, action);
         tick(&mut s);

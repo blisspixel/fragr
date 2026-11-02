@@ -392,7 +392,9 @@ impl FutileTargets {
             .any(|(id, until)| *id == target && tick < *until)
     }
 
-    pub(crate) fn observe(&mut self, snapshot: &Snapshot, action: &Action) {
+    /// Read combat intent before navigation replaces aim with route waypoints.
+    /// Pursuing an ineffective target must count even when no shot is fired.
+    pub(crate) fn observe_intent(&mut self, snapshot: &Snapshot, action: &Action) {
         let tick = snapshot.tick;
         self.resting.retain(|(_, until)| tick < *until);
         // Held aim counts as well as held fire: a target the controller only
@@ -444,4 +446,65 @@ fn open(arena: &Arena, avoid: &[Region3], me: &PlayerState, yaw: f32, length: f3
             .iter()
             .any(|region| region.contains([point[0], floor, point[2]]))
         && Navigation::walkable_in(arena, feet, [point[0], floor, point[2]])
+}
+
+#[cfg(test)]
+mod futile_tests {
+    use super::*;
+    use crate::protocol::{LookAt, Role};
+
+    fn target() -> (Snapshot, Action, Uuid) {
+        let mut state = GameState::with_map(crate::sim::MapKind::ArenaDuel, false);
+        state.seed(41);
+        let id = Uuid::from_u128(9001);
+        state.add_player(id, "Route target".into(), Role::Agent);
+        let action = Action {
+            look_at: Some(LookAt {
+                player_id: Some(id),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        (state.snapshot(), action, id)
+    }
+
+    #[test]
+    fn ineffective_pursuit_rests_even_without_firing_then_expires() {
+        let (mut snapshot, action, id) = target();
+        let mut futile = FutileTargets::default();
+        futile.observe_intent(&snapshot, &action);
+        snapshot.tick = FUTILE_TICKS;
+        futile.observe_intent(&snapshot, &action);
+        assert!(!futile.skips(id, snapshot.tick));
+        snapshot.tick += 1;
+        futile.observe_intent(&snapshot, &action);
+        assert!(futile.skips(id, snapshot.tick));
+        assert!(futile.skips(id, snapshot.tick + FUTILE_REST - 1));
+        assert!(!futile.skips(id, snapshot.tick + FUTILE_REST));
+    }
+
+    #[test]
+    fn damage_progress_and_a_different_target_get_a_fresh_window() {
+        let (mut snapshot, mut action, id) = target();
+        let mut futile = FutileTargets::default();
+        futile.observe_intent(&snapshot, &action);
+        snapshot.tick = FUTILE_TICKS;
+        snapshot.players[0].hp -= 1;
+        futile.observe_intent(&snapshot, &action);
+        snapshot.tick += FUTILE_TICKS;
+        futile.observe_intent(&snapshot, &action);
+        assert!(!futile.skips(id, snapshot.tick));
+        let other = Uuid::from_u128(9002);
+        snapshot.players[0].id = other;
+        action.look_at.as_mut().unwrap().player_id = Some(other);
+        snapshot.tick += 1;
+        futile.observe_intent(&snapshot, &action);
+        assert!(!futile.skips(other, snapshot.tick));
+        snapshot.tick += FUTILE_TICKS;
+        futile.observe_intent(&snapshot, &action);
+        assert!(!futile.skips(other, snapshot.tick));
+        snapshot.tick += 1;
+        futile.observe_intent(&snapshot, &action);
+        assert!(futile.skips(other, snapshot.tick));
+    }
 }

@@ -1379,6 +1379,78 @@ fn the_sector_9_layout_is_clear_inside_its_zones_and_near_its_pistols() {
     }
 }
 
+/// The recorded B failure was already within 25 m while still east of the
+/// dividing wall. Mirror it at A so staging does not depend on the site label.
+#[test]
+fn sector_b_loading_stack_breaks_the_lane_with_two_walkable_exits() {
+    let arena = crate::maps::arena(MapKind::Sector9);
+    assert!(!crate::combat::line_of_sight(
+        [-31.5, crate::movement::EYE_HEIGHT, 58.0],
+        [-31.5, crate::movement::EYE_HEIGHT, 30.0],
+        &arena.solids,
+    ));
+    for x in [-35.0, -28.0] {
+        let from = [x, 0.0, 55.0];
+        let to = [x, 0.0, 45.0];
+        assert!(crate::navigation::Navigation::walkable_in(arena, from, to));
+        assert!(walk_ticks(from, to).is_some(), "passage at {x}");
+    }
+}
+
+fn attack_behind_sector_wall(site: SiteId) -> (GameState, Uuid) {
+    let (mut state, _) = two_a_side(SabotageConfig {
+        live_ticks: 2000,
+        ..quick()
+    });
+    let sign = if site == SiteId::A { -1.0 } else { 1.0 };
+    let attackers = side(&state, Team::Coalition);
+    for id in &attackers {
+        put(&mut state, *id, [10.0, 0.0, sign * 42.0]);
+    }
+    for id in side(&state, Team::Union) {
+        put(&mut state, id, [-70.0, 0.0, 0.0]);
+    }
+    put(&mut state, attackers[0], [-14.65, 0.0, sign * 33.97]);
+    let sab = state.sabotage.as_mut().unwrap();
+    sab.attack_site = site;
+    sab.bot_push = false;
+    sab.phase_started = state.tick;
+    (state, attackers[0])
+}
+
+#[test]
+fn sabotage_near_site_across_a_wall_does_not_abandon_staging() {
+    for site in [SiteId::A, SiteId::B] {
+        let (mut state, lead) = attack_behind_sector_wall(site);
+        run(&mut state, 1);
+        assert!(!state.sabotage.as_ref().unwrap().bot_push, "{site:?}");
+
+        // A real foothold inside the hall starts the push, which remains
+        // committed even if that fighter then retreats behind the wall.
+        let sign = if site == SiteId::A { -1.0 } else { 1.0 };
+        put(&mut state, lead, [-30.0, 0.0, sign * 34.0]);
+        run(&mut state, 1);
+        assert!(state.sabotage.as_ref().unwrap().bot_push, "{site:?}");
+        put(&mut state, lead, [-14.65, 0.0, sign * 33.97]);
+        run(&mut state, 1);
+        assert!(state.sabotage.as_ref().unwrap().bot_push);
+    }
+}
+
+#[test]
+fn sabotage_staging_still_releases_a_gathered_team_or_a_late_straggler() {
+    let (mut late, _) = attack_behind_sector_wall(SiteId::B);
+    run(&mut late, 799);
+    assert!(!late.sabotage.as_ref().unwrap().bot_push);
+    run(&mut late, 1);
+    assert!(late.sabotage.as_ref().unwrap().bot_push);
+
+    let (mut gathered, lead) = attack_behind_sector_wall(SiteId::B);
+    put(&mut gathered, lead, [-33.0, 0.0, 60.0]);
+    run(&mut gathered, 1);
+    assert!(gathered.sabotage.as_ref().unwrap().bot_push);
+}
+
 /// Ticks for one fighter to walk from `from` to `to` on Sector 9 with the
 /// shared navigator and ordinary server movement, or None if it never arrives.
 fn walk_ticks(from: [f32; 3], to: [f32; 3]) -> Option<u32> {
