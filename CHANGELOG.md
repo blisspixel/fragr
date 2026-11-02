@@ -4,7 +4,7 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## v0.99.4 - Unreleased
+## v0.99.4 - 2026-11-02
 
 - Let Level 15 finish while carrying the temporary Article Blade. The Blade
   stays behind; permanent weapons and ammunition carry into the next level.
