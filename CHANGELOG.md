@@ -4,6 +4,19 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.4 - Unreleased
+
+- Let Level 15 finish while carrying the temporary Article Blade. The Blade
+  stays behind; permanent weapons and ammunition carry into the next level.
+- Preserve replay identity counters across checkpoint restoration, preventing
+  a restored ally from sharing an identity with a newly placed guard.
+- Improve the campaign authoring survey's supply routes and stalled encounter
+  search. Eighteen of twenty routes now finish; Levels 8 and 9 remain open.
+- Use campaign save schema 27 for the checkpoint identity state. Older saves
+  receive an incompatibility message and require a new run.
+- Fix a race in the stalled-spectator stress harness without relaxing its
+  zero-read assertion.
+
 ## v0.99.3 - 2026-11-01
 
 - Keep Sabotage attacks on their staging route until they gather, reach a

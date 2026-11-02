@@ -16,7 +16,7 @@ Scale grows with evidence: small squads (four to twelve fighters) for 1.0, then 
 
 <a id="now-in-development"></a>
 
-## Where we are (2026-11-01)
+## Where we are (2026-11-02)
 
 - **Release.** v0.99.3 is the Sector 9 approach and campaign survey checkpoint, following v0.99.2 for Local Exception naming and v0.99.1 for wave 23 (the Forward+ look pass, bots that aim by zone, checkpoints saved to disk, lore-built humour, and fair play for shots, throws and pickups). The [release page](https://github.com/blisspixel/fragr/releases/latest) records published packages, checksums and package validation. Windows human play, real controllers, fresh-player acceptance and listening remain separate unproven evidence.
 - **Campaign.** Levels 1 to 20 are connected development missions with mission-entry saves (one current save schema, no migration), finite ammunition and three continues per episode; surviving Level 20 records the campaign's survival, which opens the Still Here epilogue (capability 57) from the menu, and a run exhausted in levels 18 to 20 gets its own ending and credits. Level 1, Recall Notice, is dressed as the golden slice (#461). Level 19, Planned Works (#465), adds the jetpack and the Paver; Level 20, Local Exception (#466), adds the Surveyor; both machines carry final Inheritance models from wave 11. Art, pacing and fresh-player review are open on every level.
@@ -154,10 +154,15 @@ to finish without disabling useful supply collection on other levels. This
 changes the authoring survey, not player movement or campaign rules.
 The newly exercised resume path also preserves the deterministic identity
 counter, so restored allies cannot share an ID with a newly placed guard.
-Five routes remain incomplete: 7, 8, 9, 14 and 15. Level 14 exposes an unresolved encounter
-with an 840-second gap, so the earlier partial-route checkpoint claim is not
-whole-level acceptance. Next: resolve those route blockers (#527), starting
-with Level 7's distant marksman and Level 14's guards behind cover, then validate resume
+Wave 26 adds a bounded full-state search after the survey stops making progress,
+so Levels 7 and 14 finish without widening every encounter's initial targeting.
+It also fixes a real Level 15 departure blocker: the temporary Article Blade
+stays in its level instead of making the next mission's saved entry invalid.
+The diagnostic now completes 18 of 20 routes, with a longest completed gap of
+149 seconds. Levels 7, 14 and 15 also finish across four regression seeds.
+This is authoring evidence, not fresh-player acceptance. Levels 8 and 9 remain
+incomplete: investigate the hall approach and movement around the berth crew
+next (#527), then validate resume
 and the continue rule with human play. Fighter models follow the November 3 model credit refresh,
 alongside a recolour of the pale base agent (#530), the contrast target decision
 (#528), hardware matrix runs for the graphics gate, then call-ins and
@@ -308,7 +313,7 @@ and finds what the numbers miss; it never replaces a measurement.
 | **Audio** | Running footsteps and landings audible 20 to 30 m away and silent when walking, direction within 45 degrees; mix at -23 to -18 LUFS with true peak at or below -1 dBTP; combat always ducks music and radio | Attenuation-curve test; loudness analysis of tour audio; ducking harness | Footsteps and landings by surface, a limiter and combat ducking; mix -19 LUFS (diagnostic); no blind listening check |
 | **Maps** | Small maps crossed corner to corner in 25 s; Sabotage attackers reach a site in 15 to 25 s, defenders in 8 to 12 s, rotations 10 to 18 s; 10+ frags a minute and 3+ lead changes per free-for-all on every default map; Sabotage sides within 45 to 55% | Navmesh timing tool; bot survey | Frag pace met; lead changes short on three maps; Sabotage attack bias on two (#520) |
 | **Bots** | Four or five difficulty tiers, each beating the one below 65 to 80% of the time; no tier reacts under 150 ms; perception stays honest (sight and sound only); under 5% dithering | Bot survey win matrix; perception tests | Five tiers with zone aim; ladder steps 63 to 78% (top step just under 65%); dithering 4.4% |
-| **Campaign craft** | 8 to 15 min per level; at most 3 min between checkpoints; at most 3 enemy types per encounter outside marked brawls; every new enemy and verb taught without text before it is tested | Campaign survey times and checkpoint gaps; encounter audit | Checkpoints saved to disk; 14 complete diagnostic routes stay within 89 s; six routes incomplete, including an unresolved Level 14 encounter with an 840 s gap; brawl marking enforced |
+| **Campaign craft** | 8 to 15 min per level; at most 3 min between checkpoints; at most 3 enemy types per encounter outside marked brawls; every new enemy and verb taught without text before it is tested | Campaign survey times and checkpoint gaps; encounter audit | Checkpoints saved to disk; 18 complete diagnostic routes stay within 149 s; Levels 8 and 9 incomplete; human timing and acceptance open; brawl marking enforced |
 | **Graphics scale and auto settings** | Floor: the lowest settings hold a 1% low of 60 fps at 720p on a defined low-end reference machine. Ceiling: on a strong machine Local Exception looks great. The benchmark and auto settings choose the highest resolution and quality that still hold a 1% low of 60 fps (or the player's higher target), explain the choice in plain words, keep manual overrides, and rerun when hardware, drivers or rendering cost change. Works on NVIDIA, AMD, Intel and Apple GPUs on Windows, Linux and macOS, with a renderer fallback for very weak GPUs. Runs great on the Steam Deck: a steady 40 fps in its 40 Hz mode (1% low at or above 36) at 1280x800 on its auto-chosen settings, with a 60 fps profile where it holds, legible HUD and menus at 800p and full controller play (a store release is undecided; the research may refine these numbers) | Benchmark runs across a hardware matrix (integrated Intel, AMD APU, an older and a modern NVIDIA and AMD card, Apple Silicon, a Steam Deck); auto-tune tests for search, variance and overrides; player and developer docs ([graphics auto-tune plan](plans/graphics-autotune.md)) | Five tiers, the auto-tune, a safety valve and Steam Deck profiles exist; no hardware matrix row measured (one busy Radeon 780M only) |
 | **Performance and stability** | No frame over 50 ms after warmup on any tier; tick p99 under 25% of budget at 16 fighters and 8 spectators; a 24-hour soak with no crash; no known bug that loses a round or a save | Benchmark scenes and frame stats; bench; soak; issue triage | Tick headroom met; one GPU measured; 120 s soak only |
 | **Fair play** | A client receives only what its fighter could perceive (no wall information to modify); rate and size caps; resume and join tickets | Interest-filter tests; hardening plan checks | Fighters, shots, throws and pickups reach a fighter only as it perceives them; corner pop-in 0.26% or less up to 150 ms; inbound byte cap; no two-machine run |

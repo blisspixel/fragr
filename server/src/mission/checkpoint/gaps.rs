@@ -41,6 +41,40 @@ pub(super) struct Row {
     pub longest_gap_seconds: f64,
 }
 
+/// Full-state authoring recovery, not a fresh-player perception model. After
+/// five seconds without damage dealt or two metres of movement, search for
+/// the encounter's remaining actors. Each objective starts a fresh search.
+#[derive(Default)]
+struct RouteRecovery {
+    changed_at: u64,
+    progressed_at: u64,
+    damage: u32,
+    position: Option<[f32; 2]>,
+    searching: bool,
+}
+
+impl RouteRecovery {
+    fn observe(&mut self, tick: u64, changed_at: u64, position: [f32; 3], damage: u32) -> bool {
+        if self.changed_at != changed_at {
+            self.changed_at = changed_at;
+            self.progressed_at = tick;
+            self.position = None;
+            self.searching = false;
+        }
+        if self
+            .position
+            .is_none_or(|p| (p[0] - position[0]).hypot(p[1] - position[2]) > 2.0)
+            || self.damage != damage
+        {
+            self.position = Some([position[0], position[2]]);
+            self.damage = damage;
+            self.progressed_at = tick;
+        }
+        self.searching |= tick.saturating_sub(self.progressed_at) >= 100;
+        self.searching
+    }
+}
+
 fn configure(client: &mut MissionClient, message: &ServerMessage) -> Result<(), &'static str> {
     let ServerMessage::MapInfo {
         map_id,
@@ -171,6 +205,7 @@ fn play_until(
     };
     let mut saved_at: Option<(u64, u32)> = None;
     let mut seen_checkpoints = 0;
+    let mut recovery = RouteRecovery::default();
     while session.state.tick < MAX_TICKS {
         if stop(&session) {
             break;
@@ -238,6 +273,20 @@ fn play_until(
             .unwrap();
         let snapshot = session.state.snapshot();
         let arena = session.state.map.arena();
+        let me = snapshot.players.iter().find(|p| p.id == id).unwrap();
+        let exploring = recovery.observe(
+            session.state.tick,
+            state.changed_at,
+            [player.x, player.y, player.z],
+            me.damage,
+        );
+        let search_range = loadout
+            .weapons
+            .iter()
+            .copied()
+            .filter(|weapon| loadout.shots(*weapon).is_none_or(|shots| shots > 0))
+            .map(WeaponType::range_units)
+            .fold(20.0_f32, f32::max);
         let mut combat = control_action_with_target_filter(
             id,
             &snapshot,
@@ -248,21 +297,28 @@ fn play_until(
                 let awake = matches!(other.campaign, Some(CampaignActor::Hostile { phase, .. }) if !matches!(phase, EnemyPhase::Idle | EnemyPhase::Dead));
                 !futile.skips(other.id, session.state.tick)
                     && (other.x - me.x).hypot(other.z - me.z)
-                        <= if awake { AWAKE_RANGE } else { 20.0 }
-                    && crate::combat::line_of_sight(
-                        [
-                            me.x,
-                            me.y - crate::sim::PLAYER_FLOOR_Y + crate::movement::EYE_HEIGHT,
-                            me.z,
-                        ],
-                        [
-                            other.x,
-                            other.y - crate::sim::PLAYER_FLOOR_Y
-                                + crate::combat::aim_height(other.campaign),
-                            other.z,
-                        ],
-                        &arena.solids,
-                    )
+                        <= if exploring {
+                            search_range
+                        } else if awake {
+                            AWAKE_RANGE
+                        } else {
+                            20.0
+                        }
+                    && (exploring
+                        || crate::combat::line_of_sight(
+                            [
+                                me.x,
+                                me.y - crate::sim::PLAYER_FLOOR_Y + crate::movement::EYE_HEIGHT,
+                                me.z,
+                            ],
+                            [
+                                other.x,
+                                other.y - crate::sim::PLAYER_FLOOR_Y
+                                    + crate::combat::aim_height(other.campaign),
+                                other.z,
+                            ],
+                            &arena.solids,
+                        ))
             },
         );
         if player.hp < 70 {
@@ -294,7 +350,33 @@ fn play_until(
             &snapshot.pickups,
             combat,
         );
-        futile.observe(&snapshot, &combat);
+        let visible_target = combat
+            .look_at
+            .as_ref()
+            .and_then(|look| look.player_id)
+            .and_then(|id| snapshot.players.iter().find(|p| p.id == id))
+            .is_some_and(|target| {
+                crate::combat::line_of_sight(
+                    [
+                        player.x,
+                        player.y - crate::sim::PLAYER_FLOOR_Y + crate::movement::EYE_HEIGHT,
+                        player.z,
+                    ],
+                    [
+                        target.x,
+                        target.y - crate::sim::PLAYER_FLOOR_Y
+                            + crate::combat::aim_height(target.campaign),
+                        target.z,
+                    ],
+                    &arena.solids,
+                )
+            });
+        // Visible ineffective pursuits need the original combat intent;
+        // navigation can replace it with a waypoint. Occluded recovery
+        // targets instead get time to reach that waypoint before being timed.
+        if visible_target {
+            futile.observe(&snapshot, &combat);
+        }
         let mut action = client.steer_with_equipment(
             &mut navigator,
             navigation.as_ref().unwrap(),
@@ -303,6 +385,9 @@ fn play_until(
             combat,
             Some(&loadout),
         );
+        if !visible_target {
+            futile.observe(&snapshot, &action);
+        }
         if action.fire
             && action
                 .look_at
@@ -382,6 +467,50 @@ fn common_carrier_keeps_reachable_supply_detours() {
     let row = play(MissionId::CommonCarrier, 41);
     assert_eq!(row.outcome, "departed", "{row:?}");
     assert!(row.longest_gap_seconds <= 180.0, "{row:?}");
+}
+
+#[test]
+fn civic_pressure_valve_departs_with_the_temporary_blade() {
+    let (row, session) = play_until(MissionId::CivicPressureValve, 41, true, |_| false);
+    let player = session
+        .state
+        .players
+        .iter()
+        .find(|p| p.id == Uuid::from_u128(5270))
+        .unwrap();
+    assert!(player.inventory.owns(WeaponType::ArticleBlade));
+    let exit = crate::mission::run_file::SavedEntry::from_player(player).unwrap();
+    assert!(!exit.equipment.weapons.contains(&WeaponType::ArticleBlade));
+    assert_eq!(row.outcome, "departed", "{row:?}");
+    assert!(row.longest_gap_seconds <= 180.0, "{row:?}");
+}
+
+#[test]
+fn route_recovery_waits_for_quiet_and_resets_when_the_objective_advances() {
+    let mut recovery = RouteRecovery::default();
+    assert!(!recovery.observe(1, 1, [0.0; 3], 0));
+    assert!(!recovery.observe(80, 1, [3.0, 0.0, 0.0], 0));
+    assert!(!recovery.observe(150, 1, [3.0, 0.0, 0.0], 10));
+    assert!(!recovery.observe(249, 1, [3.0, 0.0, 0.0], 10));
+    assert!(recovery.observe(250, 1, [3.0, 0.0, 0.0], 10));
+    assert!(recovery.observe(251, 1, [6.0, 0.0, 0.0], 20));
+    assert!(!recovery.observe(252, 252, [6.0, 0.0, 0.0], 20));
+    assert!(!recovery.observe(351, 252, [6.0, 0.0, 0.0], 20));
+}
+
+#[test]
+fn distant_and_occluded_campaign_encounters_finish_across_seeds() {
+    for seed in [40, 41, 42, 43] {
+        for mission in [
+            MissionId::DeclaredGoods,
+            MissionId::LaunchAuthority,
+            MissionId::CivicPressureValve,
+        ] {
+            let row = play(mission, seed);
+            assert_eq!(row.outcome, "departed", "seed {seed}: {row:?}");
+            assert!(row.longest_gap_seconds <= 180.0, "seed {seed}: {row:?}");
+        }
+    }
 }
 
 #[test]

@@ -35,7 +35,7 @@ pub(crate) use m19_outcome::M19Outcome;
 /// a document with any other version is refused as incompatible and the player
 /// starts a new run. Bump this on any change to the serialized shape and never
 /// reuse an earlier number, so a stale file can never be mistaken for current.
-pub(super) const RUN_FILE_VERSION: u32 = 26;
+pub(super) const RUN_FILE_VERSION: u32 = 27;
 const M02_MISSION: &str = "persons_unknown";
 const M03_MISSION: &str = "scheduled_service";
 const M04_MISSION: &str = "notice_to_vacate";
@@ -166,13 +166,30 @@ impl SavedEntry {
     }
 
     pub fn from_player(player: &Player) -> Result<Self, &'static str> {
+        // The plinth's temporary Blade stays in its level. Its remaining uses
+        // must not prevent departure, even when it is carried but not held.
+        // Work on a copy so a checkpoint or departure probe cannot spend it.
+        let equipment = if player.inventory.owns(WeaponType::ArticleBlade) {
+            let mut inventory = player.inventory.clone();
+            inventory.remove_article_blade();
+            let selected = if player.weapon == WeaponType::ArticleBlade {
+                if inventory.owns(player.last_non_blade_weapon) {
+                    player.last_non_blade_weapon
+                } else {
+                    WeaponType::Fists
+                }
+            } else {
+                player.weapon
+            };
+            inventory.saved_equipment(selected)
+        } else {
+            player.inventory.saved_equipment(player.weapon)
+        }
+        .ok_or("player equipment cannot be saved")?;
         let entry = Self {
             hp: player.hp,
             armor: player.armor,
-            equipment: player
-                .inventory
-                .saved_equipment(player.weapon)
-                .ok_or("player equipment cannot be saved")?,
+            equipment,
         };
         entry.validate()?;
         Ok(entry)
@@ -237,7 +254,7 @@ pub(crate) fn checkpoint_build() -> String {
     )
 }
 
-/// The level's latest mid-level checkpoint, saved with the run (version 26).
+/// The level's latest mid-level checkpoint, saved with the run (version 27).
 /// `state` is the checkpoint as the simulation keeps it; the world itself is
 /// rebuilt from the mission content by replaying its recorded steps, so no
 /// geometry is ever read from the file.
@@ -408,7 +425,7 @@ pub(crate) struct RunDocument {
         skip_serializing_if = "Option::is_none"
     )]
     pub m19_outcome: Option<M19Outcome>,
-    /// The level's latest checkpoint while it is being played (version 26).
+    /// The level's latest checkpoint while it is being played (version 27).
     #[serde(
         default,
         deserialize_with = "present",
@@ -1735,6 +1752,44 @@ mod tests {
         AmmoPool, BodyKind, CampaignDifficulty, EquipmentPolicy, MissionContinue, MissionPhase,
         Role, WeaponType,
     };
+
+    #[test]
+    fn departure_leaves_temporary_blade_without_spending_live_equipment() {
+        let mut state = state_with_map();
+        let id = Uuid::from_u128(1501);
+        state.add_player(id, "Blade departure".into(), Role::Human);
+        let player = state.players.iter_mut().find(|p| p.id == id).unwrap();
+        player.inventory.grant_weapon(WeaponType::Tack);
+        player.inventory.grant_weapon(WeaponType::Repeater);
+        player.inventory.grant_article_blade(7);
+        player.last_non_blade_weapon = WeaponType::Tack;
+        for held in [WeaponType::ArticleBlade, WeaponType::Repeater] {
+            player.weapon = held;
+            let before = player.inventory.state(id, held, 0).unwrap();
+            let entry = SavedEntry::from_player(player).unwrap();
+            assert_eq!(
+                entry.equipment.selected,
+                if held == WeaponType::ArticleBlade {
+                    WeaponType::Tack
+                } else {
+                    held
+                }
+            );
+            assert!(!entry.equipment.weapons.contains(&WeaponType::ArticleBlade));
+            assert!(entry.equipment.weapons.contains(&WeaponType::Repeater));
+            assert_eq!(entry.equipment.ammo, before.ammo);
+            assert_eq!(entry.equipment.personal_claims, before.personal_claims);
+            assert_eq!(player.inventory.article_blade_uses(), 7);
+            assert!(player.inventory.owns(WeaponType::ArticleBlade));
+            assert_eq!(player.weapon, held);
+        }
+        player.weapon = WeaponType::ArticleBlade;
+        player.last_non_blade_weapon = WeaponType::Sniper;
+        assert_eq!(
+            SavedEntry::from_player(player).unwrap().equipment.selected,
+            WeaponType::Fists
+        );
+    }
 
     fn state_with_map() -> GameState {
         let map = AuthoredMap::read(

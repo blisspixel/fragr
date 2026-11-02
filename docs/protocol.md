@@ -3209,7 +3209,7 @@ directory named by `LOCALEXCEPTION_RUN_DIR` or the platform data folder
 document and its validation; `run_file/store.rs` owns disk access. The file is
 private to the local child and never appears on the wire.
 
-**One schema, no migration.** The document carries `"version": 26`, the only
+**One schema, no migration.** The document carries `"version": 27`, the only
 version this build reads or writes. Any other version, older or newer, is
 refused as `incompatible` before its shape is read. Nothing is upgraded,
 archived or carried forward from earlier formats. A change to the serialized
@@ -3245,7 +3245,7 @@ replaces whatever was there, including an incompatible or corrupt file.
 **Shape.**
 
 ```json
-{"version":26,"id":"<uuid>","starting_continues":3,"remaining_continues":2,
+{"version":27,"id":"<uuid>","starting_continues":3,"remaining_continues":2,
  "level_start_continues":3,"body":"synthetic","dress":{"look":3,"accent":6},
  "rules":{"difficulty":"standard","revision":4},"content_sha256":[...32 bytes],
  "step":{"kind":"mission_entry","mission":"recall_notice",
@@ -3265,7 +3265,7 @@ equipment count is written explicitly. `failed` requires zero remaining
 continues and `pending_continue` at least one. `attempt` is derived as
 `level_start_continues - remaining_continues + 1`.
 
-**Checkpoint (version 26).** While a level is being played (`mission_entry`
+**Checkpoint (version 27).** While a level is being played (`mission_entry`
 or `pending_continue`) the document may carry `checkpoint`:
 `{"build":"<version>+<commit>","mission":"<stage>","tick":<n>,"state":{...}}`.
 `state` is the level's latest mid-level checkpoint as the simulation keeps it
@@ -3279,6 +3279,11 @@ decoding strictly as this build's state is refused with a logged reason and
 dropped, never converted, and the level starts from its entry. On reopen the
 simulation clock moves forward to the checkpoint's tick, so no tick rewinds.
 Promotion into the next mission and every terminal step drop it.
+
+Version 27 includes the deterministic replay identity counter in checkpoints
+written by surveys. Resuming takes the greater of the saved and current
+counter, so a newly placed guard cannot reuse a restored ally's identity.
+Ordinary sessions retain random identities and omit this counter.
 
 **Carried outcomes.** Each mission's optional choices are recorded once at its
 completed edge and carried unchanged through every later stage:
