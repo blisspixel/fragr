@@ -151,8 +151,10 @@ The campaign survey now tracks combat intent before navigation replaces aim.
 Levels 13 and 19 finish with bounded checkpoint gaps. Wave 25's survey also
 rejects supply detours that navigation proves unreachable, allowing Level 2
 to finish without disabling useful supply collection on other levels. This
-changes the authoring survey, not player movement or campaign rules. Five
-routes remain incomplete: 7, 8, 9, 14 and 15. Level 14 exposes an unresolved encounter
+changes the authoring survey, not player movement or campaign rules.
+The newly exercised resume path also preserves the deterministic identity
+counter, so restored allies cannot share an ID with a newly placed guard.
+Five routes remain incomplete: 7, 8, 9, 14 and 15. Level 14 exposes an unresolved encounter
 with an 840-second gap, so the earlier partial-route checkpoint claim is not
 whole-level acceptance. Next: resolve those route blockers (#527), starting
 with Level 7's distant marksman and Level 14's guards behind cover, then validate resume
