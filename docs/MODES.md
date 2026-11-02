@@ -15,7 +15,7 @@ island art and population acceptance remain open.
 Its optional [5v5 profile](plans/sabotage-five-seats.md) shipped in v0.77.0,
 with ten shared fighter seats and finite Pistol fresh starts. Human match
 acceptance remains open. A dedicated arcade server can open a local venue
-desk with `--console`, shipped in v0.78.0. `fragr-playtest --traffic` can
+desk with `--console`, shipped in v0.78.0. `localexception-playtest --traffic` can
 fill a local server with synthetic fighters and spectators. Neither one is
 a new mode. `--playlist` keeps one process up and rotates a built-in night
 list of the modes below. It is not a new mode. A playlist file is later.
@@ -155,7 +155,7 @@ acceptance remains open. Evidence lives in [the CTF plan](plans/capture-the-flag
 
 ### Rescue and Sabotage
 
-The Counter-Strike round in fragr's world, as two modes on their own dedicated
+The Counter-Strike round in Local Exception's world, as two modes on their own dedicated
 maps, the way that game split hostage and bomb maps. Both share one set of round
 rules: one life per round, attack and defend, sides swap at half, no buy shop
 and no loadouts. You fight with what the floor gives you.
@@ -173,7 +173,7 @@ three seconds of held Use inside a site's ring and defusing six at the charge;
 movement, release or damage restarts either. A planted charge runs 35 seconds
 and its clock replaces the round's. Survivors carry their weapons and armour
 into the next round; the fallen leave their best gun on the floor and start
-the next round empty, except for their side's resupply. That is fragr's loss
+the next round empty, except for their side's resupply. That is Local Exception's loss
 bonus, without a shop or a currency: each round lost climbs a side's ladder
 one rung and each round won steps it one back, and while a side is not ahead
 on rounds its fallen are reissued at its rung: the Rifle, then the Rifle and

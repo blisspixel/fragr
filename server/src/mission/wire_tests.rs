@@ -358,8 +358,10 @@ async fn drive(
 
 #[tokio::test]
 async fn live_mixed_party_and_late_spectator_observe_the_same_gate_and_departure() {
-    let fixture =
-        Fixture(std::env::temp_dir().join(format!("fragr-mission-{}.json", uuid::Uuid::new_v4())));
+    let fixture = Fixture(std::env::temp_dir().join(format!(
+        "localexception-mission-{}.json",
+        uuid::Uuid::new_v4()
+    )));
     std::fs::write(
         &fixture.0,
         serde_json::to_vec(&super::tests::definition()).unwrap(),

@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Check the exact authored lesson route with the shared movement mirror.
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	var source: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://../server/maps/test/arc_foundation_development.json"))
 	var tour: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://qa/arc-foundation-development.json"))
 	var solids: Array = []

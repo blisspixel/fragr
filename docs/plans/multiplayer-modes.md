@@ -53,7 +53,7 @@ A server runs one **rule set**: a mode plus zero or more mutators. The host
 picks it at launch:
 
 ```
-fragr-server --mode tdm --mutator rail-only --mutator two-lives
+localexception-server --mode tdm --mutator rail-only --mutator two-lives
 ```
 
 - `--mode ffa|tdm|ctf` (default `ffa`). Capture the flag runs on Arena Duel, Directive 17, or Sector 9, with no rotation. Compliance Yard, Reclamation Gulch and Tripoint Works have no stands.
@@ -211,8 +211,8 @@ at merge. Evidence recorded locally on Windows:
   17.4 (Railgun only); team Licence to Kill 23.1; Shotgun Only 18.6; Fists Only
   15.2; Golden Rail 19.6; Two Lives two rounds 14.3; team Two Lives with six
   agents 22.9, 0 spawn deaths throughout.
-- Tour (`FRAGR_QA_MODE=tdm FRAGR_QA_MUTATORS=golden-rail
-  FRAGR_QA_MANIFEST=res://qa/modes.json`, local only, not published): the chip
+- Tour (`LOCALEXCEPTION_QA_MODE=tdm LOCALEXCEPTION_QA_MUTATORS=golden-rail
+  LOCALEXCEPTION_QA_MANIFEST=res://qa/modes.json`, local only, not published): the chip
   reads TEAM DEATHMATCH // GOLDEN RAIL over the side score; nameplates carry
   [UNION] in red and [FREE] in ember; the scoreboard leads with the side score
   and tags every row. Union bodies read dark. Coalition bodies read olive

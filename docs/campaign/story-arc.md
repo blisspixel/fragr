@@ -430,7 +430,7 @@ from the narrator.
 
 Doom proves a shooter needs almost no story to be great, and Half-Life proves
 you can tell a lot of it without once taking the camera away
-([Half-Life](https://en.wikipedia.org/wiki/Half-Life_(video_game))). fragr uses
+([Half-Life](https://en.wikipedia.org/wiki/Half-Life_(video_game))). Local Exception uses
 both lessons. The fight is the scene.
 
 1. **The camera is the player's.** No cutscene inside a level except three short

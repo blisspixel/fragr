@@ -38,8 +38,8 @@ const FREE_PAIR_HIGH_CONTRAST: Array[Color] = [Color("ffd23f"), Color("3d50ff")]
 ## tone is a step lighter so it reads as text on the HUD's ink.
 const FREE_BLUE: Color = Color("5d6cff")
 const FREE_BLUE_LABEL: Color = Color("8a95ff")
-## The player's team colour choice, FragrSettings TEAM_STANDARD,
-## TEAM_HIGH_CONTRAST or TEAM_COLOUR_BLIND. FragrSettings.apply sets it; a
+## The player's team colour choice, LocalExceptionSettings TEAM_STANDARD,
+## TEAM_HIGH_CONTRAST or TEAM_COLOUR_BLIND. LocalExceptionSettings.apply sets it; a
 ## call that passes its own choice wins. Presentation only.
 static var palette: int = 0
 ## Inheritance restoration machines: never on a free body.
@@ -245,9 +245,9 @@ static func team_accent(team: String, choice: int = -1) -> Color:
 			return UNION_RED
 		"coalition":
 			match chosen(choice):
-				FragrSettings.TEAM_HIGH_CONTRAST:
+				LocalExceptionSettings.TEAM_HIGH_CONTRAST:
 					return FREE_AMBER_HIGH_CONTRAST
-				FragrSettings.TEAM_COLOUR_BLIND:
+				LocalExceptionSettings.TEAM_COLOUR_BLIND:
 					return FREE_BLUE
 			return FREE_AMBER
 	return Color(0, 0, 0, 0)
@@ -256,12 +256,12 @@ static func team_accent(team: String, choice: int = -1) -> Color:
 ## The team colour choice in force: `choice` when given, else the setting.
 static func chosen(choice: int = -1) -> int:
 	var value: int = palette if choice < 0 else choice
-	return value if value in [FragrSettings.TEAM_STANDARD, FragrSettings.TEAM_HIGH_CONTRAST, FragrSettings.TEAM_COLOUR_BLIND] else FragrSettings.TEAM_STANDARD
+	return value if value in [LocalExceptionSettings.TEAM_STANDARD, LocalExceptionSettings.TEAM_HIGH_CONTRAST, LocalExceptionSettings.TEAM_COLOUR_BLIND] else LocalExceptionSettings.TEAM_STANDARD
 
 
 ## The two accents of a free-versus-free match, in side order.
 static func free_pair(choice: int = -1) -> Array[Color]:
-	if chosen(choice) != FragrSettings.TEAM_STANDARD:
+	if chosen(choice) != LocalExceptionSettings.TEAM_STANDARD:
 		return FREE_PAIR_HIGH_CONTRAST.duplicate()
 	return [FREE_EMBER, FREE_MAGENTA]
 

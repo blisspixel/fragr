@@ -1,11 +1,11 @@
 //! Observer-only receipts for the bounded Planned Works lesson. Nothing in
 //! this module feeds the controller or changes simulation state.
 use super::{Profile, DT};
-use fragr_server::movement::{grounded, Arena};
-use fragr_server::protocol::{
+use localexception_server::movement::{grounded, Arena};
+use localexception_server::protocol::{
     CampaignDifficulty, MissionState, PlayerState, ServerMessage, Snapshot,
 };
-use fragr_server::sim::PLAYER_FLOOR_Y;
+use localexception_server::sim::PLAYER_FLOOR_Y;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, VecDeque};
 use uuid::Uuid;
@@ -299,7 +299,7 @@ impl Recorder {
                                     && (feet[1] - hop.landing[1]).abs() <= 0.05
                                     && geometry.objectives.get(1).is_some_and(|objective| {
                                         matches!(&objective.action,
-                                            fragr_server::protocol::MissionObjectiveAction::Arrival { region, .. }
+                                            localexception_server::protocol::MissionObjectiveAction::Arrival { region, .. }
                                             if region.contains(feet))
                                     })
                             })

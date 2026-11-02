@@ -1911,7 +1911,7 @@ pub(crate) fn walk_route(kind: MapKind, from: [f32; 3], to: [f32; 3], bound: u32
     for elapsed in 0..bound {
         let p = &state.players[0];
         let here = [p.x, p.y - PLAYER_FLOOR_Y, p.z];
-        if std::env::var_os("FRAGR_ROUTE_TRACE").is_some() && elapsed % 40 == 0 {
+        if std::env::var_os("LOCALEXCEPTION_ROUTE_TRACE").is_some() && elapsed % 40 == 0 {
             eprintln!("route t{elapsed} {here:?}");
         }
         if (here[0] - to[0]).hypot(here[2] - to[2]) < 0.6 && (here[1] - to[1]).abs() < 0.2 {
@@ -1943,7 +1943,7 @@ pub(crate) fn walk_route(kind: MapKind, from: [f32; 3], to: [f32; 3], bound: u32
 
 /// Prints the layout measurements the wave 19 review compares before and
 /// after: longest level sightlines, the navigation graph and crossing walks.
-/// `cargo test -p fragr-server --lib yard_and_water_layout_table -- --ignored --nocapture`
+/// `cargo test -p localexception-server --lib yard_and_water_layout_table -- --ignored --nocapture`
 #[cfg(test)]
 #[test]
 #[ignore]

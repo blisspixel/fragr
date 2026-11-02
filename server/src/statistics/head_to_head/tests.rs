@@ -87,7 +87,7 @@ fn one_schema_round_trips_and_anything_else_is_refused() {
 #[test]
 fn the_book_saves_and_loads_through_a_file_and_refuses_a_bad_one() {
     let directory = std::env::temp_dir().join(format!(
-        "fragr-head-to-head-{}-{}",
+        "localexception-head-to-head-{}-{}",
         std::process::id(),
         uuid::Uuid::new_v4()
     ));

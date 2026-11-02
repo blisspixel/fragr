@@ -1,13 +1,13 @@
 // Shared build metadata. Each binary crate calls this so `--version`,
 // `/status` `build.release`, and the MCP `serverInfo.version` are one string:
-// `FRAGR_BUILD_VERSION` when a release build sets it, otherwise
+// `LOCALEXCEPTION_BUILD_VERSION` when a release build sets it, otherwise
 // `git describe --tags --always`.
 
 use std::process::Command;
 
 pub fn emit() {
-    let commit = nonempty("FRAGR_BUILD_COMMIT").or_else(|| git(&["rev-parse", "HEAD"]));
-    let release = nonempty("FRAGR_BUILD_VERSION")
+    let commit = nonempty("LOCALEXCEPTION_BUILD_COMMIT").or_else(|| git(&["rev-parse", "HEAD"]));
+    let release = nonempty("LOCALEXCEPTION_BUILD_VERSION")
         .and_then(|value| release_token(&value))
         .or_else(|| {
             git(&["describe", "--tags", "--always", "--abbrev=12"])
@@ -17,12 +17,12 @@ pub fn emit() {
         .clone()
         .unwrap_or_else(|| std::env::var("CARGO_PKG_VERSION").unwrap_or_else(|_| "0.1.0".into()));
     if let Some(commit) = commit.filter(|value| commit_token(value)) {
-        println!("cargo:rustc-env=FRAGR_BUILD_COMMIT={commit}");
+        println!("cargo:rustc-env=LOCALEXCEPTION_BUILD_COMMIT={commit}");
     }
-    println!("cargo:rustc-env=FRAGR_BUILD_VERSION={cli}");
-    println!("cargo:rustc-env=FRAGR_CLI_VERSION={cli}");
-    println!("cargo:rerun-if-env-changed=FRAGR_BUILD_COMMIT");
-    println!("cargo:rerun-if-env-changed=FRAGR_BUILD_VERSION");
+    println!("cargo:rustc-env=LOCALEXCEPTION_BUILD_VERSION={cli}");
+    println!("cargo:rustc-env=LOCALEXCEPTION_CLI_VERSION={cli}");
+    println!("cargo:rerun-if-env-changed=LOCALEXCEPTION_BUILD_COMMIT");
+    println!("cargo:rerun-if-env-changed=LOCALEXCEPTION_BUILD_VERSION");
     // HEAD is usually a symbolic ref: advancing a branch leaves HEAD itself
     // unchanged. Git resolves shared refs correctly for linked worktrees too.
     // Watching refs also catches new/deleted tags that change `git describe`.

@@ -184,7 +184,7 @@ static func default_slots(action: String) -> Array[String]:
 			keyboard += 1
 	return slots
 
-static func slots_for(preferences: FragrSettings, action: String) -> Array[String]:
+static func slots_for(preferences: LocalExceptionSettings, action: String) -> Array[String]:
 	var stored: Array[String] = parse(preferences.get_value("bindings", action))
 	return stored if stored.size() == SLOTS else default_slots(action)
 
@@ -195,7 +195,7 @@ static func _deadzone(action: String) -> float:
 	return 0.5
 
 ## Rebuild every rebindable action. Safe to call repeatedly.
-static func apply(preferences: FragrSettings) -> void:
+static func apply(preferences: LocalExceptionSettings) -> void:
 	for action: String in ACTIONS:
 		if not InputMap.has_action(action):
 			InputMap.add_action(action, _deadzone(action))
@@ -206,13 +206,13 @@ static func apply(preferences: FragrSettings) -> void:
 				InputMap.action_add_event(action, event_from_token(token))
 
 ## Store an action's slots, keeping the file to real changes only.
-static func store(preferences: FragrSettings, action: String, slots: Array[String]) -> void:
+static func store(preferences: LocalExceptionSettings, action: String, slots: Array[String]) -> void:
 	preferences.set_value("bindings", action, "" if slots == default_slots(action) else encode(slots))
 
 ## Put `token` in one slot. The same input leaves any other action whose
 ## context overlaps, and the other keyboard slot of this action. Returns the
 ## actions that lost it, so the page can say where it came from.
-static func assign(preferences: FragrSettings, action: String, slot: int, token: String) -> Array[String]:
+static func assign(preferences: LocalExceptionSettings, action: String, slot: int, token: String) -> Array[String]:
 	var displaced: Array[String] = []
 	if action not in ACTIONS or slot < 0 or slot >= SLOTS or not valid_token(token):
 		return displaced
@@ -237,7 +237,7 @@ static func assign(preferences: FragrSettings, action: String, slot: int, token:
 
 ## Pairs of actions that share an input in an overlapping context. `assign`
 ## never creates one; a hand-edited settings file can.
-static func conflicts(preferences: FragrSettings) -> Array[Dictionary]:
+static func conflicts(preferences: LocalExceptionSettings) -> Array[Dictionary]:
 	var found: Array[Dictionary] = []
 	var owners: Dictionary = {}
 	for action: String in ACTIONS:
@@ -252,7 +252,7 @@ static func conflicts(preferences: FragrSettings) -> Array[Dictionary]:
 			(owners[token] as Array).append(action)
 	return found
 
-static func reset(preferences: FragrSettings) -> void:
+static func reset(preferences: LocalExceptionSettings) -> void:
 	preferences.reset_section("bindings")
 
 ## First live token for an action on one device family, read from the InputMap

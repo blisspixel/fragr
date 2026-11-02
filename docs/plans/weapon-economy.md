@@ -69,7 +69,7 @@ The weapon pads are decoration.
 
 That explains a measurement that has been sitting in the plans looking like a balance problem. The flechette is 65 to 75 percent of all shots fired and the rail is 2 to 4 percent, and no amount of tuning the weapon table was ever going to move that, because there was no cost to holding the best general-purpose gun and no reason to walk anywhere.
 
-So this plan is not "add ammo to fragr". It is: the pickup economy does not exist yet, and ammo is the thing that makes it exist. One line gates the swap on a set of owned weapons. Everything below is what that line needs around it to be fun rather than annoying.
+So this plan is not "add ammo to Local Exception". It is: the pickup economy does not exist yet, and ammo is the thing that makes it exist. One line gates the swap on a set of owned weapons. Everything below is what that line needs around it to be fun rather than annoying.
 
 ## The feel to aim at
 
@@ -140,7 +140,7 @@ What this buys is a window. Every life has a few seconds in it where you are hol
 
 If the measurements say it does not work, the fix is a shorter walk to the sidearm, not a weapon in the loadout. The spawn-death threshold now judges the interval rather than the raw ratio, so it will report a real regression here instead of noise, and time-to-first-shot after respawn is the number that says whether the walk is the right length.
 
-**The sidearm refills itself.** One tack every two seconds while below forty and while you have not fired for a second. Filling from empty takes eighty seconds, so it is a safety net across a round rather than a resupply. This is fragr's version of the chainsaw in Doom 2016: it is what lets the other three pools be genuinely tight without the game ever reaching a dead end. You can always fight. You frequently cannot fight the way you want to.
+**The sidearm refills itself.** One tack every two seconds while below forty and while you have not fired for a second. Filling from empty takes eighty seconds, so it is a safety net across a round rather than a resupply. This is Local Exception's version of the chainsaw in Doom 2016: it is what lets the other three pools be genuinely tight without the game ever reaching a dead end. You can always fight. You frequently cannot fight the way you want to.
 
 **Ammo cannot be denied, geometrically.** The four small ammo pads sit on a ring that takes about sixteen seconds to circle against a ten second respawn clock. A denier is always behind the respawns. Starving an opponent of ammo is not unlikely, it is impossible for one player.
 

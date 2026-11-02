@@ -1,6 +1,6 @@
 extends SceneTree
 ## Run from the repo root: godot --headless --path client --script ../tools/bake_icon.gd
-## Draws the fragr mark (ring, inverted triangle, ember eye) as hard pixels at 16
+## Draws the localexception mark (ring, inverted triangle, ember eye) as hard pixels at 16
 ## and 32, then writes the project SVG, the Windows ICO and the macOS ICNS from
 ## those two grids. Larger sizes are nearest-neighbour multiples, so every size
 ## stays pixel-crisp. Colours come from docs/palette.json.

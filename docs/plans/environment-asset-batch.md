@@ -87,7 +87,7 @@ installed and native host valid, but the required extension absent from the
 selected profile. No browser configuration was changed.
 
 The exact free price command passed on 2026-09-30:
-`cargo run -p fragr-spritegen --locked -- price --spec tools/spritegen/specs/low-water-environment.json`.
+`cargo run -p localexception-spritegen --locked -- price --spec tools/spritegen/specs/low-water-environment.json`.
 Both 2k tiles were estimated at $0.028 each, $0.056 for the complete batch.
 The log is `.agents/m04-buildout-20260930/environment-assets-price.log`.
 No image-generation request has been submitted. Paid generation remains blocked

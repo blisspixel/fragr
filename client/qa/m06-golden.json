@@ -1,5 +1,5 @@
 {
-  "comment": "M06 golden-slice art review. Eye-height spectator views of every beat on the authored route, with the guards and both Turrets that are placed from the start. Run with FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m06_port_of_entry.json. Look at each still against docs/design/moon.md, the art bible and the Recall Notice bar; this is art review, not combat or fresh-player evidence.",
+  "comment": "M06 golden-slice art review. Eye-height spectator views of every beat on the authored route, with the guards and both Turrets that are placed from the start. Run with LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MAP_FILE=server/maps/m06_port_of_entry.json. Look at each still against docs/design/moon.md, the art bible and the Recall Notice bar; this is art review, not combat or fresh-player evidence.",
   "width": 1280,
   "height": 720,
   "states": [

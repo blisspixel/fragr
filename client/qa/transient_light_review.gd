@@ -7,8 +7,8 @@ extends "res://scripts/qa_tour.gd"
 ## A frame over the limit is saved with the lights that were up. Observation
 ## only: the match, the route and the captures are the tour's own.
 ##
-## Run with `FRAGR_QA_SCRIPT=res://qa/transient_light_review.gd
-## FRAGR_QA_MANIFEST=res://qa/transient-lights.json tools/qa_tour.sh <out>`.
+## Run with `LOCALEXCEPTION_QA_SCRIPT=res://qa/transient_light_review.gd
+## LOCALEXCEPTION_QA_MANIFEST=res://qa/transient-lights.json tools/qa_tour.sh <out>`.
 ## `transient-lights.json` lands in <out>.
 
 ## A pixel this bright on every channel reads as blown-out white.

@@ -1,9 +1,9 @@
 //! All Systems Normal: connected Episode V Recovery Square integration tests.
-use fragr_server::maps::{AuthoredSource, RuntimeMap};
-use fragr_server::protocol::{
+use localexception_server::maps::{AuthoredSource, RuntimeMap};
+use localexception_server::protocol::{
     EquipmentPolicy, MissionId, MissionPhase, MissionReady, Role, ServerMessage,
 };
-use fragr_server::session::GameSession;
+use localexception_server::session::GameSession;
 use uuid::Uuid;
 
 #[test]

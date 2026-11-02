@@ -4,21 +4,21 @@
 //! contest, focus fire on one body, hits landed outside the shooter's view,
 //! and which guns do the work. A survey is behaviour evidence for rule bots,
 //! never a human fun verdict.
-use fragr_server::fun_metrics::{MatchTally, Observer};
-use fragr_server::net::GameCommand;
-use fragr_server::protocol::{
+use localexception_server::fun_metrics::{MatchTally, Observer};
+use localexception_server::net::GameCommand;
+use localexception_server::protocol::{
     AmmoPool, BodyKind, GameEvent, GameMode, Role, ServerMessage, WeaponType,
 };
-use fragr_server::rules::RuleSet;
-use fragr_server::session::{GameSession, Recipient};
-use fragr_server::sim::{BotSkill, MapKind, MatchConfig};
+use localexception_server::rules::RuleSet;
+use localexception_server::session::{GameSession, Recipient};
+use localexception_server::sim::{BotSkill, MapKind, MatchConfig};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap, HashSet};
 use uuid::Uuid;
 
 // The columns a host's fun metrics and the survey share live with the
 // recorder, so both readers fold one way (`fun_metrics::summary`).
-pub use fragr_server::fun_metrics::summary::{
+pub use localexception_server::fun_metrics::summary::{
     check_map_targets, shared_row, ScenarioReport, Spot, MAP_CONTACT_SECONDS, MAP_DITHER_SHARE,
     MAP_DUEL_FRAGS_PER_MINUTE, MAP_FRAGS_PER_MINUTE, MAP_LEAD_CHANGES, MAP_TOP_GUN_SHARE,
 };
@@ -116,8 +116,8 @@ impl Default for BotSurveyConfig {
 }
 
 /// The survey's name for a struck zone, as the shared tables spell it.
-fn zone_name(zone: fragr_server::protocol::HitZone) -> &'static str {
-    use fragr_server::protocol::HitZone;
+fn zone_name(zone: localexception_server::protocol::HitZone) -> &'static str {
+    use localexception_server::protocol::HitZone;
     match zone {
         HitZone::Head => "head",
         HitZone::Torso => "torso",
@@ -238,7 +238,7 @@ pub struct BotSurveyReport {
 
 /// The survey's own counts beside the shared match tally. Everything a
 /// host's fun metrics also measure lives in `shared`, folded by the
-/// server's observer (`fragr_server::fun_metrics`); what is left here is
+/// server's observer (`localexception_server::fun_metrics`); what is left here is
 /// bot behaviour only a bots-only survey can read: volleys, view, stalls,
 /// walls, what a body carries and the Rocket's lives.
 #[derive(Default)]
@@ -306,9 +306,9 @@ fn track_bodies(
     still: &mut HashMap<Uuid, ([f32; 3], u32)>,
     tally: &mut Tally,
 ) {
-    use fragr_server::movement::{BODY_HEIGHT, CONTACT_EPSILON};
-    use fragr_server::protocol::VehicleSeat;
-    use fragr_server::sim::PLAYER_FLOOR_Y;
+    use localexception_server::movement::{BODY_HEIGHT, CONTACT_EPSILON};
+    use localexception_server::protocol::VehicleSeat;
+    use localexception_server::sim::PLAYER_FLOOR_Y;
     let arena = session.state.current_arena();
     for player in &session.state.players {
         let alive = player.hp > 0 && player.respawn_timer.is_none();
@@ -414,7 +414,7 @@ pub fn run_bot_survey(config: &BotSurveyConfig) -> BotSurveyReport {
 }
 
 fn fold(scenario: &Scenario, tally: &Tally) -> ScenarioReport {
-    use fragr_server::fun_metrics::{per_minute, share};
+    use localexception_server::fun_metrics::{per_minute, share};
     let live = tally.shared.live_ticks;
     let base = shared_row(scenario.label(), tally.matches, &tally.shared);
     let (single_head, single_all) = tally
@@ -721,7 +721,7 @@ fn survey_match(
                     if let Some(claims) = tally.pad_claims.get_mut(pickup_id.as_str()) {
                         *claims += 1;
                     }
-                    if pickup_id.starts_with(fragr_server::sim::drops::DROPPED_GUN_PREFIX)
+                    if pickup_id.starts_with(localexception_server::sim::drops::DROPPED_GUN_PREFIX)
                         && weapon == WeaponType::Rocket.name()
                     {
                         tally.rocket_drop_claims += 1;
@@ -991,7 +991,7 @@ mod tests {
         let player = &mut session.state.players[0];
         player.x = (solid.min_x + solid.max_x) * 0.5;
         player.z = (solid.min_z + solid.max_z) * 0.5;
-        player.y = fragr_server::sim::PLAYER_FLOOR_Y;
+        player.y = localexception_server::sim::PLAYER_FLOOR_Y;
         let mut tally = Tally::default();
         let half = MapKind::ArenaDuel.half_extent();
         track_bodies(&session, 1, 0, half, &mut HashMap::new(), &mut tally);

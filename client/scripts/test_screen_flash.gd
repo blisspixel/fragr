@@ -17,7 +17,7 @@ func _run() -> void:
 	root.add_child(flash)
 
 	# 1. Defaults
-	_check(flash.flash_mode == FragrSettings.FLASHES_REDUCED, "defaults to Reduced mode")
+	_check(flash.flash_mode == LocalExceptionSettings.FLASHES_REDUCED, "defaults to Reduced mode")
 	_check(flash.active == false and flash.visible == false, "initially inactive and invisible")
 
 	# 2. Time-injected rate limit in Reduced mode
@@ -25,7 +25,7 @@ func _run() -> void:
 	flash.time_source = func() -> float: return mock_clock[0]
 
 	# Clear any previous tree history for isolated test
-	root.remove_meta("fragr_flash_history")
+	root.remove_meta("localexception_flash_history")
 	flash._history.clear()
 
 	_check(flash.trigger("damage", MenuTheme.DANGER), "impulse 1 admitted at t=10.0")
@@ -46,13 +46,13 @@ func _run() -> void:
 	_check(not flash.trigger("damage", MenuTheme.DANGER), "impulse 7 rejected: budget full again (10.2, 10.4, 11.05)")
 
 	# 3. Off mode clears and suppresses
-	flash.set_flash_mode(FragrSettings.FLASHES_OFF)
+	flash.set_flash_mode(LocalExceptionSettings.FLASHES_OFF)
 	_check(not flash.active and not flash.visible, "switching to Off clears active flash")
 	mock_clock[0] = 15.0
 	_check(not flash.trigger("damage", MenuTheme.DANGER), "Off mode suppresses all impulses")
 
 	# 4. Full mode
-	flash.set_flash_mode(FragrSettings.FLASHES_FULL)
+	flash.set_flash_mode(LocalExceptionSettings.FLASHES_FULL)
 	mock_clock[0] = 20.0
 	_check(flash.trigger("damage", MenuTheme.DANGER), "Full mode admits impulse")
 
@@ -63,9 +63,9 @@ func _run() -> void:
 
 	# 6. Shared tree ledger survives replacement
 	mock_clock[0] = 30.0
-	flash.set_flash_mode(FragrSettings.FLASHES_REDUCED)
+	flash.set_flash_mode(LocalExceptionSettings.FLASHES_REDUCED)
 	flash._history.clear()
-	root.remove_meta("fragr_flash_history")
+	root.remove_meta("localexception_flash_history")
 	flash.trigger("damage", MenuTheme.DANGER)
 	mock_clock[0] = 30.1
 	flash.trigger("damage", MenuTheme.DANGER)
@@ -80,7 +80,7 @@ func _run() -> void:
 	_check(not flash2.trigger("damage", MenuTheme.DANGER), "new ScreenFlash inherits tree history and enforces rate limit")
 	flash2.free()
 
-	root.remove_meta("fragr_flash_history")
+	root.remove_meta("localexception_flash_history")
 
 	if _failures == 0:
 		print("test_screen_flash: PASS rate limit, rolling window, off suppression, magenta prevention, and ledger sharing")

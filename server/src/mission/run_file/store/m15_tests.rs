@@ -95,7 +95,8 @@ fn m15_promotion_retains_all_receipts_and_exact_stock_with_refill() {
 #[test]
 fn m15_locked_promotion_keeps_the_source_when_interrupted() {
     let source = m14_tests::completed_launch();
-    let directory = std::env::temp_dir().join(format!("fragr-stadium-edge-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-stadium-edge-{}", Uuid::new_v4()));
     let store = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
     store.save(&source).unwrap();
     let bytes = fs::read(directory.join(RUN_NAME)).unwrap();

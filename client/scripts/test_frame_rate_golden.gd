@@ -27,7 +27,7 @@ var _states: int = 0
 
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	var file: FileAccess = FileAccess.open(LIVE_GOLDEN_PATH, FileAccess.READ)
 	if file == null:
 		_fail("cannot open " + LIVE_GOLDEN_PATH)

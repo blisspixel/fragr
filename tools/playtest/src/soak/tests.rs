@@ -203,16 +203,16 @@ fn memory_growth_is_bounded_and_missing_memory_is_a_note() {
 #[test]
 fn os_memory_reports_parse_and_reject_garbage() {
     assert_eq!(
-        parse_proc_status("Name:\tfragr-server\nVmPeak:\t 99 kB\nVmRSS:\t   12345 kB\n"),
+        parse_proc_status("Name:\tlocalexception-server\nVmPeak:\t 99 kB\nVmRSS:\t   12345 kB\n"),
         Some(12345 * 1024)
     );
     assert_eq!(parse_proc_status("VmRSS: lots"), None);
     assert_eq!(parse_proc_status(""), None);
     assert_eq!(parse_ps_rss("  2048\n"), Some(2048 * 1024));
     assert_eq!(parse_ps_rss(""), None);
-    let csv = "\"fragr-server.exe\",\"4242\",\"Console\",\"1\",\"45,678 K\"\r\n";
+    let csv = "\"localexception-server.exe\",\"4242\",\"Console\",\"1\",\"45,678 K\"\r\n";
     assert_eq!(parse_tasklist_csv(csv, 4242), Some(45_678 * 1024));
-    let dotted = "\"fragr-server.exe\",\"77\",\"Services\",\"0\",\"1.234.567 K\"";
+    let dotted = "\"localexception-server.exe\",\"77\",\"Services\",\"0\",\"1.234.567 K\"";
     assert_eq!(parse_tasklist_csv(dotted, 77), Some(1_234_567 * 1024));
     assert_eq!(parse_tasklist_csv(csv, 99), None);
     assert_eq!(
@@ -285,7 +285,10 @@ async fn status_fetch_reports_a_closed_port() {
 
 #[tokio::test]
 async fn a_missing_binary_is_a_start_error() {
-    let dir = std::env::temp_dir().join(format!("fragr-soak-missing-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!(
+        "localexception-soak-missing-{}",
+        std::process::id()
+    ));
     std::fs::create_dir_all(&dir).unwrap();
     let error = run_soak(SoakConfig {
         seconds: 2,
@@ -296,7 +299,7 @@ async fn a_missing_binary_is_a_start_error() {
         map: MapKind::ArenaDuel,
         map_rotate: false,
         seed: 1,
-        launch: Launch::Binary(dir.join("no-such-fragr-server")),
+        launch: Launch::Binary(dir.join("no-such-localexception-server")),
         log: dir.join("missing.ndjson"),
         fun_metrics: None,
     })
@@ -334,7 +337,7 @@ async fn memory_probe_yields_to_clients_on_the_same_runtime() {
 
 #[tokio::test]
 async fn a_short_in_process_soak_samples_and_passes() {
-    let dir = std::env::temp_dir().join(format!("fragr-soak-test-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("localexception-soak-test-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     let log = dir.join("soak.ndjson");
     let verdict = run_soak(SoakConfig {
@@ -382,9 +385,10 @@ async fn a_short_in_process_soak_samples_and_passes() {
     assert_eq!(first["ops"]["clients"].as_array().unwrap().len(), 3);
     assert_eq!(first["fun_metrics"], true, "/status says the tally is on");
     // Stopping mid-match files the match played so far, unfinished.
-    let (records, refused) =
-        fragr_server::fun_metrics::FunStore::read_all(&dir.join("run").join("fun-metrics"))
-            .unwrap();
+    let (records, refused) = localexception_server::fun_metrics::FunStore::read_all(
+        &dir.join("run").join("fun-metrics"),
+    )
+    .unwrap();
     assert!(refused.is_empty(), "{refused:?}");
     assert_eq!(records.len(), 1, "one match, one file");
     assert!(!records[0].finished && records[0].tally.live_ticks > 0);

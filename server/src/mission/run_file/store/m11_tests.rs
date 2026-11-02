@@ -214,7 +214,8 @@ fn m11_locked_m10_edge_keeps_stock_and_outcomes_and_does_not_refill() {
     assert!(next
         .promote_next(MissionId::RightOfSearch, m09_tests::HASHES[10])
         .is_err());
-    let directory = std::env::temp_dir().join(format!("fragr-m11-edge-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-m11-edge-{}", Uuid::new_v4()));
     let store = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
     assert!(
         RunStore::open_with_hashes(&directory, m09_tests::HASHES).is_err(),

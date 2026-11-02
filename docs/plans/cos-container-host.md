@@ -7,7 +7,7 @@ is $0.
 ## Goal
 
 Replace the Debian installer placeholder with a reviewable, single-match
-Container-Optimized OS boot path for the tested `fragr-server` image. Keep the
+Container-Optimized OS boot path for the tested `localexception-server` image. Keep the
 authoritative game on the same WebSocket protocol and port. Deploy only an
 exact published image digest and a pinned join-secret version. Use one VM
 identity with Artifact Registry Reader on one repository and Secret Accessor
@@ -46,7 +46,7 @@ cannot be read, Secret Manager access fails, or the secret value is invalid.
 The game firewall has no public source range in the default plan. A configured
 source range is only a narrow test allowance: plain WebSocket traffic and
 current ticket distribution still need an end-to-end public admission design.
-The server reads `FRAGR_JOIN_SECRET` from an environment variable, so the
+The server reads `LOCALEXCEPTION_JOIN_SECRET` from an environment variable, so the
 host launcher must briefly stage it in root-only tmpfs for Docker's env file.
 That is a current application boundary, not a general secret storage scheme.
 The shell parser accepts the documented Secret Manager `payload.data` shape

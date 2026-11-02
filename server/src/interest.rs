@@ -29,7 +29,7 @@
 //! - A sighting is kept for [`SEEN_GRACE`] after the last clear line, so a
 //!   body that steps back behind cover does not blink.
 //!
-//! `fragr-playtest --interest-survey` measures how often a body still turns
+//! `localexception-playtest --interest-survey` measures how often a body still turns
 //! visible before its row is drawn (docs/BENCHMARK.md).
 //!
 //! **Always seen:** the reader itself, team-mates in a team mode, campaign
@@ -168,7 +168,7 @@ impl View {
     }
 }
 
-/// Counters for the measurements (`bench`, `fragr-playtest --interest`).
+/// Counters for the measurements (`bench`, `localexception-playtest --interest`).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct InterestCounts {
     /// Reader and target pairs decided this tick.

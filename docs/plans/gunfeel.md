@@ -16,7 +16,7 @@ placement, weapon animation, tuning sweeps, and gamepad curves remain open.
 
 Make shooting and aiming feel like the games that got it right, with numbers taken from their sources rather than from taste, and with the parameters in one place so the playtest harness and the QA tour can sweep them. This plan carries the research of 2026-09-18 and the starting parameter set it produced. Movement plumbing lives in `buttery-controls.md`; this plan owns what the weapons and the aim do once the plumbing is honest.
 
-Unit note: one fragr unit is one metre. Classic values are converted at one Quake or Hammer unit equals one inch, which is the common convention and not a claim from id or Valve.
+Unit note: one Local Exception unit is one metre. Classic values are converted at one Quake or Hammer unit equals one inch, which is the common convention and not a claim from id or Valve.
 
 ## What a firing frame actually shows (2026-09-19)
 
@@ -61,7 +61,7 @@ table cones.
 | Rail | 75 / 2.00 s / 0.04 / 100 | 80 / 1.00 s / 0.012 standing, 0.004 moving / 60 / no falloff / 0.35 s switch | Two shots in 1.0 s mirrors Quake 3's rail (100 damage, 1.5 s). 0.012 radians is 0.7 degrees, near Quake 3's zero-spread rail. Range 60 fits a 50 unit arena. |
 | Scatter | 40 / 0.45 s / one ray in 0.20 / 12 (2026-09-19 to 09-24) | **shipped 2026-09-24**: 7 pellets of 10 / 0.60 s / 0.095 per pellet / 12 / each pellet full to 4 units then linear to 0.35x at 12 / 0.20 s switch | Two full blasts kill bare in 0.60 s, three through full armour in 1.20 s. The old single ray in an 11 degree cone often missed a body at arm's length; seven pellets in 5.4 degrees all land at four units and about half at eight. Doom's count; banded falloff follows Titanfall 2 and Counter-Strike. See [`boomer-ammo-and-pellets.md`](./boomer-ammo-and-pellets.md). Wave 4 (`wave4/bots`) adds the meatshot: inside 2 units each pellet does 15, so one blast with every pellet landing (105) puts a bare fighter down, and the TTK harness (`check_meatshot`) holds both that and the two blasts a step further out. |
 | Movement inaccuracy | none | cone multiplied by a lerp from 1.0 to 0.40 with speed over top speed, recovering with a 0.10 s time constant, no penalty below 30 percent of top speed | Counter-Strike's penalty is a pure function of current speed and is zero below 34 percent of the weapon's own maximum. New mechanic. |
-| Time to kill | 1.5 to 3.5 s | 0.6 to 1.2 s bare, under 1.8 s through full armour | Counter-Strike's rifle is 0.20 to 0.30 s, Valorant's 0.21, and a modern shooter benchmark is 0.2 to 0.3 s close quarters. fragr is Quake-slow in a Counter-Strike-sized arena with no vertical escape, which is the worst of both. |
+| Time to kill | 1.5 to 3.5 s | 0.6 to 1.2 s bare, under 1.8 s through full armour | Counter-Strike's rifle is 0.20 to 0.30 s, Valorant's 0.21, and a modern shooter benchmark is 0.2 to 0.3 s close quarters. Local Exception is Quake-slow in a Counter-Strike-sized arena with no vertical escape, which is the worst of both. |
 | Hit zones | 2x on a traced pellet in the head band (2026-10-06). A chest aim, fists and the Shiv stay flat | A deliberate high shot pays. The 2026-09-19 target was no hit zones, matching Doom and Quake. The head band is the later choice: eye level doubles, the chest does not |
 | Hit marker | none | 120 ms marker with a 40 ms audio tick; 250 ms on a kill | Sized against Quake 3's 200 ms pain twitch. Ours to tune. |
 | Muzzle flash | none | 20 to 30 ms | Quake 3 uses 20 ms. A pop, not a glow. |

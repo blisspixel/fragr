@@ -698,7 +698,7 @@ fn larak_pads_run_the_rule_sheet_and_the_plate_its_own_clock() {
 }
 
 /// Prints the measured route table recorded in the plan. Run with
-/// `cargo test -p fragr-server larak_measured_table -- --ignored --nocapture`.
+/// `cargo test -p localexception-server larak_measured_table -- --ignored --nocapture`.
 #[test]
 #[ignore = "prints the measurement table for the plan"]
 fn larak_measured_table() {
@@ -791,8 +791,8 @@ fn larak_measured_table() {
 /// holds every visible body the presenter draws to a server solid, using this
 /// map's MapInfo from `client/golden/larak_lot_map_info.json`. The golden must
 /// be the server's own, or that check would pass against stale geometry.
-/// Regenerate with `FRAGR_LARAK_MAP_INFO=$PWD/client/golden/larak_lot_map_info.json
-/// cargo test -p fragr-server --lib larak_write_map_info -- --ignored`.
+/// Regenerate with `LOCALEXCEPTION_LARAK_MAP_INFO=$PWD/client/golden/larak_lot_map_info.json
+/// cargo test -p localexception-server --lib larak_write_map_info -- --ignored`.
 #[test]
 fn larak_client_golden_is_the_server_map_info() {
     let state = crate::sim::GameState::with_map(MapKind::ArenaDuel, false);
@@ -809,12 +809,12 @@ fn larak_client_golden_is_the_server_map_info() {
     );
 }
 
-/// Writes the wire MapInfo to `FRAGR_LARAK_MAP_INFO` for the offline preview
+/// Writes the wire MapInfo to `LOCALEXCEPTION_LARAK_MAP_INFO` for the offline preview
 /// in `tools/preview_larak_lot.gd`. Run with `--ignored`.
 #[test]
 #[ignore = "writes the MapInfo used by the offline preview"]
 fn larak_write_map_info() {
-    let Ok(path) = std::env::var("FRAGR_LARAK_MAP_INFO") else {
+    let Ok(path) = std::env::var("LOCALEXCEPTION_LARAK_MAP_INFO") else {
         return;
     };
     let state = crate::sim::GameState::with_map(MapKind::ArenaDuel, false);

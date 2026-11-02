@@ -88,7 +88,7 @@ No `--ignore-filename-regex`. No tool attribution, emoji, or em/en dashes in com
 
 ## How to see Warmup drama
 
-1. `cargo run -p fragr-server -- --bots 4` (port 6767).
+1. `cargo run -p localexception-server -- --bots 4` (port 6767).
 2. Open Godot client, spectate or Join during Warmup (first ~2s after boot / after Ended linger).
 3. Round label shows map + countdown; Host chip names roster and Contested Frequency bumper.
 4. MCP `round_state` / `observe` while Warmup: `host_line` carries drama; `round_time_left` counts down.

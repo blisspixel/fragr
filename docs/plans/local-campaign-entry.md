@@ -48,7 +48,7 @@ Export presets build the client, not a complete server-and-client installation.
   Define and verify the package layout before claiming exported one-click play;
   macOS embedded-helper requirements need explicit export handling.
 - Local campaign boot uses its own role/HUD mode and selected endpoint. It must
-  not inherit Solo Broadcast objectives or an unrelated FRAGR_SERVER override.
+  not inherit Solo Broadcast objectives or an unrelated LOCALEXCEPTION_SERVER override.
   Multiplayer joins keep their existing explicit address behavior.
 
 ## Research
@@ -101,7 +101,7 @@ separate bounded tasks. Successful launch does not establish a complete mission.
 - OpenGL and Vulkan lifecycle runs pass on this Windows host. The Vulkan mission
   entry capture is inspected after the controls card clears; it shows fists,
   Annex 67 and the actual transfer-record objective. Menu and failure captures
-  are inspected. An intentionally unusable `FRAGR_SERVER` override does not
+  are inspected. An intentionally unusable `LOCALEXCEPTION_SERVER` override does not
   redirect the owned match. Receipts: `.agents/local-entry-*.log` and
   `.agents/qa/local-entry*/`.
 - Package discovery is defined, but export templates are unavailable locally.

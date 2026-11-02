@@ -4,8 +4,8 @@ const SERVER_HASH: String = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 var failures: int = 0
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
-	set_meta("fragr_settings_path", "")
+	set_meta("localexception_automated", true)
+	set_meta("localexception_settings_path", "")
 	_run.call_deferred()
 
 func _check(value: bool, message: String) -> void:
@@ -113,7 +113,7 @@ func _presentation(store: PlayerRecords, record: Dictionary) -> void:
 	view.queue_free()
 	var panel: RecordsPanel = RecordsPanel.new()
 	panel.records = store
-	panel.preferences = FragrSettings.new("")
+	panel.preferences = LocalExceptionSettings.new("")
 	root.add_child(panel)
 	await process_frame
 	panel._select_kind("mission")

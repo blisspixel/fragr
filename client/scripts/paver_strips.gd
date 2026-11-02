@@ -127,7 +127,7 @@ func _build(strip: Dictionary) -> Dictionary:
 	thud.max_distance = AUDIBLE_RANGE
 	thud.unit_size = 8.0
 	root.add_child(thud)
-	if is_inside_tree() and not get_tree().has_meta("fragr_automated"):
+	if is_inside_tree() and not get_tree().has_meta("localexception_automated"):
 		hum.play()
 	return {"root": root, "bed": bed, "fan": fan, "light": light, "hum": hum, "thud": thud, "fact": strip, "last_pulse": -1, "lens": Vector3.INF, "owner_phase": ""}
 
@@ -164,7 +164,7 @@ func _animate(view: Dictionary) -> void:
 		if index != int(view["last_pulse"]) and index < 3:
 			view["last_pulse"] = index
 			var thud: AudioStreamPlayer3D = view["thud"]
-			if thud.is_inside_tree() and not get_tree().has_meta("fragr_automated"):
+			if thud.is_inside_tree() and not get_tree().has_meta("localexception_automated"):
 				thud.play()
 	var bed: MeshInstance3D = view["bed"]
 	var material: ShaderMaterial = bed.material_override as ShaderMaterial

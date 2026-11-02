@@ -1,5 +1,5 @@
 //! Opt-in per-tick timing for stutter diagnosis. Off unless the host passes
-//! `--tick-trace <path>` or sets `FRAGR_TICK_TRACE` to an absolute path.
+//! `--tick-trace <path>` or sets `LOCALEXCEPTION_TICK_TRACE` to an absolute path.
 //!
 //! Each line is one NDJSON record: a header, one record per served tick and a
 //! completion footer on clean shutdown. A tick record carries the same tick
@@ -22,7 +22,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 pub const TICK_TRACE_VERSION: u32 = 1;
 /// Environment fallback for a host the player cannot pass flags to, such as
 /// the desktop host or the local campaign process the client launches.
-pub const TICK_TRACE_ENV: &str = "FRAGR_TICK_TRACE";
+pub const TICK_TRACE_ENV: &str = "LOCALEXCEPTION_TICK_TRACE";
 /// About fifty seconds of ticks. Only a writer stalled that long drops records.
 const QUEUE_RECORDS: usize = 1024;
 
@@ -506,14 +506,17 @@ mod tests {
     #[test]
     fn create_refuses_an_unwritable_path_before_the_match() {
         let missing = std::env::temp_dir()
-            .join(format!("fragr-no-dir-{}", uuid::Uuid::new_v4()))
+            .join(format!("localexception-no-dir-{}", uuid::Uuid::new_v4()))
             .join("trace.ndjson");
         assert!(TickTrace::create(&missing, Duration::from_millis(50), build()).is_err());
     }
 
     #[test]
     fn create_writes_a_file_that_reads_back() {
-        let path = std::env::temp_dir().join(format!("fragr-tick-{}.ndjson", uuid::Uuid::new_v4()));
+        let path = std::env::temp_dir().join(format!(
+            "localexception-tick-{}.ndjson",
+            uuid::Uuid::new_v4()
+        ));
         let mut trace = TickTrace::create(&path, Duration::from_millis(50), build()).unwrap();
         trace.record(sample(1, 10, 0));
         drop(trace); // Drop finishes the file too.

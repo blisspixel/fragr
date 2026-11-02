@@ -3,7 +3,7 @@ extends SceneTree
 ## Keep the approved source pixels intact and write a runtime PNG without editor metadata.
 
 func _initialize() -> void:
-	var source: Image = Image.load_from_file("res://../docs/fragr-logo-refined.png")
+	var source: Image = Image.load_from_file("res://../docs/localexception-logo.png")
 	if source == null or source.is_empty():
 		push_error("boot splash bake: could not load the approved logo")
 		quit(1)

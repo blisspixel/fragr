@@ -1,17 +1,17 @@
 extends "res://scripts/qa_tour.gd"
 
 ## Source-client integration check against a validated synthetic M01 departure.
-## Set FRAGR_RUN_DIR to the fixture directory and, for rendered stills, set
-## FRAGR_LOCAL_QA_DIR to an absolute output directory before launching Godot.
+## Set LOCALEXCEPTION_RUN_DIR to the fixture directory and, for rendered stills, set
+## LOCALEXCEPTION_LOCAL_QA_DIR to an absolute output directory before launching Godot.
 var failures: int = 0
 var settings_path: String
 var captures: String
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	settings_path = "user://run-carry-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", settings_path)
-	captures = OS.get_environment("FRAGR_LOCAL_QA_DIR")
+	set_meta("localexception_settings_path", settings_path)
+	captures = OS.get_environment("LOCALEXCEPTION_LOCAL_QA_DIR")
 	call_deferred("_watchdog")
 	call_deferred("_run")
 
@@ -62,12 +62,12 @@ func _capture(filename: String) -> void:
 	_expect(root.get_texture().get_image().save_png(captures.path_join(filename + ".png")) == OK, "capture saved")
 
 func _run() -> void:
-	var run_dir: String = OS.get_environment("FRAGR_RUN_DIR")
+	var run_dir: String = OS.get_environment("LOCALEXCEPTION_RUN_DIR")
 	_expect(run_dir.is_absolute_path() and FileAccess.file_exists(run_dir.path_join("run.json")), "isolated fixture path is present")
 	if failures > 0:
 		quit(1)
 		return
-	var prefs: FragrSettings = FragrSettings.new(settings_path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	prefs.set_value("video", "display_mode", 0)
 	prefs.set_value("profile", "body", PlayerBody.HUMAN)
 	_expect(prefs.save_to_disk() == OK, "isolated preferences saved")

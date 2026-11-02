@@ -555,13 +555,13 @@ async fn live_m03_refuses_retired_readers_and_current_reader_receives_geometry_b
                         continue;
                     };
                     let value: serde_json::Value = frames.read_value(&text).unwrap();
-                    if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
+                    if version < crate::protocol::GAMEPLAY_VERSION {
                         assert_eq!(value["type"], "error", "old reader received game state");
                         assert_eq!(value["code"], "unsupported_gameplay");
-                        assert!(value["message"].as_str().unwrap().contains(&format!(
-                            "version {}",
-                            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
-                        )));
+                        assert!(value["message"]
+                            .as_str()
+                            .unwrap()
+                            .contains(&format!("version {}", crate::protocol::GAMEPLAY_VERSION)));
                         break;
                     }
                     match value["type"].as_str().unwrap() {

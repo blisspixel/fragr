@@ -48,7 +48,7 @@ Refresh README tip embeds so strangers see the **v0.13.0 hangar / guns** face (d
 
 ## Capture path
 
-1. `cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 4 --solo-broadcast` (or reuse Testy loopback on `cc4eff9`)
+1. `cargo run -p localexception-server -- --bind 127.0.0.1:6767 --bots 4 --solo-broadcast` (or reuse Testy loopback on `cc4eff9`)
 2. Godot 4.7.2-stable on PATH as `godot`
 3. `tools/capture_tip_screenshots.sh` (Xvfb + opengl3)
 4. Driver: `client/scripts/tip_capture.gd` (Calibration + Warmup TV + timed scrap + jammer dish proof + mid-join + Join FP)

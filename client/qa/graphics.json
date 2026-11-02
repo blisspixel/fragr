@@ -1,5 +1,5 @@
 {
-  "comment": "Fixed 1920x1080 capture window; actual tier and world-buffer settings change through the production helper. Display transitions are checked separately. Run with FRAGR_RENDER_DRIVER=vulkan for Forward+ (Ultra needs it) and with the default for Compatibility; inspect both.",
+  "comment": "Fixed 1920x1080 capture window; actual tier and world-buffer settings change through the production helper. Display transitions are checked separately. Run with LOCALEXCEPTION_RENDER_DRIVER=vulkan for Forward+ (Ultra needs it) and with the default for Compatibility; inspect both.",
   "width": 1920,
   "height": 1080,
   "states": [

@@ -72,7 +72,7 @@ var _radio_compare_on: bool = false
 ## video/quality indices, in settings order.
 const CAPTURE_QUALITIES: Array[String] = ["potato", "low", "medium", "high", "ultra"]
 var _capture_quality: int = -1
-## The preset the run starts on, whether named by FRAGR_QA_QUALITY or the
+## The preset the run starts on, whether named by LOCALEXCEPTION_QA_QUALITY or the
 ## settings default a fresh player gets.
 var _run_quality: int = -1
 var _radio_comparison: Dictionary = {}
@@ -99,7 +99,7 @@ var _body_distance: float = 3.0
 const STRIP_LEAD_FRAMES: int = 2
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	MouseCapture.release()
 	call_deferred("_run")
 
@@ -132,24 +132,24 @@ func _process(delta: float) -> bool:
 	return false
 
 func _run() -> void:
-	_out_dir = OS.get_environment("FRAGR_QA_DIR")
+	_out_dir = OS.get_environment("LOCALEXCEPTION_QA_DIR")
 	if _out_dir.is_empty():
 		_out_dir = ProjectSettings.globalize_path("res://../.agents/qa/latest")
 	DirAccess.make_dir_recursive_absolute(_out_dir)
-	set_meta("fragr_records_path", _out_dir.path_join("service-record"))
+	set_meta("localexception_records_path", _out_dir.path_join("service-record"))
 	# Captures must not depend on or modify the player's saved preferences.
 	var settings_path: String = _out_dir.path_join("settings.cfg")
-	set_meta("fragr_settings_path", settings_path)
-	var capture_settings: FragrSettings = FragrSettings.new(settings_path)
+	set_meta("localexception_settings_path", settings_path)
+	var capture_settings: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	capture_settings.set_value("video", "display_mode", 0)
 	# Stills show ordinary play; a state that needs the first-run controls
 	# legend asks for it with "controls_hint": "replay".
 	capture_settings.set_value("gameplay", "controls_hint_seen", true)
-	# One tour at each graphics preset: FRAGR_QA_QUALITY starts the whole run
+	# One tour at each graphics preset: LOCALEXCEPTION_QA_QUALITY starts the whole run
 	# on that preset. A state's own "graphics" options still win for that state.
-	_capture_quality = capture_quality(OS.get_environment("FRAGR_QA_QUALITY"))
+	_capture_quality = capture_quality(OS.get_environment("LOCALEXCEPTION_QA_QUALITY"))
 	if _capture_quality == -2:
-		push_error("qa_tour: FRAGR_QA_QUALITY must be performance, balanced or high")
+		push_error("qa_tour: LOCALEXCEPTION_QA_QUALITY must be performance, balanced or high")
 		quit(1)
 		return
 	if _capture_quality >= 0:
@@ -179,9 +179,9 @@ func _run() -> void:
 		push_error("qa_tour: manifest lists no states")
 		quit(1)
 		return
-	var radio_compare_value: String = OS.get_environment("FRAGR_QA_RADIO_COMPARE")
+	var radio_compare_value: String = OS.get_environment("LOCALEXCEPTION_QA_RADIO_COMPARE")
 	if not valid_radio_comparison(radio_compare_value, states):
-		push_error("qa_tour: FRAGR_QA_RADIO_COMPARE must be on and the route must request radio_off")
+		push_error("qa_tour: LOCALEXCEPTION_QA_RADIO_COMPARE must be on and the route must request radio_off")
 		quit(1)
 		return
 	_radio_compare_on = radio_compare_value == "on"
@@ -234,7 +234,7 @@ func _run() -> void:
 
 		if state.has("profile_look") or state.has("profile_accent"):
 			# The saved look and accent the profile page and the next join use.
-			var dressing: FragrSettings = FragrSettings.for_tree(self)
+			var dressing: LocalExceptionSettings = LocalExceptionSettings.for_tree(self)
 			dressing.load_from_disk()
 			for key: String in ["look", "accent"]:
 				if state.has("profile_" + key):
@@ -242,8 +242,8 @@ func _run() -> void:
 					if _game_manager() != null:
 						_game_manager().settings.set_value("profile", key, int(state["profile_" + key]))
 					var menu: Node = get_root().get_node_or_null("BootMenu")
-					if menu != null and menu.get("_settings") is FragrSettings:
-						(menu.get("_settings") as FragrSettings).set_value("profile", key, int(state["profile_" + key]))
+					if menu != null and menu.get("_settings") is LocalExceptionSettings:
+						(menu.get("_settings") as LocalExceptionSettings).set_value("profile", key, int(state["profile_" + key]))
 			dressing.save_to_disk()
 		_release_body_camera()
 		var menu_page: String = state.get("menu_page", "")
@@ -256,7 +256,7 @@ func _run() -> void:
 				while str(preview.get("status", "loading")) == "loading" and Time.get_ticks_msec() < preview_deadline:
 					await create_timer(0.05).timeout
 					preview = LocalMatch.for_tree(self).run_preview
-				# A tour handed a saved run (FRAGR_QA_RUN_FIXTURE) names the
+				# A tour handed a saved run (LOCALEXCEPTION_QA_RUN_FIXTURE) names the
 				# preview it expects; an isolated tour has no run at all.
 				var expected_preview: String = str(state.get("expect_preview", "missing"))
 				if str(preview.get("status", "")) != expected_preview:
@@ -296,7 +296,7 @@ func _run() -> void:
 					_failed = true
 		if state.has("profile_body"):
 			# The next join asks for this body through the saved profile.
-			var preferences: FragrSettings = FragrSettings.for_tree(self)
+			var preferences: LocalExceptionSettings = LocalExceptionSettings.for_tree(self)
 			preferences.load_from_disk()
 			preferences.set_value("profile", "body", str(state["profile_body"]))
 			preferences.save_to_disk()
@@ -1361,7 +1361,7 @@ static func valid_m07_expectations(state: Dictionary) -> bool:
 			return false
 	return true
 
-## The run-wide preset from FRAGR_QA_QUALITY: -1 when unset (the settings
+## The run-wide preset from LOCALEXCEPTION_QA_QUALITY: -1 when unset (the settings
 ## default), -2 when unrecognised, else the video/quality index.
 ## A video/quality index as the manifest names it.
 static func quality_name(index: int) -> String:
@@ -1373,8 +1373,8 @@ func _live_quality() -> int:
 	var manager: Node = _game_manager()
 	if manager != null:
 		var preferences: Variant = manager.get("settings")
-		if preferences is FragrSettings:
-			var value: Variant = (preferences as FragrSettings).get_value("video", "quality")
+		if preferences is LocalExceptionSettings:
+			var value: Variant = (preferences as LocalExceptionSettings).get_value("video", "quality")
 			if value is int:
 				return value
 	return _run_quality
@@ -1474,8 +1474,8 @@ func _apply_graphics_capture(options: Variant) -> void:
 		push_error("qa_tour: graphics capture needs a live match and an options object")
 		_failed = true
 		return
-	var preferences: FragrSettings = manager.get("settings")
-	var draft: FragrSettings = preferences.draft()
+	var preferences: LocalExceptionSettings = manager.get("settings")
+	var draft: LocalExceptionSettings = preferences.draft()
 	for key: Variant in options:
 		if key == "dither":
 			if not options[key] is bool:
@@ -1589,7 +1589,7 @@ func _sample_frames(count: int) -> Dictionary:
 	return result
 
 func _load_manifest() -> Dictionary:
-	var path: String = OS.get_environment("FRAGR_QA_MANIFEST")
+	var path: String = OS.get_environment("LOCALEXCEPTION_QA_MANIFEST")
 	if path.is_empty():
 		path = MANIFEST_PATH
 	if not FileAccess.file_exists(path):
@@ -3788,7 +3788,7 @@ func _write_manifest(tour: Dictionary) -> void:
 		"device": RenderingServer.get_video_adapter_name(),
 		"display_server": DisplayServer.get_name(),
 		"quality": quality_name(_run_quality),
-		"quality_source": "FRAGR_QA_QUALITY" if _capture_quality >= 0 else "settings default",
+		"quality_source": "LOCALEXCEPTION_QA_QUALITY" if _capture_quality >= 0 else "settings default",
 		"width": tour.get("width", 0),
 		"height": tour.get("height", 0),
 		"companion_shots": _combat_probe.companion_shots.duplicate(true),

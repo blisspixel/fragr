@@ -20,9 +20,9 @@ var _shots: int = 0
 var _failed: bool = false
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
-	set_meta("fragr_settings_path", "")
-	set_meta("fragr_records_path", "")
+	set_meta("localexception_automated", true)
+	set_meta("localexception_settings_path", "")
+	set_meta("localexception_records_path", "")
 	call_deferred("_run")
 
 func _fail(message: String) -> void:
@@ -117,7 +117,7 @@ func _count(dir: String, out: String) -> void:
 		handle.store_string(JSON.stringify(report, "  "))
 
 func _setup_view(arena: Node3D, map_name: String) -> Camera3D:
-	var settings: FragrSettings = FragrSettings.new("user://audit_world_signs.cfg")
+	var settings: LocalExceptionSettings = LocalExceptionSettings.new("user://audit_world_signs.cfg")
 	var layout: Node = ARENA_SCENE.instantiate()
 	layout.name = "Layout"
 	arena.add_child(layout)

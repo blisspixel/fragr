@@ -210,7 +210,7 @@ static func window_size(height: int, available: Vector2i) -> Vector2i:
 static func _output(viewport: Viewport) -> Vector2i:
 	return (viewport as Window).size if viewport is Window else Vector2i(viewport.get_visible_rect().size)
 
-static func apply(viewport: Viewport, preferences: FragrSettings, environment: Environment = null) -> void:
+static func apply(viewport: Viewport, preferences: LocalExceptionSettings, environment: Environment = null) -> void:
 	var renderer: String = RenderingServer.get_current_rendering_method()
 	var spec: Dictionary = tier_spec(int(preferences.get_value("video", "quality")), renderer)
 	var upscale: int = int(preferences.get_value("video", "upscaling"))
@@ -262,7 +262,7 @@ static func world_scale(height: int, percent: int, output: Vector2i) -> float:
 	var share: float = float(percent if percent in RENDER_SCALES else 100) / 100.0
 	return clampf(render_scale(height, output) * share, 0.1, 2.0)
 
-static func apply_environment(environment: Environment, preferences: FragrSettings) -> void:
+static func apply_environment(environment: Environment, preferences: LocalExceptionSettings) -> void:
 	# Preserve authored ambient visibility. Medium adds contact shading and
 	# fixture glow; High deepens the contact shading; Ultra adds bounce light.
 	# Low and Potato add neither.
@@ -298,8 +298,8 @@ const AO_SAMPLERS: Array[int] = [RenderingServer.ENV_SSAO_QUALITY_LOW, Rendering
 	RenderingServer.ENV_SSAO_QUALITY_MEDIUM, RenderingServer.ENV_SSAO_QUALITY_HIGH]
 
 ## Venue opt-ins for Ultra's per-venue features, set by the venue's sky.
-const VOLUMETRIC_META: StringName = &"fragr_ultra_volumetric_density"
-const SSR_META: StringName = &"fragr_ultra_ssr"
+const VOLUMETRIC_META: StringName = &"localexception_ultra_volumetric_density"
+const SSR_META: StringName = &"localexception_ultra_ssr"
 
 ## Practical fixtures cast shadows from Medium up. Low keeps the pools of
 ## light and drops the shadow maps, which are the largest cost the look pass
@@ -307,7 +307,7 @@ const SSR_META: StringName = &"fragr_ultra_ssr"
 ## Ultra carries their shadows further. Authored fades are kept on the node
 ## and restored, so every tier starts from the venue's own numbers.
 ## Scoped to a subtree so a detached match scene (harness fixtures) works too.
-static func apply_practicals(scope: Node, preferences: FragrSettings) -> void:
+static func apply_practicals(scope: Node, preferences: LocalExceptionSettings) -> void:
 	var renderer: String = RenderingServer.get_current_rendering_method()
 	var spec: Dictionary = tier_spec(int(preferences.get_value("video", "quality")), renderer)
 	for water: Node in scope.find_children("IslandWater", "Node3D", true, false):
@@ -326,9 +326,9 @@ static func apply_practicals(scope: Node, preferences: FragrSettings) -> void:
 			(light as OmniLight3D).omni_shadow_mode = OmniLight3D.SHADOW_DUAL_PARABOLOID if paraboloid else OmniLight3D.SHADOW_CUBE
 
 static func _apply_fade(light: Light3D, fade: float, shadow_scale: float) -> void:
-	if not light.has_meta(&"fragr_authored_fade"):
-		light.set_meta(&"fragr_authored_fade", [light.distance_fade_enabled, light.distance_fade_begin, light.distance_fade_length, light.distance_fade_shadow])
-	var authored: Array = light.get_meta(&"fragr_authored_fade")
+	if not light.has_meta(&"localexception_authored_fade"):
+		light.set_meta(&"localexception_authored_fade", [light.distance_fade_enabled, light.distance_fade_begin, light.distance_fade_length, light.distance_fade_shadow])
+	var authored: Array = light.get_meta(&"localexception_authored_fade")
 	light.distance_fade_enabled = bool(authored[0])
 	light.distance_fade_begin = float(authored[1])
 	light.distance_fade_length = float(authored[2])
@@ -341,7 +341,7 @@ static func _apply_fade(light: Light3D, fade: float, shadow_scale: float) -> voi
 
 ## The optional ordered dither, owned by the match scene so it never sits over
 ## a menu. Grid-aligned to the world pixel size.
-static func apply_dither(owner: Node, viewport: Viewport, preferences: FragrSettings) -> void:
+static func apply_dither(owner: Node, viewport: Viewport, preferences: LocalExceptionSettings) -> void:
 	var layer: CanvasLayer = owner.get_node_or_null(DITHER_LAYER) as CanvasLayer
 	if not bool(preferences.get_value("video", "dither")):
 		if layer != null:

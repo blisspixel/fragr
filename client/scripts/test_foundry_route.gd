@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Direct shared-movement check of the authored QA route, without enemy intent.
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	var source: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://../server/maps/test/m13_foundry_development.json"))
 	var tour: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://qa/m13-foundry-development.json"))
 	var solids: Array = []

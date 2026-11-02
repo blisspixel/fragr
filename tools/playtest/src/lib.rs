@@ -4,14 +4,14 @@
 //! guide quality review by catching stuck agents, dead time, spawn deaths and
 //! regressions; they do not establish fun alone.
 
-use fragr_server::movement::{Solid, EYE_HEIGHT};
-use fragr_server::protocol::{
+use futures_util::{SinkExt, StreamExt};
+use localexception_server::movement::{Solid, EYE_HEIGHT};
+use localexception_server::protocol::{
     Action, ClientMessage, FlagEventKind, FlagState, FlagStatus, GameEvent, LookAt, Role,
     ServerMessage, Snapshot, Team, WeaponType,
 };
-use fragr_server::run::{run_server, ServerOptions, TICK};
-use fragr_server::sim::{MapKind, MatchConfig};
-use futures_util::{SinkExt, StreamExt};
+use localexception_server::run::{run_server, ServerOptions, TICK};
+use localexception_server::sim::{MapKind, MatchConfig};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
@@ -92,7 +92,7 @@ pub fn clean_ttk(weapon: WeaponType, distance: f32) -> StickyWeaponTtk {
 pub fn sticky_weapon_ttk_table() -> [StickyWeaponTtk; 3] {
     [WeaponType::Flechette, WeaponType::Rail, WeaponType::Scatter].map(|weapon| {
         let distance = if weapon == WeaponType::Scatter {
-            fragr_server::protocol::SCATTER_FULL_DAMAGE_UNITS
+            localexception_server::protocol::SCATTER_FULL_DAMAGE_UNITS
         } else {
             0.0
         };
@@ -103,7 +103,7 @@ pub fn sticky_weapon_ttk_table() -> [StickyWeaponTtk; 3] {
 /// Problems with the Scatter meatshot: inside its band one blast with every
 /// pellet landing puts a bare fighter down, and a step outside it does not.
 pub fn check_meatshot() -> Vec<String> {
-    use fragr_server::protocol::SCATTER_MEATSHOT_UNITS;
+    use localexception_server::protocol::SCATTER_MEATSHOT_UNITS;
     let mut problems = Vec::new();
     for distance in [0.5, 1.0, SCATTER_MEATSHOT_UNITS] {
         let row = clean_ttk(WeaponType::Scatter, distance);
@@ -227,10 +227,10 @@ pub struct Config {
     /// Policies dealt round robin to the agents.
     pub tiers: Vec<Policy>,
     /// The host's rule set: mode and mutators. Plain free-for-all by default.
-    pub rules: fragr_server::rules::RuleSet,
+    pub rules: localexception_server::rules::RuleSet,
     /// Sabotage format and clocks, read only in Sabotage. The live clock comes
     /// from `time_limit_ticks`.
-    pub sabotage: fragr_server::rules::SabotageConfig,
+    pub sabotage: localexception_server::rules::SabotageConfig,
     /// Keep fun metrics in this folder, as `--fun-metrics` does for a host.
     pub fun_metrics: Option<std::path::PathBuf>,
 }
@@ -247,8 +247,8 @@ impl Default for Config {
             max_ticks: 20 * 120,
             seed: 1,
             tiers: vec![Policy::Reflex],
-            rules: fragr_server::rules::RuleSet::default(),
-            sabotage: fragr_server::rules::SabotageConfig::default(),
+            rules: localexception_server::rules::RuleSet::default(),
+            sabotage: localexception_server::rules::SabotageConfig::default(),
             fun_metrics: None,
         }
     }
@@ -563,10 +563,10 @@ pub struct Observation {
     frag_places: Vec<FragPlace>,
     /// The rule set the server advertised in map_info.
     #[serde(default)]
-    pub rules: Option<fragr_server::protocol::MatchRules>,
+    pub rules: Option<localexception_server::protocol::MatchRules>,
     /// The last side each fighter was seen on; None while it had none.
     #[serde(default)]
-    pub sides: BTreeMap<String, Option<fragr_server::protocol::Team>>,
+    pub sides: BTreeMap<String, Option<localexception_server::protocol::Team>>,
 }
 
 impl Observation {
@@ -791,7 +791,7 @@ impl Observation {
                     let distance = if let (Some(_), Some(victim)) = (owner, victim) {
                         let position = [
                             victim.x,
-                            victim.y - fragr_server::sim::PLAYER_FLOOR_Y,
+                            victim.y - localexception_server::sim::PLAYER_FLOOR_Y,
                             victim.z,
                         ];
                         let distance = position
@@ -1158,7 +1158,7 @@ pub struct Report {
     #[serde(default)]
     pub last_round_reason: Option<String>,
     #[serde(default)]
-    pub last_round_capture_scores: Option<fragr_server::protocol::TeamScores>,
+    pub last_round_capture_scores: Option<localexception_server::protocol::TeamScores>,
     pub frags_per_minute: f64,
     pub time_to_first_frag_s: Option<f64>,
     pub longest_gap_without_frag_s: f64,
@@ -1180,7 +1180,7 @@ pub struct Report {
     pub per_agent: BTreeMap<String, AgentReport>,
     /// The rule set the server advertised, as every reader sees it.
     #[serde(default)]
-    pub rules: Option<fragr_server::protocol::MatchRules>,
+    pub rules: Option<localexception_server::protocol::MatchRules>,
     /// Fighters seen on each side; `none` counts fighters without one.
     #[serde(default)]
     pub sides: BTreeMap<String, u64>,
@@ -1195,7 +1195,10 @@ pub struct Report {
     pub sabotage_events: BTreeMap<String, u64>,
     /// Every decided Sabotage round: its winner and result.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub sabotage_rounds: Vec<(Option<Team>, fragr_server::protocol::SabotageResult)>,
+    pub sabotage_rounds: Vec<(
+        Option<Team>,
+        localexception_server::protocol::SabotageResult,
+    )>,
 }
 
 fn seconds(ticks: u64) -> f64 {
@@ -1333,10 +1336,10 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
                 *pickups_by_pad.entry(pickup_id.clone()).or_default() += 1;
             }
             GameEvent::Flag { kind, .. } => match kind {
-                fragr_server::protocol::FlagEventKind::Taken => flag_takes += 1,
-                fragr_server::protocol::FlagEventKind::Dropped => flag_drops += 1,
-                fragr_server::protocol::FlagEventKind::Returned => flag_returns += 1,
-                fragr_server::protocol::FlagEventKind::Captured => captures += 1,
+                localexception_server::protocol::FlagEventKind::Taken => flag_takes += 1,
+                localexception_server::protocol::FlagEventKind::Dropped => flag_drops += 1,
+                localexception_server::protocol::FlagEventKind::Returned => flag_returns += 1,
+                localexception_server::protocol::FlagEventKind::Captured => captures += 1,
             },
             GameEvent::Hit { .. }
             | GameEvent::Checkpoint { .. }
@@ -1431,7 +1434,7 @@ pub fn check_thresholds(report: &Report) -> Vec<String> {
     if report
         .rules
         .as_ref()
-        .is_some_and(|rules| rules.mode == fragr_server::protocol::GameMode::Ctf)
+        .is_some_and(|rules| rules.mode == localexception_server::protocol::GameMode::Ctf)
     {
         if report.flag_takes == 0 {
             problems.push("no flag pickups".to_string());
@@ -1504,7 +1507,8 @@ fn check_shared_thresholds(report: &Report) -> Vec<String> {
 /// covered by the separate controlled route gate, not by match luck.
 pub fn check_contested_ctf(report: &Report, observation: &Observation) -> Vec<String> {
     let mut problems = check_shared_thresholds(report);
-    if report.rules.as_ref().map(|rules| rules.mode) != Some(fragr_server::protocol::GameMode::Ctf)
+    if report.rules.as_ref().map(|rules| rules.mode)
+        != Some(localexception_server::protocol::GameMode::Ctf)
     {
         problems.push("not a CTF round".to_string());
     }
@@ -1524,7 +1528,8 @@ pub fn check_contested_ctf(report: &Report, observation: &Observation) -> Vec<St
 /// the normal socket, with corroborating server events, carried state and end.
 pub fn check_ctf_route_smoke(report: &Report, observation: &Observation) -> Vec<String> {
     let mut problems = Vec::new();
-    if report.rules.as_ref().map(|rules| rules.mode) != Some(fragr_server::protocol::GameMode::Ctf)
+    if report.rules.as_ref().map(|rules| rules.mode)
+        != Some(localexception_server::protocol::GameMode::Ctf)
     {
         problems.push("not a CTF round".to_string());
     }
@@ -1612,7 +1617,7 @@ pub fn check_ctf_route_smoke(report: &Report, observation: &Observation) -> Vec<
 pub fn check_sabotage_route_smoke(report: &Report) -> Vec<String> {
     let mut problems = Vec::new();
     if report.rules.as_ref().map(|rules| rules.mode)
-        != Some(fragr_server::protocol::GameMode::Sabotage)
+        != Some(localexception_server::protocol::GameMode::Sabotage)
     {
         problems.push("not a Sabotage round".to_string());
     }
@@ -1634,7 +1639,7 @@ pub fn check_sabotage_route_smoke(report: &Report) -> Vec<String> {
     match report.sabotage_rounds.first() {
         Some((winner, result)) => {
             if *winner != Some(Team::Union)
-                || result.reason != fragr_server::protocol::SabotageReason::Defused
+                || result.reason != localexception_server::protocol::SabotageReason::Defused
             {
                 problems.push(format!(
                     "the first round ended {:?} for {winner:?}, not a Union defuse",
@@ -1684,7 +1689,7 @@ pub fn check_rules(report: &Report) -> Vec<String> {
         if report.sides.get("none").copied().unwrap_or(0) > 0 {
             problems.push(format!("{} fighters without a side", report.sides["none"]));
         }
-        for team in fragr_server::protocol::Team::ALL {
+        for team in localexception_server::protocol::Team::ALL {
             if report.sides.get(team.id()).copied().unwrap_or(0) == 0 {
                 problems.push(format!("no fighter on the {} side", team.id()));
             }
@@ -1713,7 +1718,11 @@ pub fn check_rules(report: &Report) -> Vec<String> {
 /// and what keeps an empty stretch of a round from reading as a stuck agent.
 /// The sweep is offset per fighter so two of them do not walk the same circle
 /// in step and meet nobody.
-pub fn patrol_action(me: &fragr_server::protocol::PlayerState, tick: u64, arena: &Arena) -> Action {
+pub fn patrol_action(
+    me: &localexception_server::protocol::PlayerState,
+    tick: u64,
+    arena: &Arena,
+) -> Action {
     let radius = arena.half_extent * 0.6;
     let offset = (me.id.as_u128() % 628) as f32 / 100.0;
     let angle = offset + tick as f32 * PATROL_TURN_PER_TICK;
@@ -1733,18 +1742,18 @@ pub fn reflex_action(bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Action
     let Some(me) = snapshot.players.iter().find(|p| p.id == bot_id) else {
         return Action::default();
     };
-    let mut nearest: Option<(f32, &fragr_server::protocol::PlayerState)> = None;
+    let mut nearest: Option<(f32, &localexception_server::protocol::PlayerState)> = None;
     for other in &snapshot.players {
         if !me.is_hostile_to(other) {
             continue;
         }
         let dist = ((other.x - me.x).powi(2) + (other.z - me.z).powi(2)).sqrt();
         // A channeling Auditor comes first: break the repair before it lands.
-        let key = fragr_server::combat::engagement_key(other.campaign, dist);
+        let key = localexception_server::combat::engagement_key(other.campaign, dist);
         if nearest.is_none_or(|(d, held)| {
-            fragr_server::combat::engagement_before(
+            localexception_server::combat::engagement_before(
                 key,
-                fragr_server::combat::engagement_key(held.campaign, d),
+                localexception_server::combat::engagement_key(held.campaign, d),
             )
         }) {
             nearest = Some((dist, other));
@@ -1913,7 +1922,7 @@ pub fn planner_action(bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Actio
     let held = weapon_from_wire(&me.weapon).unwrap_or_default();
     let distance_to = |x: f32, z: f32| ((x - me.x).powi(2) + (z - me.z).powi(2)).sqrt();
 
-    let mut nearest: Option<(f32, &fragr_server::protocol::PlayerState)> = None;
+    let mut nearest: Option<(f32, &localexception_server::protocol::PlayerState)> = None;
     for other in &snapshot.players {
         if !me.is_hostile_to(other) {
             continue;
@@ -1987,10 +1996,10 @@ pub fn planner_action(bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Actio
 /// reach.
 fn nearest_pickup<'a>(
     snapshot: &'a Snapshot,
-    me: &fragr_server::protocol::PlayerState,
+    me: &localexception_server::protocol::PlayerState,
     arena: &Arena,
-    wanted: impl Fn(&fragr_server::protocol::PickupState) -> bool,
-) -> Option<&'a fragr_server::protocol::PickupState> {
+    wanted: impl Fn(&localexception_server::protocol::PickupState) -> bool,
+) -> Option<&'a localexception_server::protocol::PickupState> {
     snapshot
         .pickups
         .iter()
@@ -2020,10 +2029,10 @@ const BODY_RADIUS: f32 = 0.5;
 /// chest height.
 pub fn walkable_to(
     arena: &Arena,
-    me: &fragr_server::protocol::PlayerState,
-    pickup: &fragr_server::protocol::PickupState,
+    me: &localexception_server::protocol::PlayerState,
+    pickup: &localexception_server::protocol::PickupState,
 ) -> bool {
-    let feet = me.y - fragr_server::sim::PLAYER_FLOOR_Y;
+    let feet = me.y - localexception_server::sim::PLAYER_FLOOR_Y;
     let floor = pickup.y - PICKUP_LIFT;
     if (floor - feet).abs() > STRAIGHT_STEP {
         return false;
@@ -2043,7 +2052,7 @@ pub fn walkable_to(
 /// at knee height on this fighter's own floor.
 fn feet_lane_clear(
     arena: &Arena,
-    me: &fragr_server::protocol::PlayerState,
+    me: &localexception_server::protocol::PlayerState,
     x: f32,
     z: f32,
 ) -> bool {
@@ -2053,7 +2062,7 @@ fn feet_lane_clear(
         return true;
     }
     let ahead = length.min(FEET_LOOKAHEAD);
-    let knee = me.y - fragr_server::sim::PLAYER_FLOOR_Y + 0.3;
+    let knee = me.y - localexception_server::sim::PLAYER_FLOOR_Y + 0.3;
     body_lane_clear(
         arena,
         (me.x, me.z),
@@ -2083,7 +2092,7 @@ fn body_lane_clear(
     }
     let side = (-dz / length * BODY_RADIUS, dx / length * BODY_RADIUS);
     [-1.0_f32, 0.0, 1.0].into_iter().all(|k| {
-        fragr_server::combat::line_of_sight(
+        localexception_server::combat::line_of_sight(
             [from.0 + side.0 * k, from_y, from.1 + side.1 * k],
             [to.0 + side.0 * k, to_y, to.1 + side.1 * k],
             &arena.solids,
@@ -2096,14 +2105,14 @@ fn body_lane_clear(
 /// and its pad), it strafes as it walks, the way it clears a corner in a
 /// fight, rather than leaning on the block.
 fn walk_to(
-    pad: &fragr_server::protocol::PickupState,
-    me: &fragr_server::protocol::PlayerState,
-    enemy: Option<&fragr_server::protocol::PlayerState>,
+    pad: &localexception_server::protocol::PickupState,
+    me: &localexception_server::protocol::PlayerState,
+    enemy: Option<&localexception_server::protocol::PlayerState>,
     arena: &Arena,
     tick: u64,
 ) -> Action {
     let dist = ((pad.x - me.x).powi(2) + (pad.z - me.z).powi(2)).sqrt();
-    let feet = me.y - fragr_server::sim::PLAYER_FLOOR_Y;
+    let feet = me.y - localexception_server::sim::PLAYER_FLOOR_Y;
     let blocked = !body_lane_clear(
         arena,
         (me.x, me.z),
@@ -2138,10 +2147,10 @@ pub fn sabotage_policy_action(
     bot_id: Uuid,
     snapshot: &Snapshot,
     arena: &Arena,
-    map: &fragr_server::protocol::SabotageMap,
+    map: &localexception_server::protocol::SabotageMap,
 ) -> Action {
     let objective =
-        fragr_server::sim::sabotage::controller::objective_action(bot_id, snapshot, map);
+        localexception_server::sim::sabotage::controller::objective_action(bot_id, snapshot, map);
     if policy == Policy::RouteProbe {
         return objective.unwrap_or_default();
     }
@@ -2171,7 +2180,7 @@ pub fn policy_action_with_defense(
     bot_id: Uuid,
     snapshot: &Snapshot,
     arena: &Arena,
-    defense: Option<&mut fragr_server::sim::ctf::CarrierContactDefense>,
+    defense: Option<&mut localexception_server::sim::ctf::CarrierContactDefense>,
 ) -> Action {
     if let Some(flags) = snapshot.flags.as_ref() {
         let Some(me) = snapshot.players.iter().find(|p| p.id == bot_id) else {
@@ -2206,23 +2215,23 @@ pub fn policy_action_with_defense(
             return reflex_action(bot_id, snapshot, arena);
         }
         let goal = if carrying {
-            if own.status == fragr_server::protocol::FlagStatus::Dropped {
+            if own.status == localexception_server::protocol::FlagStatus::Dropped {
                 own.position
             } else {
                 own.stand
             }
-        } else if own.status == fragr_server::protocol::FlagStatus::Dropped {
+        } else if own.status == localexception_server::protocol::FlagStatus::Dropped {
             own.position
         } else if defending {
             own.carrier
                 .and_then(|carrier| snapshot.players.iter().find(|p| p.id == carrier))
-                .map(|p| [p.x, p.y - fragr_server::sim::PLAYER_FLOOR_Y, p.z])
+                .map(|p| [p.x, p.y - localexception_server::sim::PLAYER_FLOOR_Y, p.z])
                 .unwrap_or(own.stand)
         } else {
             enemy.position
         };
         if carrying && policy != Policy::RouteProbe {
-            let mut fallback = fragr_server::sim::ctf::CarrierContactDefense::default();
+            let mut fallback = localexception_server::sim::ctf::CarrierContactDefense::default();
             let contact = defense.unwrap_or(&mut fallback);
             if let Some(blocker_id) = contact.update(me, goal, &snapshot.players, |m, o| {
                 arena.fighter_visible(m, o)
@@ -2305,7 +2314,7 @@ impl Default for Arena {
 impl Arena {
     /// Ground-level eye visibility, retained for callers with horizontal points.
     pub fn line_of_sight(&self, from: (f32, f32), to: (f32, f32)) -> bool {
-        fragr_server::combat::line_of_sight(
+        localexception_server::combat::line_of_sight(
             [from.0, EYE_HEIGHT, from.1],
             [to.0, EYE_HEIGHT, to.1],
             &self.solids,
@@ -2314,15 +2323,15 @@ impl Arena {
 
     fn fighter_visible(
         &self,
-        from: &fragr_server::protocol::PlayerState,
-        to: &fragr_server::protocol::PlayerState,
+        from: &localexception_server::protocol::PlayerState,
+        to: &localexception_server::protocol::PlayerState,
     ) -> bool {
-        use fragr_server::sim::PLAYER_FLOOR_Y;
-        fragr_server::combat::line_of_sight(
+        use localexception_server::sim::PLAYER_FLOOR_Y;
+        localexception_server::combat::line_of_sight(
             [from.x, from.y - PLAYER_FLOOR_Y + EYE_HEIGHT, from.z],
             [
                 to.x,
-                to.y - PLAYER_FLOOR_Y + fragr_server::combat::aim_height(to.campaign),
+                to.y - PLAYER_FLOOR_Y + localexception_server::combat::aim_height(to.campaign),
                 to.z,
             ],
             &self.solids,
@@ -2347,11 +2356,11 @@ async fn agent_task(
         body: None,
         dress: None,
         seat: None,
-        gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
-        geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
+        gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
+        geometry_version: localexception_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
         name,
-        ticket: fragr_server::join_ticket::ticket_for(Role::Agent),
+        ticket: localexception_server::join_ticket::ticket_for(Role::Agent),
         resume: None,
     };
     sink.send(Message::Text(
@@ -2360,14 +2369,14 @@ async fn agent_task(
     .await
     .map_err(transport)?;
     let mut player_id: Option<Uuid> = None;
-    let mut world = fragr_server::protocol::WorldReader::new();
-    let mut loadout: Option<fragr_server::protocol::LoadoutState> = None;
+    let mut world = localexception_server::protocol::WorldReader::new();
+    let mut loadout: Option<localexception_server::protocol::LoadoutState> = None;
     let mut arena = Arena::default();
     let mut navigation = None;
-    let mut navigator = fragr_server::navigation::Navigator::default();
-    let mut carrier_defense = fragr_server::sim::ctf::CarrierContactDefense::default();
-    let mut mission_client = fragr_server::mission::MissionClient::default();
-    let mut sabotage_map: Option<fragr_server::protocol::SabotageMap> = None;
+    let mut navigator = localexception_server::navigation::Navigator::default();
+    let mut carrier_defense = localexception_server::sim::ctf::CarrierContactDefense::default();
+    let mut mission_client = localexception_server::mission::MissionClient::default();
+    let mut sabotage_map: Option<localexception_server::protocol::SabotageMap> = None;
     loop {
         if *stop.borrow() {
             break;
@@ -2440,8 +2449,11 @@ async fn agent_task(
                         .map_err(|error| Error::Server(format!("invalid sabotage map: {error}")))?;
                 }
                 sabotage_map = sabotage;
-                fragr_server::protocol::validate_map_presentation(presentation.as_ref(), &solids)
-                    .map_err(|error| Error::Server(format!("invalid map presentation: {error}")))?;
+                localexception_server::protocol::validate_map_presentation(
+                    presentation.as_ref(),
+                    &solids,
+                )
+                .map_err(|error| Error::Server(format!("invalid map presentation: {error}")))?;
                 mission_client
                     .replace_map_with_id(
                         map_id,
@@ -2489,19 +2501,19 @@ async fn agent_task(
                 mission_client
                     .replace_map_with_m14(m14.as_ref(), half_extent, &solids, presentation.as_ref())
                     .map_err(|error| Error::Server(format!("invalid M14 mission map: {error}")))?;
-                fragr_server::protocol::validate_map_geometry(
+                localexception_server::protocol::validate_map_geometry(
                     half_extent,
                     &solids,
                     geometry_version,
                 )
                 .map_err(|error| Error::Server(format!("invalid navigation map: {error}")))?;
-                let geometry = fragr_server::movement::Arena {
+                let geometry = localexception_server::movement::Arena {
                     half: half_extent,
                     solids: solids.clone(),
                 };
                 navigation = Some(
                     tokio::task::spawn_blocking(move || {
-                        fragr_server::navigation::Navigation::shared(geometry)
+                        localexception_server::navigation::Navigation::shared(geometry)
                     })
                     .await
                     .map_err(|error| Error::Server(format!("navigation worker failed: {error}")))?
@@ -2534,7 +2546,7 @@ async fn agent_task(
                     .as_ref()
                     .filter(|_| snapshot.sabotage.is_some())
                 {
-                    use fragr_server::sim::sabotage::controller::{objective, Objective};
+                    use localexception_server::sim::sabotage::controller::{objective, Objective};
                     if matches!(
                         objective(id, &snapshot, map),
                         Objective::Plant | Objective::Defuse
@@ -2576,7 +2588,7 @@ async fn agent_task(
                         Some(&mut carrier_defense),
                     ),
                 };
-                let wanted = fragr_server::inventory::control_action_with_target_filter(
+                let wanted = localexception_server::inventory::control_action_with_target_filter(
                     id,
                     &snapshot,
                     loadout.as_ref(),
@@ -2632,17 +2644,17 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
     let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
     // Controlled rounds: no mid-round boss or compliance beat, so the numbers
     // describe the fighters and nothing else.
-    let sabotage = config.rules.mode() == fragr_server::protocol::GameMode::Sabotage;
+    let sabotage = config.rules.mode() == localexception_server::protocol::GameMode::Sabotage;
     let match_config = MatchConfig {
         frag_limit: (!config.rules.mode().objective()).then_some(config.frag_limit),
-        capture_limit: (config.rules.mode() == fragr_server::protocol::GameMode::Ctf)
+        capture_limit: (config.rules.mode() == localexception_server::protocol::GameMode::Ctf)
             .then_some(config.capture_limit),
         // Sabotage runs its own muster, live and charge clocks.
         time_limit_ticks: (!sabotage).then_some(config.time_limit_ticks),
         boss_spawn_ticks: None,
         compliance_ping_ticks: None,
         rules: config.rules.clone(),
-        sabotage: fragr_server::rules::SabotageConfig {
+        sabotage: localexception_server::rules::SabotageConfig {
             live_ticks: config.time_limit_ticks,
             ..config.sabotage.clone()
         },
@@ -2654,9 +2666,9 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
         difficulty: None,
         bind: "127.0.0.1:0".to_string(),
         bots: 0,
-        bot_policy: fragr_server::bot_fill::BotPolicy::Fixed,
+        bot_policy: localexception_server::bot_fill::BotPolicy::Fixed,
         fill_target: 0,
-        bot_skill: fragr_server::sim::BotSkill::default(),
+        bot_skill: localexception_server::sim::BotSkill::default(),
         map: config.map,
         map_rotate: false,
         map_off: Vec::new(),
@@ -2721,8 +2733,8 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
         body: None,
         dress: None,
         seat: None,
-        gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
-        geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
+        gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
+        geometry_version: localexception_server::protocol::GEOMETRY_VERSION,
         role: Role::Spectator,
         name: "Observer".to_string(),
         ticket: None,
@@ -2736,7 +2748,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
 
     let mut observation = Observation::default();
     let mut observation_deadline = ObservationDeadline::default();
-    let mut world = fragr_server::protocol::WorldReader::new();
+    let mut world = localexception_server::protocol::WorldReader::new();
     let deadline = Duration::from_secs_f64(config.max_ticks as f64 / TICKS_PER_SECOND + 15.0);
     let watch = async {
         loop {
@@ -2802,7 +2814,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use fragr_server::protocol::PlayerState;
+    use localexception_server::protocol::PlayerState;
 
     #[tokio::test]
     async fn stopping_a_quiet_agent_does_not_wait_for_another_snapshot() {
@@ -2836,7 +2848,8 @@ mod tests {
 
     #[tokio::test]
     async fn invalid_map_is_an_agent_failure_not_a_partial_world() {
-        let valid = serde_json::to_value(fragr_server::sim::GameState::new().map_info()).unwrap();
+        let valid =
+            serde_json::to_value(localexception_server::sim::GameState::new().map_info()).unwrap();
         let mut extent = valid.clone();
         extent["half_extent"] = serde_json::json!(f32::MAX);
         let mut version = valid.clone();
@@ -2902,7 +2915,7 @@ mod tests {
             id,
             name: name.to_string(),
             x,
-            y: fragr_server::sim::PLAYER_FLOOR_Y,
+            y: localexception_server::sim::PLAYER_FLOOR_Y,
             z,
             yaw: 0.0,
             hp: 100,
@@ -3389,7 +3402,7 @@ mod tests {
 
     #[test]
     fn ctf_report_accounts_for_each_flag_transition_and_final_score() {
-        use fragr_server::protocol::{FlagEventKind, Team, TeamScores};
+        use localexception_server::protocol::{FlagEventKind, Team, TeamScores};
 
         let mut obs = Observation::default();
         obs.ingest_snapshot(&snapshot(1, Vec::new()), 100);
@@ -3486,7 +3499,7 @@ mod tests {
     }
 
     fn carry_snapshot(tick: u64, x: f32, own_status: FlagStatus) -> Snapshot {
-        use fragr_server::protocol::FlagState;
+        use localexception_server::protocol::FlagState;
         let carrier_id = Uuid::from_u128(1);
         let carrier = player("Carrier", carrier_id, x, 0.0, false);
         let mut snapshot = snapshot(tick, vec![carrier]);
@@ -3517,7 +3530,7 @@ mod tests {
             flag: Team::Union,
             player: Some("Carrier".to_string()),
             player_id: Some(Uuid::from_u128(1)),
-            capture_scores: fragr_server::protocol::TeamScores::default(),
+            capture_scores: localexception_server::protocol::TeamScores::default(),
         }
     }
 
@@ -3645,7 +3658,7 @@ mod tests {
             flag: Team::Union,
             player: Some("Other".to_string()),
             player_id: Some(Uuid::from_u128(2)),
-            capture_scores: fragr_server::protocol::TeamScores::default(),
+            capture_scores: localexception_server::protocol::TeamScores::default(),
         };
         obs.ingest_event(wrong_end.clone());
         // A missing take for the next carrier cannot be fabricated from its
@@ -3688,7 +3701,7 @@ mod tests {
     #[test]
     fn controlled_ctf_gate_requires_one_fighters_causal_take_carry_and_score() {
         let id = Uuid::from_u128(1);
-        let score = fragr_server::protocol::TeamScores {
+        let score = localexception_server::protocol::TeamScores {
             union: 0,
             coalition: 1,
         };
@@ -3701,13 +3714,13 @@ mod tests {
         };
         let mut obs = Observation {
             rules: Some(
-                fragr_server::rules::RuleSet::new(
-                    fragr_server::protocol::GameMode::Ctf,
+                localexception_server::rules::RuleSet::new(
+                    localexception_server::protocol::GameMode::Ctf,
                     &[],
                     false,
                 )
                 .unwrap()
-                .wire(&fragr_server::rules::SabotageConfig::default()),
+                .wire(&localexception_server::rules::SabotageConfig::default()),
             ),
             ..Observation::default()
         };
@@ -3767,13 +3780,13 @@ mod tests {
             rounds_completed: 1,
             frags: 12,
             rules: Some(
-                fragr_server::rules::RuleSet::new(
-                    fragr_server::protocol::GameMode::Ctf,
+                localexception_server::rules::RuleSet::new(
+                    localexception_server::protocol::GameMode::Ctf,
                     &[],
                     false,
                 )
                 .unwrap()
-                .wire(&fragr_server::rules::SabotageConfig::default()),
+                .wire(&localexception_server::rules::SabotageConfig::default()),
             ),
             sides: [("union".to_string(), 2), ("coalition".to_string(), 2)]
                 .into_iter()
@@ -3837,7 +3850,7 @@ mod tests {
 #[cfg(test)]
 mod combat_tests {
     use super::*;
-    use fragr_server::protocol::{PlayerState, ShotResult};
+    use localexception_server::protocol::{PlayerState, ShotResult};
 
     fn player(name: &str, id: Uuid, x: f32, z: f32, weapon: &str) -> PlayerState {
         PlayerState {
@@ -3855,7 +3868,7 @@ mod combat_tests {
             id,
             name: name.to_string(),
             x,
-            y: fragr_server::sim::PLAYER_FLOOR_Y,
+            y: localexception_server::sim::PLAYER_FLOOR_Y,
             z,
             yaw: 0.0,
             hp: 100,
@@ -3941,7 +3954,7 @@ mod combat_tests {
 
     #[test]
     fn untyped_explosion_evidence_never_infers_a_dead_owners_current_gun() {
-        use fragr_server::protocol::{ExplosionHit, ExplosionResult};
+        use localexception_server::protocol::{ExplosionHit, ExplosionResult};
         let owner = Uuid::from_u128(51);
         let target = Uuid::from_u128(52);
         let mut observation = Observation::default();
@@ -4023,12 +4036,12 @@ mod combat_tests {
         result.shooter = killer.into();
         result.target = Some(victim.into());
         result.killed = true;
-        result.trace = Some(fragr_server::protocol::ShotTrace {
+        result.trace = Some(localexception_server::protocol::ShotTrace {
             vehicle_id: None,
             weapon,
             origin: [0.0, 1.0, 0.0],
             end: [distance, 1.0, 0.0],
-            impact: fragr_server::protocol::ShotImpact::Fighter {
+            impact: localexception_server::protocol::ShotImpact::Fighter {
                 normal: [-1.0, 0.0, 0.0],
             },
             pellets: vec![],
@@ -4356,17 +4369,17 @@ mod combat_tests {
         let b = Uuid::new_v4();
         let traced = |hit, target, damage| {
             let mut result = shot(a, hit, target, damage);
-            result.trace = Some(fragr_server::protocol::ShotTrace {
+            result.trace = Some(localexception_server::protocol::ShotTrace {
                 vehicle_id: None,
                 weapon: WeaponType::Rail,
                 origin: [0.0, 1.0, 0.0],
                 end: [12.0, 1.0, 0.0],
                 impact: if hit {
-                    fragr_server::protocol::ShotImpact::Fighter {
+                    localexception_server::protocol::ShotImpact::Fighter {
                         normal: [-1.0, 0.0, 0.0],
                     }
                 } else {
-                    fragr_server::protocol::ShotImpact::Range
+                    localexception_server::protocol::ShotImpact::Range
                 },
                 pellets: vec![],
             });
@@ -4430,7 +4443,7 @@ mod combat_tests {
 
     #[test]
     fn lethal_evidence_survives_trades_and_overrides_stale_weapons_and_positions() {
-        use fragr_server::protocol::{ShotImpact, ShotTrace};
+        use localexception_server::protocol::{ShotImpact, ShotTrace};
         let a = Uuid::new_v4();
         let b = Uuid::new_v4();
         for surviving in [false, true] {
@@ -4607,7 +4620,7 @@ mod combat_tests {
     }
     #[test]
     fn one_scatter_blast_is_one_shot_however_many_results_it_publishes() {
-        use fragr_server::protocol::{PelletTrace, ShotImpact, ShotTrace, WeaponType};
+        use localexception_server::protocol::{PelletTrace, ShotImpact, ShotTrace, WeaponType};
         let (a, b, c) = (Uuid::from_u128(1), Uuid::from_u128(2), Uuid::from_u128(3));
         let trace = |impact: ShotImpact, count: usize| ShotTrace {
             vehicle_id: None,
@@ -4683,7 +4696,7 @@ mod sticky_ttk_tests {
 
     #[test]
     fn the_scatter_meatshot_is_one_blast_and_only_up_close() {
-        use fragr_server::protocol::SCATTER_MEATSHOT_UNITS;
+        use localexception_server::protocol::SCATTER_MEATSHOT_UNITS;
         let close = clean_ttk(WeaponType::Scatter, 1.0);
         assert_eq!(close.hits_to_kill, 1, "barrel against the body");
         assert_eq!(close.seconds, 0.0);
@@ -4731,11 +4744,11 @@ mod weapon_choice_tests {
 #[cfg(test)]
 mod planner_tests {
     use super::*;
-    use fragr_server::protocol::{PickupState, PlayerState};
+    use localexception_server::protocol::{PickupState, PlayerState};
 
     #[test]
     fn both_playtest_policies_target_union_actors_instead_of_nearby_allies() {
-        use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
+        use localexception_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
         let me = Uuid::from_u128(1);
         let ally = Uuid::from_u128(2);
         let foe = Uuid::from_u128(3);
@@ -4784,7 +4797,7 @@ mod planner_tests {
             id,
             name: name.to_string(),
             x,
-            y: fragr_server::sim::PLAYER_FLOOR_Y,
+            y: localexception_server::sim::PLAYER_FLOOR_Y,
             z,
             yaw: 0.0,
             hp,
@@ -4805,7 +4818,7 @@ mod planner_tests {
 
     fn pad(kind: &str, weapon: &str, x: f32, z: f32, available: bool) -> PickupState {
         PickupState {
-            claim: fragr_server::protocol::SupplyClaim::Contested,
+            claim: localexception_server::protocol::SupplyClaim::Contested,
             pool: None,
             id: format!("{kind}-{weapon}-{x}-{z}"),
             kind: kind.to_string(),
@@ -5094,7 +5107,7 @@ mod planner_tests {
 
     #[test]
     fn ctf_policy_fights_a_visible_blocker_then_resumes_the_flag_route() {
-        use fragr_server::protocol::{FlagState, FlagStatus, Team};
+        use localexception_server::protocol::{FlagState, FlagStatus, Team};
         let me = Uuid::from_u128(1);
         let foe = Uuid::from_u128(2);
         let mut mine = player("me", me, 0.0, 0.0, 100, "flechette");
@@ -5151,8 +5164,10 @@ mod planner_tests {
 
     #[test]
     fn ctf_carrier_defends_against_close_contact_blocker_on_return_route() {
-        use fragr_server::protocol::{FlagState, FlagStatus, Team};
-        use fragr_server::sim::ctf::{CarrierContactDefense, CARRIER_DEFENSIVE_OPPORTUNITY_TICKS};
+        use localexception_server::protocol::{FlagState, FlagStatus, Team};
+        use localexception_server::sim::ctf::{
+            CarrierContactDefense, CARRIER_DEFENSIVE_OPPORTUNITY_TICKS,
+        };
         let me = Uuid::from_u128(1);
         let foe = Uuid::from_u128(2);
         let mut mine = player("me", me, 0.0, 0.0, 100, "flechette");
@@ -5270,14 +5285,14 @@ mod planner_tests {
 
     #[test]
     fn ctf_carrier_full_controller_pipeline_resolves_damage_and_resumes() {
-        use fragr_server::protocol::{GameMode, Role, Team, WeaponType};
-        use fragr_server::rules::RuleSet;
-        use fragr_server::sim::ctf::CarrierContactDefense;
-        use fragr_server::sim::{GameState, MapKind, PLAYER_FLOOR_Y};
+        use localexception_server::protocol::{GameMode, Role, Team, WeaponType};
+        use localexception_server::rules::RuleSet;
+        use localexception_server::sim::ctf::CarrierContactDefense;
+        use localexception_server::sim::{GameState, MapKind, PLAYER_FLOOR_Y};
 
         let rules = RuleSet::new(GameMode::Ctf, &[], false).unwrap();
         let mut state = GameState::with_map(MapKind::Sector9, false);
-        state.apply_config(fragr_server::sim::MatchConfig {
+        state.apply_config(localexception_server::sim::MatchConfig {
             rules,
             ..Default::default()
         });
@@ -5290,13 +5305,13 @@ mod planner_tests {
             carrier_id,
             "carrier".into(),
             Role::Agent,
-            fragr_server::protocol::BodyKind::for_roster_slot(0),
+            localexception_server::protocol::BodyKind::for_roster_slot(0),
         );
         state.add_player_with_body(
             foe_id,
             "foe".into(),
             Role::Agent,
-            fragr_server::protocol::BodyKind::for_roster_slot(1),
+            localexception_server::protocol::BodyKind::for_roster_slot(1),
         );
         state.spawn_shields.clear();
 
@@ -5387,7 +5402,7 @@ mod planner_tests {
         let loadout = carrier_ref
             .inventory
             .state(carrier_id, carrier_ref.weapon, state.tick);
-        let controlled = fragr_server::inventory::control_action_with_target_filter(
+        let controlled = localexception_server::inventory::control_action_with_target_filter(
             carrier_id,
             &snap,
             loadout.as_ref(),
@@ -5432,7 +5447,7 @@ mod planner_tests {
             &arena,
             Some(&mut defense),
         );
-        let dry_controlled = fragr_server::inventory::control_action_with_target_filter(
+        let dry_controlled = localexception_server::inventory::control_action_with_target_filter(
             carrier_id,
             &snap,
             Some(&dry_loadout),
@@ -5444,7 +5459,7 @@ mod planner_tests {
     }
 
     fn ctf_six_a_side() -> Snapshot {
-        use fragr_server::protocol::{FlagState, FlagStatus, Team};
+        use localexception_server::protocol::{FlagState, FlagStatus, Team};
 
         let mut players = Vec::new();
         for (team, first_id, prefix) in [
@@ -5496,7 +5511,7 @@ mod planner_tests {
 
     #[test]
     fn ctf_six_a_side_has_one_stable_defender_per_side() {
-        use fragr_server::protocol::Team;
+        use localexception_server::protocol::Team;
 
         let mut snapshot = ctf_six_a_side();
         for team in [Team::Union, Team::Coalition] {
@@ -5542,7 +5557,7 @@ mod planner_tests {
 
     #[test]
     fn ctf_roles_recover_dropped_flags_and_support_carriers() {
-        use fragr_server::protocol::{FlagStatus, Team};
+        use localexception_server::protocol::{FlagStatus, Team};
 
         let mut snapshot = ctf_six_a_side();
         let union_defender = Uuid::from_u128(1);
@@ -5686,7 +5701,7 @@ mod line_of_sight_tests {
             podium: None,
             duel_queue: Vec::new(),
         };
-        let mk = |id: Uuid, x: f32| fragr_server::protocol::PlayerState {
+        let mk = |id: Uuid, x: f32| localexception_server::protocol::PlayerState {
             objective: None,
             collidable: true,
             body: None,
@@ -5701,7 +5716,7 @@ mod line_of_sight_tests {
             id,
             name: format!("p{x}"),
             x,
-            y: fragr_server::sim::PLAYER_FLOOR_Y,
+            y: localexception_server::sim::PLAYER_FLOOR_Y,
             z: 0.0,
             yaw: 0.0,
             hp: 100,
@@ -5748,14 +5763,14 @@ mod line_of_sight_tests {
         assert!(!holding.forward, "ten units is the flechette band");
         assert!(holding.left || holding.right);
         for player in &mut snap.players {
-            player.y = fragr_server::sim::PLAYER_FLOOR_Y + 5.0;
+            player.y = localexception_server::sim::PLAYER_FLOOR_Y + 5.0;
         }
         assert!(
             reflex_action(me, &snap, &blocked).fire,
             "both fighters see over the wall"
         );
         assert!(planner_action(me, &snap, &blocked).fire);
-        snap.players[1].y = fragr_server::sim::PLAYER_FLOOR_Y;
+        snap.players[1].y = localexception_server::sim::PLAYER_FLOOR_Y;
         assert!(
             !reflex_action(me, &snap, &blocked).fire,
             "descending aim meets the wall"
@@ -5768,8 +5783,8 @@ mod line_of_sight_tests {
 mod patrol_tests {
     use super::*;
 
-    fn lone(id: Uuid) -> fragr_server::protocol::PlayerState {
-        fragr_server::protocol::PlayerState {
+    fn lone(id: Uuid) -> localexception_server::protocol::PlayerState {
+        localexception_server::protocol::PlayerState {
             objective: None,
             collidable: true,
             body: None,
@@ -5784,7 +5799,7 @@ mod patrol_tests {
             id,
             name: "lone".to_string(),
             x: 0.0,
-            y: fragr_server::sim::PLAYER_FLOOR_Y,
+            y: localexception_server::sim::PLAYER_FLOOR_Y,
             z: 0.0,
             yaw: 0.0,
             hp: 100,
@@ -5946,12 +5961,12 @@ mod opening_spawn_death_tests {
 #[cfg(test)]
 mod rule_checks {
     use super::*;
-    use fragr_server::protocol::{GameMode, MatchRules, Mutator};
+    use localexception_server::protocol::{GameMode, MatchRules, Mutator};
 
     fn rules(mode: GameMode, mutators: &[Mutator], friendly_fire: bool) -> MatchRules {
-        fragr_server::rules::RuleSet::new(mode, mutators, friendly_fire)
+        localexception_server::rules::RuleSet::new(mode, mutators, friendly_fire)
             .unwrap()
-            .wire(&fragr_server::rules::SabotageConfig::default())
+            .wire(&localexception_server::rules::SabotageConfig::default())
     }
 
     fn report(
@@ -6011,15 +6026,19 @@ mod rule_checks {
             rules: Some(rules(GameMode::Tdm, &[], false)),
             ..Observation::default()
         };
-        obs.sides
-            .insert("a".into(), Some(fragr_server::protocol::Team::Union));
-        obs.sides
-            .insert("b".into(), Some(fragr_server::protocol::Team::Coalition));
+        obs.sides.insert(
+            "a".into(),
+            Some(localexception_server::protocol::Team::Union),
+        );
+        obs.sides.insert(
+            "b".into(),
+            Some(localexception_server::protocol::Team::Coalition),
+        );
         obs.sides.insert("c".into(), None);
         obs.events.push(TimedEvent {
             tick: 5,
             event: GameEvent::HostReaction {
-                kind: fragr_server::protocol::HostReactionKind::FirstBlood,
+                kind: localexception_server::protocol::HostReactionKind::FirstBlood,
                 variant: 0,
                 player: Some("a".into()),
                 other: Some("b".into()),
@@ -6033,8 +6052,8 @@ mod rule_checks {
                 killer: "a".into(),
                 victim: "d".into(),
                 killer_score: 1,
-                killer_team: Some(fragr_server::protocol::Team::Union),
-                victim_team: Some(fragr_server::protocol::Team::Union),
+                killer_team: Some(localexception_server::protocol::Team::Union),
+                victim_team: Some(localexception_server::protocol::Team::Union),
                 killer_id: None,
                 victim_id: None,
                 weapon: None,

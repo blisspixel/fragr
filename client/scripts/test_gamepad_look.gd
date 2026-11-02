@@ -126,7 +126,7 @@ func _test_camera() -> void:
 	owner_node.free()
 
 func _test_settings() -> void:
-	var preferences: FragrSettings = FragrSettings.new("user://gamepad-look-unused.cfg")
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new("user://gamepad-look-unused.cfg")
 	preferences.set_value("controls", "stick_yaw_speed", 300.0)
 	preferences.set_value("controls", "stick_pitch_speed", 90.0)
 	preferences.set_value("controls", "stick_deadzone", 0.9)

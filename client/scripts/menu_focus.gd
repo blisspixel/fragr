@@ -17,7 +17,7 @@ class_name MenuFocus
 ## partly scrolled out of view is not taken (taking it would scroll the list
 ## under the pointer).
 
-const META: StringName = &"fragr_menu_focus"
+const META: StringName = &"localexception_menu_focus"
 ## Same bump threshold InputDevice uses before it says the mouse is in use.
 const POINTER_MOTION: float = InputDevice.MOUSE_COUNTS
 

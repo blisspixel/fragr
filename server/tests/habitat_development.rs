@@ -1,9 +1,11 @@
-use fragr_server::maps::{AuthoredMap, RuntimeMap};
-use fragr_server::movement::{BODY_HEIGHT, CONTACT_EPSILON, EYE_HEIGHT};
-use fragr_server::navigation::{NavigationGoal, Navigator, RouteStatus, SEARCH_LIMIT};
-use fragr_server::protocol::{Action, CampaignActor, LookAt, Role, ServerMessage, WeaponType};
-use fragr_server::session::GameSession;
-use fragr_server::sim::{GameState, PLAYER_FLOOR_Y};
+use localexception_server::maps::{AuthoredMap, RuntimeMap};
+use localexception_server::movement::{BODY_HEIGHT, CONTACT_EPSILON, EYE_HEIGHT};
+use localexception_server::navigation::{NavigationGoal, Navigator, RouteStatus, SEARCH_LIMIT};
+use localexception_server::protocol::{
+    Action, CampaignActor, LookAt, Role, ServerMessage, WeaponType,
+};
+use localexception_server::session::GameSession;
+use localexception_server::sim::{GameState, PLAYER_FLOOR_Y};
 use serde_json::{json, Value};
 use std::collections::HashSet;
 use std::sync::Arc;
@@ -224,7 +226,7 @@ fn habitat_greenhouse_bridge_and_pump_towers_remain_visible_from_market() {
     let eye = [0.0, 0.3 + EYE_HEIGHT, -10.0];
     for landmark in [[0.0, 1.4, 2.4], [-5.0, 6.6, 16.1], [5.0, 6.6, 16.1]] {
         assert!(
-            fragr_server::combat::line_of_sight(eye, landmark, &runtime.arena().solids),
+            localexception_server::combat::line_of_sight(eye, landmark, &runtime.arena().solids),
             "hidden habitat landmark {landmark:?}"
         );
     }
@@ -270,13 +272,13 @@ fn advance_fighting(
                     && matches!(p.campaign, Some(CampaignActor::Hostile { .. }))
             })
             .collect();
-        let aim_point = |target: &fragr_server::protocol::PlayerState| {
+        let aim_point = |target: &localexception_server::protocol::PlayerState| {
             // Precise controller aim is test input. Hits still trace through
             // the world and retain the actual weapon's spread and cooldown.
             [
                 target.x,
                 target.y - PLAYER_FLOOR_Y
-                    + fragr_server::combat::target_height(target.campaign) * 0.9,
+                    + localexception_server::combat::target_height(target.campaign) * 0.9,
                 target.z,
             ]
         };
@@ -284,7 +286,7 @@ fn advance_fighting(
             .iter()
             .copied()
             .filter(|target| {
-                fragr_server::combat::line_of_sight(
+                localexception_server::combat::line_of_sight(
                     eye,
                     aim_point(target),
                     &state.current_arena().solids,

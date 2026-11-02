@@ -10,7 +10,7 @@ const OWNER: String = "00000000-0000-4000-8000-0000000000aa"
 var _failures: int = 0
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	_run.call_deferred()
 
 func _check(ok: bool, message: String) -> void:

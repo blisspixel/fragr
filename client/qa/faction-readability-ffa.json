@@ -1,5 +1,5 @@
 {
-  "comment": "Faction readability contract (ART_STORY_BIBLE.md): live fighters at 5, 15 and 30 m in a FFA match. Run FRAGR_QA_MANIFEST=res://qa/faction-readability-ffa.json tools/qa_tour.sh, then review every still in colour and in grayscale.",
+  "comment": "Faction readability contract (ART_STORY_BIBLE.md): live fighters at 5, 15 and 30 m in a FFA match. Run LOCALEXCEPTION_QA_MANIFEST=res://qa/faction-readability-ffa.json tools/qa_tour.sh, then review every still in colour and in grayscale.",
   "width": 1280,
   "height": 720,
   "states": [

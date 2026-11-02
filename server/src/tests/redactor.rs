@@ -334,7 +334,8 @@ fn redactor_ordinary_walk_behind_record_rack_cancels_committed_strike() {
 #[tokio::test]
 async fn redactor_current_contract_starts_the_registered_network_range() {
     use std::time::Duration;
-    let directory = std::env::temp_dir().join(format!("fragr-redactor-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-redactor-{}", Uuid::new_v4()));
     std::fs::create_dir(&directory).unwrap();
     let path = directory.join("range.json");
     std::fs::write(&path, serde_json::to_vec(&document(4.0, false)).unwrap()).unwrap();

@@ -1,5 +1,5 @@
 {
-  "comment": "Heavy Sweeper and Turret demonstration on the test range. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/test/heavy-turret-range.json, FRAGR_QA_MANIFEST=res://qa/heavy-turret.json. Ordinary movement, aim, trigger and reload; no granted equipment or teleports. Each fight observes the first enemy shot and strafes during committed tells.",
+  "comment": "Heavy Sweeper and Turret demonstration on the test range. LOCALEXCEPTION_QA_BOTS=0, LOCALEXCEPTION_QA_MAP_FILE=server/maps/test/heavy-turret-range.json, LOCALEXCEPTION_QA_MANIFEST=res://qa/heavy-turret.json. Ordinary movement, aim, trigger and reload; no granted equipment or teleports. Each fight observes the first enemy shot and strafes during committed tells.",
   "width": 1280,
   "height": 720,
   "states": [

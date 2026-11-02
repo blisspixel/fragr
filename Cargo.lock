@@ -470,12 +470,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "fragr-agent-adapter"
+name = "localexception-agent-adapter"
 version = "0.1.0"
 dependencies = [
  "clap",
- "fragr-build-metadata",
- "fragr-server",
+ "localexception-build-metadata",
+ "localexception-server",
  "futures-util",
  "getrandom 0.2.15",
  "serde",
@@ -488,11 +488,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "fragr-audiogen"
+name = "localexception-audiogen"
 version = "0.1.0"
 dependencies = [
  "clap",
- "fragr-build-metadata",
+ "localexception-build-metadata",
  "reqwest",
  "serde",
  "serde_json",
@@ -501,12 +501,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "fragr-brain"
+name = "localexception-brain"
 version = "0.1.0"
 dependencies = [
  "clap",
- "fragr-build-metadata",
- "fragr-server",
+ "localexception-build-metadata",
+ "localexception-server",
  "futures-util",
  "reqwest",
  "serde",
@@ -519,25 +519,25 @@ dependencies = [
 ]
 
 [[package]]
-name = "fragr-build-metadata"
+name = "localexception-build-metadata"
 version = "0.1.0"
 
 [[package]]
-name = "fragr-licenses"
+name = "localexception-licenses"
 version = "0.1.0"
 dependencies = [
  "clap",
- "fragr-build-metadata",
+ "localexception-build-metadata",
  "serde_json",
 ]
 
 [[package]]
-name = "fragr-playtest"
+name = "localexception-playtest"
 version = "0.1.0"
 dependencies = [
  "clap",
- "fragr-build-metadata",
- "fragr-server",
+ "localexception-build-metadata",
+ "localexception-server",
  "futures-util",
  "serde",
  "serde_json",
@@ -549,11 +549,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "fragr-server"
+name = "localexception-server"
 version = "0.1.0"
 dependencies = [
  "clap",
- "fragr-build-metadata",
+ "localexception-build-metadata",
  "futures-util",
  "getrandom 0.2.15",
  "http",
@@ -572,11 +572,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "fragr-spritegen"
+name = "localexception-spritegen"
 version = "0.1.0"
 dependencies = [
  "clap",
- "fragr-build-metadata",
+ "localexception-build-metadata",
  "image",
  "reqwest",
  "serde",
@@ -586,7 +586,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fragr-tip-gate"
+name = "localexception-tip-gate"
 version = "0.1.0"
 dependencies = [
  "image",

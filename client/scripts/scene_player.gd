@@ -48,7 +48,7 @@ var _voiced: bool = false
 var _reader_paced: bool = false
 var _still_path: String = ""
 ## The loaded settings, so a score cue follows the Campaign score setting and take.
-var _preferences: FragrSettings = null
+var _preferences: LocalExceptionSettings = null
 
 func _init(manifest: Dictionary = {}) -> void:
 	scene = manifest
@@ -68,7 +68,7 @@ func _ready() -> void:
 		push_warning("scene_player: " + reason)
 		finish.call_deferred()
 		return
-	var preferences: FragrSettings = FragrSettings.for_tree(get_tree())
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.for_tree(get_tree())
 	preferences.load_from_disk()
 	_preferences = preferences
 	captions_enabled = bool(preferences.get_value("gameplay", "story_captions"))
@@ -269,7 +269,7 @@ func _layout(has_still: bool) -> void:
 		_scroll.custom_minimum_size.y = 0
 
 ## Ken Burns, kept subtle: at most a few percent of drift, eased, never a cut.
-func apply_preferences(preferences: FragrSettings) -> void:
+func apply_preferences(preferences: LocalExceptionSettings) -> void:
 	captions_enabled = bool(preferences.get_value("gameplay", "story_captions"))
 	reduced_motion = bool(preferences.get_value("accessibility", "reduced_motion"))
 	if reduced_motion and _still != null:

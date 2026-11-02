@@ -1,6 +1,6 @@
-# fragr-playtest
+# Local Exception-playtest
 
-Scripted agents play fragr rounds and file a metrics report to catch stalled
+Scripted agents play Local Exception rounds and file a metrics report to catch stalled
 rounds and combat regressions before rendered playtesting. The harness boots the
 authoritative server on a free loopback port, connects agents over WebSocket,
 and observes frags, gaps, spawn deaths, idle/stuck time, weapon use, and payload
@@ -13,7 +13,7 @@ pickups, real deaths and the three episode continues. No equipment or health is
 granted during play. It needs no sockets, model, credentials or paid service.
 
 ```bash
-cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-seeds 8 --seed 40 --max-seconds 600 --report .agents/playtest/campaign.json
+cargo run -p localexception-playtest --release --locked -- --campaign-survey --survey-seeds 8 --seed 40 --max-seconds 600 --report .agents/playtest/campaign.json
 ```
 
 Select `--survey-mission m19-teaching` for Planned Works, ending after the
@@ -25,7 +25,7 @@ exact authored jetpack launch/landing points; this does not test discovering
 the route or understanding the lesson without hints.
 
 ```bash
-cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m19-teaching --survey-seeds 4 --seed 40 --max-seconds 600 --report .agents/playtest/m19-teaching.json
+cargo run -p localexception-playtest --release --locked -- --campaign-survey --survey-mission m19-teaching --survey-seeds 4 --seed 40 --max-seconds 600 --report .agents/playtest/m19-teaching.json
 ```
 
 Select `--survey-mission m19-market` to continue the same played prefix until
@@ -35,7 +35,7 @@ begins when the public objective follows `tram_street`; this is not a claim
 that market enemies first activate or become visible at that boundary.
 
 ```bash
-cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m19-market --survey-seeds 2 --seed 42 --max-seconds 600 --report .agents/playtest/m19-market.json
+cargo run -p localexception-playtest --release --locked -- --campaign-survey --survey-mission m19-market --survey-seeds 2 --seed 42 --max-seconds 600 --report .agents/playtest/m19-market.json
 ```
 
 Select `--survey-mission m02-carry` to carry an earned Recall Notice departure
@@ -55,7 +55,7 @@ and opening draws nothing from the simulation stream (the M01 leg stays
 identical to the survey either way).
 
 ```bash
-cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m02-carry --survey-seeds 8 --seed 42 --max-seconds 600 --report .agents/playtest/m02-carry.json
+cargo run -p localexception-playtest --release --locked -- --campaign-survey --survey-mission m02-carry --survey-seeds 8 --seed 42 --max-seconds 600 --report .agents/playtest/m02-carry.json
 ```
 
 Each M02 death ends its session with the pending Continue saved. A fresh
@@ -73,7 +73,7 @@ Every session opens with the trial seed, as the local child opens every
 process with its one seed (default 1). The first attempt runs on that seed.
 Each retry, accepted in the same session or reopened from the saved pending
 Continue, runs on its own stream derived from that seed, the run id and the
-attempt number (`fragr_server::mission::retry_seed`, #489). A deterministic
+attempt number (`localexception_server::mission::retry_seed`, #489). A deterministic
 agent that reopens a death therefore meets a new fight instead of replaying
 the old one tick for tick, and the same run and attempt always replay the
 same fight; a test pins both. Recorded sessions use a fixed run id, so a
@@ -155,7 +155,7 @@ the market is earned again. No kit, save or objective is added. This is a
 standalone endpoint, not an inherited M19 clear or fresh-player acceptance.
 
 ```bash
-cargo run -p fragr-playtest --release --locked -- --campaign-survey --survey-mission m19-tanks --survey-seeds 2 --seed 42 --max-seconds 600 --report .agents/playtest/m19-tanks.json
+cargo run -p localexception-playtest --release --locked -- --campaign-survey --survey-mission m19-tanks --survey-seeds 2 --seed 42 --max-seconds 600 --report .agents/playtest/m19-tanks.json
 ```
 
 Decisions and actions run at 20 Hz for every profile. Reaction delay limits
@@ -265,9 +265,9 @@ strict all-clear assertion. A successful job therefore means the evaluator ran
 and its regression tests passed; consult the report for gameplay outcomes.
 
 ```bash
-cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/run.json
+cargo run -p localexception-playtest --locked -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/run.json
 bash tools/playtest_roster.sh
-cargo run -p fragr-playtest --locked -- --fanout-matrix --fanout-seconds 10 --report .agents/fanout/matrix.json
+cargo run -p localexception-playtest --locked -- --fanout-matrix --fanout-seconds 10 --report .agents/fanout/matrix.json
 ```
 
 The optional fanout matrix starts a fresh seed 42 server for each of twelve
@@ -285,7 +285,7 @@ default. Reports use schema 1. Keep the JSON and record the
 host and revision when comparing results. This local matrix does not establish
 Internet latency or public-server capacity.
 
-`--soak` runs the real `fragr-server` binary (the one beside this tool, or
+`--soak` runs the real `localexception-server` binary (the one beside this tool, or
 `--soak-server PATH`) as a child with `--soak-bots` rule bots, `--agents` reflex
 agents and `--soak-spectators` reading spectators on loopback. Every
 `--soak-sample-seconds` it writes one NDJSON line to `--soak-log` (default
@@ -301,8 +301,8 @@ overflow, or resident set growth past half the first sample or 64 MiB,
 whichever is larger. The server is stopped through its own process handle.
 
 ```bash
-cargo build -p fragr-server -p fragr-playtest --release --locked
-target/release/fragr-playtest --soak --soak-seconds 3600 --soak-sample-seconds 60 --soak-bots 4 --agents 4 --soak-spectators 2 --soak-map-rotate --assert
+cargo build -p localexception-server -p localexception-playtest --release --locked
+target/release/localexception-playtest --soak --soak-seconds 3600 --soak-sample-seconds 60 --soak-bots 4 --agents 4 --soak-spectators 2 --soak-map-rotate --assert
 ```
 
 CI runs the same command for 120 seconds with 15 second samples in its own
@@ -310,7 +310,7 @@ job. A local run of an hour or more belongs in
 [`observability-soak.md`](../../docs/plans/observability-soak.md); a twenty-four
 hour run is a release gate, not a CI step.
 
-`--traffic` is the synthetic load. It starts the same local `fragr-server`
+`--traffic` is the synthetic load. It starts the same local `localexception-server`
 binary (or `--traffic-server PATH`) and connects plain fighters plus
 read-only spectators. Each fighter sends movement and a held trigger at
 `--traffic-hz` (default 60, the pace of a displayed client frame) and does
@@ -327,7 +327,7 @@ Tick time and health are printed. A debug build can miss the 50 ms budget,
 and this command does not by itself fill the measurement table.
 
 ```bash
-cargo run -p fragr-playtest --locked -- --traffic --traffic-fighters 8 --traffic-spectators 4 --traffic-bots 4 --traffic-seconds 10 --assert
+cargo run -p localexception-playtest --locked -- --traffic --traffic-fighters 8 --traffic-spectators 4 --traffic-bots 4 --traffic-seconds 10 --assert
 ```
 
 On the scripted-agent command at the top of this file, `--assert` exits non-zero when a frustration threshold is crossed: no round completed, an agent stuck (no movement and no fire during an active round) for more than five seconds, spawn deaths above ten percent of frags, or fewer than one frag per minute with four or more agents. It also fails when the sticky flechette, rail, or scatter clean-hit time to kill leaves the 0.5 to 1.2 second band (the #124 table). CI runs that command on every PR. Reports land under the gitignored `.agents/` directory; put the summary table for a change under test into that change's plan doc.
@@ -366,8 +366,8 @@ authoritative flag state and a final capture score. A particular contested
 match need not capture. Keep its flag outcomes in the report for pacing review.
 
 ```bash
-cargo run -p fragr-playtest --locked -- --ctf-route-smoke --report .agents/playtest/ci-ctf-route.json
-cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode ctf --map 4 --tiers reflex,planner --capture-limit 1 --time-limit-seconds 180 --max-seconds 240 --assert --ctf-contested --report .agents/playtest/ci-ctf.json
+cargo run -p localexception-playtest --locked -- --ctf-route-smoke --report .agents/playtest/ci-ctf-route.json
+cargo run -p localexception-playtest --locked -- --agents 4 --rounds 1 --mode ctf --map 4 --tiers reflex,planner --capture-limit 1 --time-limit-seconds 180 --max-seconds 240 --assert --ctf-contested --report .agents/playtest/ci-ctf.json
 ```
 
 The ordinary CTF `--assert` still requires pickups and captures. The split
@@ -388,7 +388,7 @@ adjacent step outside 65 to 80 percent, a skipped rung that loses its book, or
 a rung dithering in 5 percent or more of its moving windows.
 
 ```bash
-cargo run -p fragr-playtest --release --locked -- --bot-ladder --survey-seeds 24 --seed 1 --time-limit-seconds 120 --assert --report .agents/playtest/ladder.json
+cargo run -p localexception-playtest --release --locked -- --bot-ladder --survey-seeds 24 --seed 1 --time-limit-seconds 120 --assert --report .agents/playtest/ladder.json
 ```
 
 `--map-timing` walks each map's navigation graph at the frozen top speed and
@@ -400,7 +400,7 @@ fails a Sabotage time outside the CS lineage bands (attackers 15 to 25 s,
 defenders 8 to 12 s, rotation 10 to 18 s).
 
 ```bash
-cargo run -p fragr-playtest --release --locked -- --map-timing --report .agents/playtest/map-timing.json
+cargo run -p localexception-playtest --release --locked -- --map-timing --report .agents/playtest/map-timing.json
 ```
 
 `--bot-survey` rows also report respawn to contact (sight either way, or a

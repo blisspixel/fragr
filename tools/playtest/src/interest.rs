@@ -26,13 +26,13 @@
 //! moves each world's arrival by up to `jitter` ticks, which the buffer must
 //! absorb as on a real link.
 
-use fragr_server::combat::{aim_point_for, line_of_sight, stance_eye};
-use fragr_server::interest::{Interest, Sense};
-use fragr_server::movement::Solid;
-use fragr_server::protocol::{GameMode, ServerMessage};
-use fragr_server::rules::RuleSet;
-use fragr_server::session::GameSession;
-use fragr_server::sim::{MapKind, MatchConfig, Player, PLAYER_FLOOR_Y};
+use localexception_server::combat::{aim_point_for, line_of_sight, stance_eye};
+use localexception_server::interest::{Interest, Sense};
+use localexception_server::movement::Solid;
+use localexception_server::protocol::{GameMode, ServerMessage};
+use localexception_server::rules::RuleSet;
+use localexception_server::session::GameSession;
+use localexception_server::sim::{MapKind, MatchConfig, Player, PLAYER_FLOOR_Y};
 use serde::Serialize;
 use std::collections::{HashMap, HashSet, VecDeque};
 use uuid::Uuid;
@@ -107,7 +107,7 @@ fn any_part(eye: [f32; 3], target: Body, solids: &[Solid]) -> bool {
     let dz = target.feet[2] - eye[2];
     let across = dx.hypot(dz).max(1e-3);
     let (sx, sz) = (-dz / across, dx / across);
-    let radius = fragr_server::movement::RADIUS;
+    let radius = localexception_server::movement::RADIUS;
     let stand = stance_eye(None, target.ducking);
     let f = target.feet;
     let shoulder = f[1] + 1.4_f32.min(stand);
@@ -231,7 +231,7 @@ fn run_one(map: MapKind, rtt_ms: u32, jitter: u64, seconds: u32, seed: u64) -> O
         };
         let back = (delay + late) as usize;
         if bodies.len() <= back + SETTLE
-            || session.state.round_state != fragr_server::sim::RoundState::Active
+            || session.state.round_state != localexception_server::sim::RoundState::Active
         {
             continue;
         }

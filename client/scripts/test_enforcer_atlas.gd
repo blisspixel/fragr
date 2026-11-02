@@ -6,7 +6,7 @@ const RECEIPT: String = "res://assets/characters/union/enforcer-manifest.json"
 var _failures: int = 0
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	_run.call_deferred()
 
 func _run() -> void:

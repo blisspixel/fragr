@@ -1,4 +1,4 @@
-# Locational damage and Helldivers 2: lessons for fragr
+# Locational damage and Helldivers 2: lessons for Local Exception
 
 Research of 2026-10-31 and the design source for locational damage (#533). A proposal until Nick decides the open choices below; adopted parts are built and measured through issues.
 
@@ -32,10 +32,10 @@ summaries, not from the studios; treat them as approximate.
    with distinct counters, a live war narrated back to the community, and a
    sincere score under satire. Its failures were fun-removing nerfs, opaque
    armour maths, a forced account link, degrading performance, install bloat
-   and kernel anti-cheat. fragr can take most of the first list cheaply and
+   and kernel anti-cheat. Local Exception can take most of the first list cheaply and
    already avoids most of the second by design.
 
-## 1. fragr today (read from source)
+## 1. Local Exception today (read from source)
 
 - Hit volume: a vertical cylinder, radius 0.5 m (`movement.rs` `RADIUS`),
   height 1.8 m standing, 1.35 m ducked (`BODY_HEIGHT`, `DUCK_HEIGHT`). Short
@@ -162,7 +162,7 @@ so. Whatever is decided below, the gate should name which zone it measures.
    learn "two heads with the Tack", not percentages.
 2. **Three outcomes with three markers** (Helldivers pierce, partial, bounce).
    The middle band must not be punishing or one weapon class takes over
-   (1.001.100 lesson); fragr's 45% share gate is exactly that failure.
+   (1.001.100 lesson); Local Exception's 45% share gate is exactly that failure.
 3. **No hidden modifiers on the head** (Apex removed helmet mitigation).
 4. **Limbs close to body** (0.75 to 0.85); a big limb penalty is frustrating
    when legs are what you can see (Siege revert).
@@ -289,19 +289,19 @@ so. Whatever is decided below, the gate should name which zone it measures.
   https://insider-gaming.com/helldivers-2-player-numbers-surge-on-steam-after-xbox-launch/).
   Content and story events bring people back; balance missteps send them away.
 
-## 4. Mapping to fragr (research C)
+## 4. Mapping to Local Exception (research C)
 
 ### The tonal parallel
 Helldivers 2 satirises a fascist bureaucracy from the inside: the player is
 its willing soldier, and the joke is that the player cheers along. It works,
-but critics argue it lets the power fantasy win. fragr satirises one from the
+but critics argue it lets the power fantasy win. Local Exception satirises one from the
 outside: the player resists the Union, and the comedy lives in the Union's own
 voice (the Host, the radio, the paperwork, `the-chancellery.md` "Regulated to
 the point of comedy"). That loses Arrowhead's irony but gains a clear moral
 footing. The lesson that transfers is Arrowhead's sincerity: the score and
 the world play it straight, and the jokes come from a consistent institution
 doing absurd things with real consequences. Lore guardrails that change how
-fragr can borrow:
+Local Exception can borrow:
 
 - Union bots may be conscious and retain suffering (`people-and-agents.md`);
   captive suffering is never a punchline. So no comic dismemberment of bots,
@@ -332,22 +332,22 @@ fragr can borrow:
 | 11 | **Bot ladder uses zones**: higher bot tiers aim higher (chest to head) and pick legs only when the torso is covered; agents see zone in `observe` hit events | Bots, agents | Medium | Small | Bots (tiers 65 to 80% win matrix, #526) | Bots that headshot too well feel like aimbots; cap per tier |
 | 12 | **Avoid their failures** as rules: no account link; no kernel anti-cheat (server authority plus wave 22 interest filtering); balance by buffing the weaker gun first and changing one number at a time with a survey; size budget for packages; performance gates on every release | All | High | Small (policy) | Performance and stability, Platforms, Fair play | None; most already project law |
 | 13 | Player limb injuries (slowing, sway, bleed) | Not in MP; maybe campaign hard tier | Low | Medium | Movement (would fight it) | Frustration; reject for MP |
-| 14 | Prone dive with explosive reduction | Optional | Low | Medium (mirror plus goldens) | Movement | fragr already has dodge and rocket jumps; a dive adds a stance to every hitbox |
+| 14 | Prone dive with explosive reduction | Optional | Low | Medium (mirror plus goldens) | Movement | Local Exception already has dodge and rocket jumps; a dive adds a stance to every hitbox |
 
 **What does not fit, and why.**
-- Stratagem menus as the core loop: fragr is an arena shooter on timed pads;
+- Stratagem menus as the core loop: Local Exception is an arena shooter on timed pads;
   call-ins in FFA would break equal starts. Keep them to team modes and any
   later co-op.
 - A live paid Game Master and a global persistent war: needs hosted services
   and spend, contradicts the privacy gate's match-level-only rule unless
   host-local, and makes the radio big. Host-local version only.
-- Player-as-soldier-of-the-regime satire: fragr's player resists; a Union-side
+- Player-as-soldier-of-the-regime satire: Local Exception's player resists; a Union-side
   team mode already wears issued livery, which is the right amount of inside
   view.
 - Warbonds and premium currency: no store, no accounts before 1.0.
 - Comic gore against bots: lore forbids treating their suffering as a joke.
 
-## 5. Locational damage proposal for fragr (research D)
+## 5. Locational damage proposal for Local Exception (research D)
 
 ### Zones
 Height bands on the existing cylinder, measured from the feet, all shifted

@@ -5,12 +5,12 @@ var _owned: LocalMatch
 var _reward_root: String
 
 func _run() -> void:
-	_reward_root = OS.get_environment("FRAGR_QA_DIR")
+	_reward_root = OS.get_environment("LOCALEXCEPTION_QA_DIR")
 	if not _reward_root.is_absolute_path():
-		push_error("earned_rewards_live: absolute isolated FRAGR_QA_DIR required")
+		push_error("earned_rewards_live: absolute isolated LOCALEXCEPTION_QA_DIR required")
 		quit(1)
 		return
-	OS.set_environment("FRAGR_RUN_DIR", _reward_root.path_join("run"))
+	OS.set_environment("LOCALEXCEPTION_RUN_DIR", _reward_root.path_join("run"))
 	_owned = LocalMatch.for_tree(self)
 	if not _owned.start_mission("standard", "new"):
 		push_error("earned_rewards_live: local start refused")
@@ -24,7 +24,7 @@ func _run() -> void:
 		_owned.stop()
 		quit(1)
 		return
-	set_meta("fragr_boot", {"mode": "campaign", "host": _owned.url, "run_mode": "new"})
+	set_meta("localexception_boot", {"mode": "campaign", "host": _owned.url, "run_mode": "new"})
 	await super._run()
 
 func _load_manifest() -> Dictionary:

@@ -1,9 +1,9 @@
 //! Still Here: the survival-gated epilogue over the public session API.
-use fragr_server::maps::{AuthoredSource, RuntimeMap};
-use fragr_server::protocol::{
+use localexception_server::maps::{AuthoredSource, RuntimeMap};
+use localexception_server::protocol::{
     MissionId, MissionPhase, MissionReady, Role, ServerMessage, STILL_HERE_GAMEPLAY_VERSION,
 };
-use fragr_server::session::GameSession;
+use localexception_server::session::GameSession;
 use uuid::Uuid;
 
 #[test]
@@ -19,7 +19,7 @@ fn still_here_canonical_source_and_connected_loop() {
         STILL_HERE_GAMEPLAY_VERSION
     );
     assert_eq!(STILL_HERE_GAMEPLAY_VERSION, 57);
-    const { assert!(fragr_server::protocol::GAMEPLAY_VERSION >= STILL_HERE_GAMEPLAY_VERSION) };
+    const { assert!(localexception_server::protocol::GAMEPLAY_VERSION >= STILL_HERE_GAMEPLAY_VERSION) };
     // A campaign stage list without the epilogue; every playable mission with it.
     assert!(!MissionId::ALL.contains(&MissionId::StillHere));
     assert_eq!(MissionId::PLAYABLE.last(), Some(&MissionId::StillHere));

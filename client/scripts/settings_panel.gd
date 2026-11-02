@@ -13,9 +13,9 @@ const SLOT_HEADERS: Array[String] = ["BIND_HEADER_KEY", "BIND_HEADER_ALT", "BIND
 ## Radio controls a gamepad reaches by holding a station arm (`radio.gd`).
 const RADIO_HOLD_ARMS: Dictionary = {"radio_next_track": "radio_next_station", "radio_toggle": "radio_prev_station"}
 
-var preferences: FragrSettings
+var preferences: LocalExceptionSettings
 var theme_context: MenuTheme.Context = MenuTheme.Context.GAMEPLAY
-var _draft: FragrSettings
+var _draft: LocalExceptionSettings
 var _rows: VBoxContainer
 var _scroll: ScrollContainer
 var _note: Label
@@ -28,7 +28,7 @@ var _capture_frame: int = -1
 var _device_revision: int = -1
 ## After Reset to auto, choices pin against the reset values, not the saved
 ## ones, so Save keeps the cleared pins and still pins later hand changes.
-var _pin_base: FragrSettings = null
+var _pin_base: LocalExceptionSettings = null
 
 var _palette: Dictionary = {}
 
@@ -120,21 +120,21 @@ func show_page(page: String) -> void:
 		"ACCESSIBILITY":
 			_option(tr("SETTINGS_SCREEN_FLASHES"), "accessibility", "screen_flashes",
 				[tr("SETTINGS_FLASHES_FULL"), tr("SETTINGS_FLASHES_REDUCED"), tr("SETTINGS_FLASHES_OFF")],
-				[FragrSettings.FLASHES_FULL, FragrSettings.FLASHES_REDUCED, FragrSettings.FLASHES_OFF])
+				[LocalExceptionSettings.FLASHES_FULL, LocalExceptionSettings.FLASHES_REDUCED, LocalExceptionSettings.FLASHES_OFF])
 			_toggle(tr("SETTINGS_REDUCED_MOTION"), "accessibility", "reduced_motion")
 			_slider(tr("SETTINGS_HUD_SCALE"), "accessibility", "hud_scale", 75.0, 150.0, 5.0, "percent")
 			_option(tr("SETTINGS_TEXT_SIZE"), "accessibility", "text_size",
 				[tr("SETTINGS_TEXT_STANDARD"), tr("SETTINGS_TEXT_LARGE")],
-				[FragrSettings.TEXT_STANDARD, FragrSettings.TEXT_LARGE])
+				[LocalExceptionSettings.TEXT_STANDARD, LocalExceptionSettings.TEXT_LARGE])
 			_option(tr("SETTINGS_TEAM_COLOURS"), "accessibility", "team_colours",
 				[tr("SETTINGS_TEAM_STANDARD"), tr("SETTINGS_TEAM_HIGH_CONTRAST"), tr("SETTINGS_TEAM_COLOUR_BLIND")],
-				[FragrSettings.TEAM_STANDARD, FragrSettings.TEAM_HIGH_CONTRAST, FragrSettings.TEAM_COLOUR_BLIND])
+				[LocalExceptionSettings.TEAM_STANDARD, LocalExceptionSettings.TEAM_HIGH_CONTRAST, LocalExceptionSettings.TEAM_COLOUR_BLIND])
 			_toggle(tr("SETTINGS_BLOOD"), "accessibility", "blood")
 			_note.text = tr("SETTINGS_ACCESSIBILITY_NOTE")
 		"AUDIO":
 			_slider("MASTER", "audio", "master", 0.0, 1.0, 0.05)
 			_slider("EFFECTS", "audio", "effects", 0.0, 1.0, 0.05)
-			_option(tr("SETTINGS_ANNOUNCER"), "audio", "announcer", FragrSettings.announcer_labels(), FragrSettings.ANNOUNCER_MODES)
+			_option(tr("SETTINGS_ANNOUNCER"), "audio", "announcer", LocalExceptionSettings.announcer_labels(), LocalExceptionSettings.ANNOUNCER_MODES)
 			_slider(tr("SETTINGS_ANNOUNCER_VOLUME"), "audio", "announcer_volume", 0.0, 1.0, 0.05)
 			_slider("RADIO", "audio", "music", 0.0, 1.0, 0.05)
 			_slider(tr("SETTINGS_VOICE"), "audio", "voice", 0.0, 1.0, 0.05)
@@ -158,9 +158,9 @@ func _graphics_page() -> void:
 	quality.item_selected.connect(func(_index: int) -> void: _update_graphics_note())
 	_toggle(tr("SETTINGS_AUTO"), "video", "auto")
 	var targets: Array[String] = []
-	for fps: int in FragrSettings.TARGET_FPS:
+	for fps: int in LocalExceptionSettings.TARGET_FPS:
 		targets.append(tr("SETTINGS_TARGET_DISPLAY") if fps == 0 else "%d FPS" % fps)
-	_option(tr("SETTINGS_TARGET"), "video", "target_fps", targets, FragrSettings.TARGET_FPS)
+	_option(tr("SETTINGS_TARGET"), "video", "target_fps", targets, LocalExceptionSettings.TARGET_FPS)
 	var scales: Array[String] = []
 	for percent: int in RenderQuality.RENDER_SCALES:
 		scales.append("%d%%" % percent)

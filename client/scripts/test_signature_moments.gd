@@ -25,7 +25,7 @@ func _run() -> void:
 
 	# Verify screen_flash is not triggered for spawn, warmup, podium, complete, fail
 	if hud.screen_flash != null:
-		hud.screen_flash.set_flash_mode(FragrSettings.FLASHES_FULL)
+		hud.screen_flash.set_flash_mode(LocalExceptionSettings.FLASHES_FULL)
 		hud.screen_flash.active = false
 
 		hud.show_spawn_flash()

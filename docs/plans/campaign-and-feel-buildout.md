@@ -148,14 +148,14 @@ remain ignored. No verification calls an actual decision provider.
 | `cargo fmt --all -- --check` | Passed | `verified-fmt.log` |
 | `cargo clippy --workspace --all-targets --locked -- -D warnings` | Passed | `verified-clippy.log` |
 | `cargo test --workspace --locked` | Passed, including 642 server library tests and 114 brain library tests | `verified-tests.log` |
-| `cargo run -p fragr-server --release --locked -- --bench 16 --bench-ticks 1200 --bench-check --bench-assert --seed 42` | Passed | `benchmark.log` |
+| `cargo run -p localexception-server --release --locked -- --bench 16 --bench-ticks 1200 --bench-check --bench-assert --seed 42` | Passed | `benchmark.log` |
 | `cargo llvm-cov --workspace --locked --fail-under-lines 90` | Passed, 94.62 percent workspace lines | `verified-coverage.log` |
 | `cargo build --workspace --release --locked` | Passed after the final interception fix | `verified-release.log` |
 | `cargo deny check licenses bans sources` | Passed | `deny.log` |
 | Required four-agent FFA, TDM, Rail-only and licence-to-kill playtests | Passed | `ffa.log`, `tdm.log`, `rail.log`, `licence.log` and reports |
 | CTF route smoke and contested map 4 run | Passed | `ctf-route.log`, `ctf-contested.log` and reports |
 | `bash tools/playtest_roster.sh` | Passed, 2/6/6/8/12/16 clients across all six maps | `roster.log`; reports in `.agents/playtest/roster/` |
-| Release `fragr-playtest --soak` with the repository's 120-second options | Passed | `soak.log`, `soak.ndjson` |
+| Release `localexception-playtest --soak` with the repository's 120-second options | Passed | `soak.log`, `soak.ndjson` |
 | `tools/godot_check.sh` and `bash tools/test_godot_check.sh` | Final full client recheck passed after camera correction; ten checker-failure scenarios passed | `godot-final.log`, `godot-checker-faults.log` |
 
 The six-reference-brain socket smoke additionally passed with three controllers

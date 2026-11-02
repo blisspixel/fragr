@@ -11,7 +11,7 @@ var _sheet: Image
 var _sheet_index: int = 0
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

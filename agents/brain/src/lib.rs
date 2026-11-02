@@ -1,4 +1,4 @@
-//! A fragr agent with a remote decision brain and a local controller.
+//! A localexception agent with a remote decision brain and a local controller.
 //!
 //! The brain is a decision model (TypeSafe Jev, natively or through OpenRouter)
 //! that answers a fixed set of typed questions about the current fight a few

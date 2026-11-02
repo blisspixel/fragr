@@ -847,6 +847,7 @@ async fn m07_refuses_pre_town_readers_and_sends_geometry_before_snapshots() {
         crate::protocol::ASSESSOR_GAMEPLAY_VERSION,
         // Declared Goods places Ranged Sweepers, so it needs locational damage.
         crate::protocol::ZONES_GAMEPLAY_VERSION,
+        crate::protocol::GAMEPLAY_VERSION,
     ] {
         for role in ["human", "agent", "spectator"] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
@@ -870,13 +871,13 @@ async fn m07_refuses_pre_town_readers_and_sends_geometry_before_snapshots() {
                         continue;
                     };
                     let value: serde_json::Value = frames.read_value(&text).unwrap();
-                    if version < crate::protocol::ZONES_GAMEPLAY_VERSION {
+                    if version < crate::protocol::GAMEPLAY_VERSION {
                         assert_eq!(value["type"], "error", "pre-zone reader admitted");
                         assert_eq!(value["code"], "unsupported_gameplay");
-                        assert!(value["message"].as_str().unwrap().contains(&format!(
-                            "version {}",
-                            crate::protocol::ZONES_GAMEPLAY_VERSION
-                        )));
+                        assert!(value["message"]
+                            .as_str()
+                            .unwrap()
+                            .contains(&format!("version {}", crate::protocol::GAMEPLAY_VERSION)));
                         break;
                     }
                     match value["type"].as_str().unwrap() {

@@ -18,7 +18,7 @@ var _started: int = 0
 
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	_started = Time.get_ticks_msec()
 	MouseCapture.release()
 	call_deferred("_run")
@@ -56,15 +56,15 @@ func _until(condition: Callable) -> bool:
 
 
 func _run() -> void:
-	_directory = OS.get_environment("FRAGR_QA_DIR")
-	if not _require(not _directory.is_empty(), "FRAGR_QA_DIR must name owned diagnostics"):
+	_directory = OS.get_environment("LOCALEXCEPTION_QA_DIR")
+	if not _require(not _directory.is_empty(), "LOCALEXCEPTION_QA_DIR must name owned diagnostics"):
 		quit(1)
 		return
 	DirAccess.make_dir_recursive_absolute(_directory)
-	set_meta("fragr_settings_path", _directory.path_join("settings.cfg"))
-	set_meta("fragr_records_path", _directory.path_join("records.json"))
-	set_meta("fragr_boot", {"mode": "join", "host": OS.get_environment("FRAGR_SERVER")})
-	var settings: FragrSettings = FragrSettings.new(_directory.path_join("settings.cfg"))
+	set_meta("localexception_settings_path", _directory.path_join("settings.cfg"))
+	set_meta("localexception_records_path", _directory.path_join("records.json"))
+	set_meta("localexception_boot", {"mode": "join", "host": OS.get_environment("LOCALEXCEPTION_SERVER")})
+	var settings: LocalExceptionSettings = LocalExceptionSettings.new(_directory.path_join("settings.cfg"))
 	settings.set_value("video", "display_mode", 0)
 	settings.set_value("audio", "music", 0.0)
 	settings.set_value("audio", "voice", 0.0)
@@ -88,7 +88,7 @@ func _run() -> void:
 	for property: Dictionary in _manager.get_property_list():
 		if property["name"] == "incoming_feedback":
 			_feedback = _manager.get("incoming_feedback")
-	if _feedback == null and OS.get_environment("FRAGR_DIRECTIONAL_STANDALONE") == "1":
+	if _feedback == null and OS.get_environment("LOCALEXCEPTION_DIRECTIONAL_STANDALONE") == "1":
 		_standalone = true
 		_feedback = IncomingCombatFeedback.new()
 		_manager.add_child(_feedback)

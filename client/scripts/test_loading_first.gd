@@ -4,9 +4,9 @@ const TOUR = preload("res://scripts/qa_tour.gd")
 var _failures: int = 0
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
-	set_meta("fragr_settings_path", "user://loading-first-%d.cfg" % OS.get_process_id())
-	set_meta("fragr_records_memory", true)
+	set_meta("localexception_automated", true)
+	set_meta("localexception_settings_path", "user://loading-first-%d.cfg" % OS.get_process_id())
+	set_meta("localexception_records_memory", true)
 	MouseCapture.release()
 	call_deferred("_run")
 
@@ -35,7 +35,7 @@ func _run() -> void:
 	_check(not card.visible, "ready controls card permits dismissal")
 	await process_frame
 
-	set_meta("fragr_boot", {"mode": "spectate", "host": "127.0.0.1:1"})
+	set_meta("localexception_boot", {"mode": "spectate", "host": "127.0.0.1:1"})
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
 	root.add_child(scene)
 	# Stop polling the deliberately unreachable connection. Geometry and
@@ -121,8 +121,8 @@ func _run() -> void:
 		if not retiring.is_empty():
 			await create_timer(0.01).timeout
 	_check(retiring.is_empty(), "all actual radio playbacks retire within the existing two-second bound")
-	remove_meta("fragr_boot")
-	DirAccess.remove_absolute(ProjectSettings.globalize_path(str(get_meta("fragr_settings_path"))))
+	remove_meta("localexception_boot")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(str(get_meta("localexception_settings_path"))))
 	if _failures == 0:
 		print("test_loading_first: PASS first frame, real readiness, stale snapshots, errors and spectator reveal")
 	quit(0 if _failures == 0 else 1)

@@ -36,7 +36,7 @@ func _run() -> void:
 	_test_spectator_pad_upgrade()
 	await _test_panel()
 	_test_labels_keyed()
-	FragrSettings.new(_path + ".unused").apply_controls()
+	LocalExceptionSettings.new(_path + ".unused").apply_controls()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(_path))
 	if _failures == 0:
 		print("test_rebinding: PASS tokens, conflicts, persistence, InputMap, panel capture, keyed labels")
@@ -62,7 +62,7 @@ func _test_tokens() -> void:
 	_check(InputBindings.contexts_overlap("scoreboard", "toggle_follow"), "the board is available in both play and spectator contexts")
 
 func _test_assign_and_conflicts() -> void:
-	var prefs: FragrSettings = FragrSettings.new(_path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(_path)
 	_check(InputBindings.conflicts(prefs).is_empty(), "defaults have no conflicts")
 	# F uses while playing and changes fighter while watching: no conflict.
 	_check("key:70" in InputBindings.slots_for(prefs, "cycle_cam") and "key:70" in InputBindings.slots_for(prefs, "interact"), "F is shared across contexts by design")
@@ -96,11 +96,11 @@ func _test_assign_and_conflicts() -> void:
 	_check(prefs.get_value("bindings", "pause") == "", "defaults are stored as empty")
 
 func _test_persistence_and_input_map() -> void:
-	var prefs: FragrSettings = FragrSettings.new(_path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(_path)
 	InputBindings.assign(prefs, "fire", 0, "key:71")
 	InputBindings.assign(prefs, "interact", 2, "pad:b2")
 	_check(prefs.save_to_disk() == OK, "bindings save")
-	var loaded: FragrSettings = FragrSettings.new(_path)
+	var loaded: LocalExceptionSettings = LocalExceptionSettings.new(_path)
 	loaded.load_from_disk()
 	_check(InputBindings.slots_for(loaded, "fire")[0] == "key:71", "fire binding survives a fresh store")
 	_check(InputBindings.slots_for(loaded, "interact")[2] == "pad:b2", "pad binding survives a fresh store")
@@ -118,7 +118,7 @@ func _test_persistence_and_input_map() -> void:
 	_check(right_ctrl.is_action_pressed("fire") and not _key(KEY_G).is_action_pressed("fire"), "reset restores the defaults")
 
 func _test_panel() -> void:
-	var prefs: FragrSettings = FragrSettings.new(_path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(_path)
 	prefs.load_from_disk()
 	var panel: SettingsPanel = SettingsPanel.new()
 	panel.preferences = prefs
@@ -158,7 +158,7 @@ func _test_panel() -> void:
 	var note: Label = panel.get("_note")
 	_check(note.text == tr("BIND_MOVED").format({"input": "H", "from": tr("ACTION_INTERACT"), "to": tr("ACTION_JUMP")}), "the page says where a key moved from: " + note.text)
 	panel.save()
-	var loaded: FragrSettings = FragrSettings.new(_path)
+	var loaded: LocalExceptionSettings = LocalExceptionSettings.new(_path)
 	loaded.load_from_disk()
 	_check(InputBindings.slots_for(loaded, "jump")[0] == "key:72" and InputBindings.slots_for(loaded, "interact")[2] == "pad:b7", "Save persists the Controls page")
 	panel.free()
@@ -175,12 +175,12 @@ func _test_panel() -> void:
 ## A pad rebind takes the button from its default owner and both sides of the
 ## move persist in the current layout: no adoption pass, no conflict.
 func _test_new_pad_defaults() -> void:
-	var prefs: FragrSettings = FragrSettings.new(_path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(_path)
 	prefs.reset_all()
 	var moved: Array[String] = InputBindings.assign(prefs, "speak", InputBindings.PAD_SLOT, "pad:b2")
 	_check(moved == (["reload"] as Array[String]), "X leaves reload for a custom speak: " + str(moved))
 	prefs.save_to_disk()
-	var loaded: FragrSettings = FragrSettings.new(_path)
+	var loaded: LocalExceptionSettings = LocalExceptionSettings.new(_path)
 	loaded.load_from_disk()
 	_check(not loaded.controls_refused, "a current-layout file is not refused")
 	_check(InputBindings.slots_for(loaded, "speak")[2] == "pad:b2", "the custom pad button persists")
@@ -198,12 +198,12 @@ func _test_new_pad_defaults() -> void:
 	loaded.save_to_disk()
 
 func _test_spectator_pad_upgrade() -> void:
-	var prefs: FragrSettings = FragrSettings.new(_path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(_path)
 	prefs.reset_all()
 	var moved: Array[String] = InputBindings.assign(prefs, "cycle_cam", InputBindings.PAD_SLOT, "pad:b3")
 	_check(moved == (["toggle_follow"] as Array[String]), "Y leaves the view control for a custom fighter cycle: " + str(moved))
 	_check(prefs.save_to_disk() == OK, "custom spectator bindings save")
-	var loaded: FragrSettings = FragrSettings.new(_path)
+	var loaded: LocalExceptionSettings = LocalExceptionSettings.new(_path)
 	loaded.load_from_disk()
 	loaded.apply_controls()
 	_check(_pad(JOY_BUTTON_Y).is_action_pressed("cycle_cam") and not _pad(JOY_BUTTON_Y).is_action_pressed("toggle_follow"), "the custom spectator button persists alone")

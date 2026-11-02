@@ -1,5 +1,5 @@
 {
-  "comment": "Gameplay mix capture for the loudness gate (docs/plans/fun-craft-targets.md row 19). A joined human runs and fires at a live rule bot on Larak Lot for 15 seconds with the radio on its default station; the Master bus is recorded after its limiter (pre master fader) and measured with `cargo run -p fragr-audiogen -- loudness --check <out>/NN_live_audio.wav`. Run with FRAGR_QA_BOTS=1, FRAGR_QA_NO_ROUND_EVENTS=1 and FRAGR_QA_MANIFEST=res://qa/mix-loudness.json on a real audio driver (not Dummy).",
+  "comment": "Gameplay mix capture for the loudness gate (docs/plans/fun-craft-targets.md row 19). A joined human runs and fires at a live rule bot on Larak Lot for 15 seconds with the radio on its default station; the Master bus is recorded after its limiter (pre master fader) and measured with `cargo run -p localexception-audiogen -- loudness --check <out>/NN_live_audio.wav`. Run with LOCALEXCEPTION_QA_BOTS=1, LOCALEXCEPTION_QA_NO_ROUND_EVENTS=1 and LOCALEXCEPTION_QA_MANIFEST=res://qa/mix-loudness.json on a real audio driver (not Dummy).",
   "width": 1280,
   "height": 720,
   "states": [

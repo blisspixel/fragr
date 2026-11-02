@@ -1,5 +1,5 @@
 {
-  "comment": "M05 No Forwarding Address golden-slice art review. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m05_no_forwarding_address.json. Eye-height spectator views of every beat on the authored route, from the roof stair among the water tanks to the Common Carrier on the pad, with the roof guards placed from the start. Look at each still against docs/design/earth.md (M05 Low Water roofs), the Level 4 stills and the Recall Notice bar; this is art review, not combat or fresh-player evidence.",
+  "comment": "M05 No Forwarding Address golden-slice art review. LOCALEXCEPTION_QA_BOTS=0, LOCALEXCEPTION_QA_MAP_FILE=server/maps/m05_no_forwarding_address.json. Eye-height spectator views of every beat on the authored route, from the roof stair among the water tanks to the Common Carrier on the pad, with the roof guards placed from the start. Look at each still against docs/design/earth.md (M05 Low Water roofs), the Level 4 stills and the Recall Notice bar; this is art review, not combat or fresh-player evidence.",
   "width": 1280,
   "height": 720,
   "states": [

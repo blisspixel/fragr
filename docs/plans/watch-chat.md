@@ -34,7 +34,7 @@ limits, control-character rejection, per-connection cooldown, bounded delivery
 and disconnect cleanup on the server. The sender cannot supply their displayed
 name or role in a message. Mark spectators distinctly in the feed. Update
 `docs/protocol.md` and adapter behavior if the wire shape or capability changes.
-On a hosted server with `FRAGR_JOIN_SECRET`, anonymous spectators still watch
+On a hosted server with `LOCALEXCEPTION_JOIN_SECRET`, anonymous spectators still watch
 without a ticket but cannot send chat. A spectator who presents a valid
 role-bound chat ticket may speak; a spectator ticket never grants a pawn seat or
 gameplay controls. Local/LAN hello remains open when no secret is configured.

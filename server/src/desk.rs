@@ -526,7 +526,7 @@ mod tests {
     #[tokio::test]
     async fn ban_writes_the_file_before_it_removes_anyone() {
         let dir = std::env::temp_dir().join(format!(
-            "fragr-desk-{}-{}",
+            "localexception-desk-{}-{}",
             std::process::id(),
             Uuid::new_v4()
         ));

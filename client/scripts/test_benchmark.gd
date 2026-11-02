@@ -8,7 +8,7 @@ var _failures: int = 0
 var _result_dir: String = ""
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	call_deferred("_run")
 
 func _check(condition: bool, message: String) -> void:
@@ -32,7 +32,7 @@ func _inspect_type(node: Node, where: String) -> void:
 
 func _run() -> void:
 	_result_dir = ProjectSettings.globalize_path("user://test-benchmark-results-%d" % OS.get_process_id())
-	set_meta("fragr_benchmark_dir", _result_dir)
+	set_meta("localexception_benchmark_dir", _result_dir)
 	_frame_stats()
 	_camera()
 	await _measurement()
@@ -218,11 +218,11 @@ func _hud_layout() -> void:
 	progress["step"] = 1
 	hud.show_progress(progress)
 	var cases: Array = [
-		[Vector2i(1920, 1080), HudStyle.new(1.0, FragrSettings.TEXT_STANDARD)],
-		[Vector2i(1920, 1080), HudStyle.new(1.5, FragrSettings.TEXT_LARGE)],
-		[Vector2i(1920, 1080), HudStyle.new(0.75, FragrSettings.TEXT_STANDARD)],
-		[Vector2i(2520, 1080), HudStyle.new(1.0, FragrSettings.TEXT_STANDARD)],
-		[Vector2i(1920, 2473), HudStyle.new(1.5, FragrSettings.TEXT_LARGE)],
+		[Vector2i(1920, 1080), HudStyle.new(1.0, LocalExceptionSettings.TEXT_STANDARD)],
+		[Vector2i(1920, 1080), HudStyle.new(1.5, LocalExceptionSettings.TEXT_LARGE)],
+		[Vector2i(1920, 1080), HudStyle.new(0.75, LocalExceptionSettings.TEXT_STANDARD)],
+		[Vector2i(2520, 1080), HudStyle.new(1.0, LocalExceptionSettings.TEXT_STANDARD)],
+		[Vector2i(1920, 2473), HudStyle.new(1.5, LocalExceptionSettings.TEXT_LARGE)],
 	]
 	for case: Array in cases:
 		for counter: Rect2 in [Rect2(), Rect2(1400, 2, 512, 31), Rect2(0, 0, 3000, 40)]:
@@ -380,7 +380,7 @@ func _history() -> void:
 
 func _menu() -> void:
 	var path: String = "user://test-benchmark-%d.cfg" % OS.get_process_id()
-	var preferences: FragrSettings = FragrSettings.new(path)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	preferences.set_value("video", "fps_cap", 45)
 	preferences.set_value("video", "vsync", true)
 	BenchmarkRun.present_uncapped()
@@ -399,7 +399,7 @@ func _menu() -> void:
 	_check(BenchmarkRun.read_boot({"mode": "spectate", "host": "ws://127.0.0.1:6767", "benchmark": "true"}).is_empty(), "a spectate boot is not a benchmark")
 
 	var menu: Control = load("res://scenes/boot_menu.tscn").instantiate()
-	menu.set("_settings", FragrSettings.new(path))
+	menu.set("_settings", LocalExceptionSettings.new(path))
 	root.add_child(menu)
 	await process_frame
 	await menu._show("main")
@@ -434,7 +434,7 @@ func _menu() -> void:
 	await process_frame
 	set_meta(BenchmarkRun.CANCELLED_META, true)
 	var returned: Control = load("res://scenes/boot_menu.tscn").instantiate()
-	returned.set("_settings", FragrSettings.new(path))
+	returned.set("_settings", LocalExceptionSettings.new(path))
 	root.add_child(returned)
 	await process_frame
 	var notice: Label = returned.find_child("BenchmarkNotice", true, false) as Label

@@ -1,6 +1,6 @@
 //! Compare actual client presentation samples with authoritative shot geometry.
 use clap::Parser;
-use fragr_server::combat::aimed_fighter_distance;
+use localexception_server::combat::aimed_fighter_distance;
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, io::Read, path::PathBuf};
 
@@ -88,7 +88,7 @@ fn analyze(data: Samples) -> Result<Report, String> {
         {
             return Err("invalid presentation sample".into());
         }
-        let eye = [0.0, fragr_server::movement::EYE_HEIGHT, 0.0];
+        let eye = [0.0, localexception_server::movement::EYE_HEIGHT, 0.0];
         let shown_hit =
             aimed_fighter_distance(eye, sample.shown_feet, sample.shown_feet, 1000.0).is_some();
         let current_hit =

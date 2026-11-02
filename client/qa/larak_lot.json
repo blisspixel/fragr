@@ -1,5 +1,5 @@
 {
-  "comment": "Larak Lot live review: a real server on map 1 with rule bots, its pads, the Repossession and the LARAK sign, from fixed overview cameras, a follow camera and a joined first-person fighter. Run with FRAGR_QA_MAP=1 FRAGR_QA_BOTS=6 FRAGR_QA_MANIFEST=res://qa/larak_lot.json. Camera placement is presentation only; no player pose injection.",
+  "comment": "Larak Lot live review: a real server on map 1 with rule bots, its pads, the Repossession and the LARAK sign, from fixed overview cameras, a follow camera and a joined first-person fighter. Run with LOCALEXCEPTION_QA_MAP=1 LOCALEXCEPTION_QA_BOTS=6 LOCALEXCEPTION_QA_MANIFEST=res://qa/larak_lot.json. Camera placement is presentation only; no player pose injection.",
   "width": 1280,
   "height": 720,
   "states": [

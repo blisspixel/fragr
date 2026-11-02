@@ -17,8 +17,8 @@ Local agents play the game and file structured feedback so most iteration does n
 
 ## Shape
 
-- Crate: `tools/playtest` (`fragr-playtest`), Rust, workspace member, takes wire types straight from `fragr-server` and boots the server in-process through `run_server`.
-- Command today: `fragr-playtest --agents 4 --rounds 1 --map 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci.json`. `--tiers reflex,planner` is implemented; the brain is a separate client.
+- Crate: `tools/playtest` (`localexception-playtest`), Rust, workspace member, takes wire types straight from `localexception-server` and boots the server in-process through `run_server`.
+- Command today: `localexception-playtest --agents 4 --rounds 1 --map 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci.json`. `--tiers reflex,planner` is implemented; the brain is a separate client.
 - Agent policies (all the same agent on the wire): `reflex` (chase nearest, fire when facing; shipped), `planner` (observe every few ticks, pick a pickup or a target, path by waypoints), and `brain` (the decision-brain client under a cap, from `plans/decision-brain.md`).
 
 ## Guided campaign evaluation

@@ -463,7 +463,7 @@ func _check_overlay_feeds_trace() -> void:
 
 
 func _check_console_and_manager_paths() -> void:
-	var console: FragrConsole = FragrConsole.new()
+	var console: LocalExceptionConsole = LocalExceptionConsole.new()
 	root.add_child(console)
 	console.run("stutter start")
 	_check(console._lines.back().contains("no match"), "the boot menu has no match to record")

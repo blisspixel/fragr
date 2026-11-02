@@ -1,17 +1,17 @@
 //! Canonical foundry traversal, finite human input and actual lift departure.
-use fragr_server::combat::{line_of_sight, target_height};
-use fragr_server::maps::AuthoredSource;
-use fragr_server::mission::MissionClient;
-use fragr_server::movement::{
+use localexception_server::combat::{line_of_sight, target_height};
+use localexception_server::maps::AuthoredSource;
+use localexception_server::mission::MissionClient;
+use localexception_server::movement::{
     self, Arena, MoveInput, MoveState, BODY_HEIGHT, CONTACT_EPSILON, EYE_HEIGHT,
 };
-use fragr_server::navigation::{NavigationGoal, Navigator};
-use fragr_server::protocol::{
+use localexception_server::navigation::{NavigationGoal, Navigator};
+use localexception_server::protocol::{
     Action, AmmoPool, CampaignActor, EnemyPhase, LookAt, MissionId, MissionPhase, MissionReady,
     PlayerState, RecordStatus, Role, ServerMessage, WeaponType,
 };
-use fragr_server::session::GameSession;
-use fragr_server::sim::PLAYER_FLOOR_Y;
+use localexception_server::session::GameSession;
+use localexception_server::sim::PLAYER_FLOOR_Y;
 use serde_json::Value;
 use std::collections::HashSet;
 use uuid::Uuid;
@@ -44,7 +44,7 @@ fn aim(p: &PlayerState) -> [f32; 3] {
         p.x,
         p.y - PLAYER_FLOOR_Y
             + target_height(p.campaign)
-                * if fragr_server::combat::is_assessor(p.campaign) {
+                * if localexception_server::combat::is_assessor(p.campaign) {
                     0.5
                 } else {
                     0.9

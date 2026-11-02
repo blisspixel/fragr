@@ -1,4 +1,4 @@
-# fragr 1.0 craft bar: measurable properties from the reference shooters
+# Local Exception 1.0 craft bar: measurable properties from the reference shooters
 
 Research of 2026-10-31, kept as the source for [the 1.0 bar](../ROADMAP.md#the-10-bar). A target here is a proposal until the roadmap adopts it; each adopted target is built and measured through issues. It builds on the October 23 study of the thirteen fun principles (Quake, UT, Counter-Strike, Battlefield and Halo). That note answered "what made them fun"; this one answers
 "what numbers and checkable rules made them well made", so the 1.0 bar can be a
@@ -14,7 +14,7 @@ Source tags used throughout:
 - **DERIVED**: arithmetic by this note from sourced constants.
 - **UNSOURCED**: looked for and not found. Do not cite as fact.
 
-fragr baseline values quoted below are read from `main` on this date:
+Local Exception baseline values quoted below are read from `main` on this date:
 `server/src/movement.rs`, `server/src/rules.rs`, `server/src/sim/rewind.rs`,
 `server/src/sim/bot_senses.rs`, `docs/TRANSPORT.md`, `docs/plans/gunfeel.md`,
 `docs/plans/ttk-feel-harness-proof.md`, and the playtest report fields in
@@ -24,11 +24,11 @@ fragr baseline values quoted below are read from `main` on this date:
 
 ## Executive summary: the 22 properties that matter most
 
-Each row: property, what the references do, proposed fragr target, how to check.
+Each row: property, what the references do, proposed Local Exception target, how to check.
 "Auto" means a headless test, harness, bot survey or capture can gate it;
 "Human" means it needs eyes, ears or a fresh player.
 
-| # | Property | Reference values | fragr target | Check |
+| # | Property | Reference values | Local Exception target | Check |
 |---|---|---|---|---|
 | 1 | Fixed simulation step, frame-rate independent | Q3 movement changed with frame rate (125 fps jump) until `pmove_fixed`; pmove_msec 8 | Movement identical at 30, 60, 144, 240 fps render; golden vectors bit-stable | Auto: golden vectors replayed under varied render dt |
 | 2 | Server tick and snapshot rate | Apex 20 Hz, Q3 sv_fps 20, Titanfall 2 20 Hz state, CS2 64, Valorant 128 | Keep 20 Hz to 1.0; tick p99 under 25 percent of the 50 ms budget at 16 fighters plus 8 watchers | Auto: `--bench-assert`, soak |
@@ -88,7 +88,7 @@ of human-only checks is collected in section 11.
 | 100 ms "approximately the tolerable threshold" for FPS | Claypool | PAGE | https://sites.cs.ucsb.edu/~almeroth/classes/W10.290F/papers/claypool-10.pdf |
 | Battlefield 1942 tick, Halo host rates, Overwatch favor-the-shooter ping cutoff, Battle(non)sense per-game delay table, Digital Foundry frame pacing guidance | various | UNSOURCED | none |
 
-### fragr today
+### Local Exception today
 
 20 Hz authoritative tick; local pawn predicts and reconciles (`docs/TRANSPORT.md`);
 remote fighters drawn through a 100 ms (two tick) render buffer; hitscan rewind
@@ -98,11 +98,11 @@ the 50 ms tick budget and p99 (`docs/BENCHMARK.md`), and measures
 
 ### Derived peeker budget (DERIVED)
 
-When an enemy steps out, a fragr victim sees it after: half RTT (25 ms at 50 ms
+When an enemy steps out, a Local Exception victim sees it after: half RTT (25 ms at 50 ms
 RTT) plus mean tick wait (25 ms) plus interpolation (100 ms) plus a render frame
 (8 to 17 ms) = about 160 to 170 ms. The peeker sees the victim through the same
 interpolation, so the asymmetry is dominated by the victim's 100 ms buffer plus
-the peeker's prediction lead. That puts fragr near Valorant's untuned baseline
+the peeker's prediction lead. That puts Local Exception near Valorant's untuned baseline
 (141 ms), which Riot judged worth months of work to halve. At 20 Hz a buffer
 below one tick (50 ms) is not possible without extrapolation, so the reachable
 target is about 110 to 130 ms with a one-tick buffer, and about 160 ms today.
@@ -168,7 +168,7 @@ target is about 110 to 130 ms with a one-tick buffer, and about 160 ms today.
 | Titanfall 1 run 3.4 m/s, sprint 5.1 m/s, wallrun up to about 2x sprint; Titanfall 2 made air and wallrun speed faster and retained across chains | Titanfall | PAGE / SNIP | https://gameranx.com/updates/id/20713/article/titanfall-raw-weapon-stats-decrypted-titan-health-and-speed-revealed/ |
 | Titanfall 2 exact slide and wallrun numbers; CPMA and Quake Live air control constants | | UNSOURCED | |
 
-### fragr today (from `server/src/movement.rs`)
+### Local Exception today (from `server/src/movement.rs`)
 
 Top speed 6.0 m/s (arena), accel 15, friction 12, stop speed 2.0, air accel 2,
 air speed cap 7.5, dodge 9 m/s with 3.5 m/s hop and 15 tick (0.75 s) cooldown,
@@ -179,14 +179,14 @@ DERIVED at 20 Hz with Quake-style friction: from 6 m/s with no input, ticks
 go 6.0, 2.4, 0.96, 0, so a full stop takes 3 ticks (150 ms); with the opposite
 key held it is about 2 ticks. From rest, top speed in 2 ticks (100 ms). Quake 3
 for comparison reaches 320 ups in about 0.2 to 0.3 s and CS in longer (DERIVED,
-low confidence). fragr is crisper than both, which suits "CS-crisp" from the
+low confidence). Local Exception is crisper than both, which suits "CS-crisp" from the
 feel decisions, and its jump arc is within 5 percent of Quake 3's.
 
 ### Proposed targets
 
 - **Stop time 100 to 150 ms (counter-strafe 50 to 100 ms).** CS's crispness
   comes from stop time near 110 ms and first-shot accuracy gated on speed.
-  Keep fragr's current values; add a speed-gated accuracy only if a weapon is
+  Keep Local Exception's current values; add a speed-gated accuracy only if a weapon is
   meant to punish run and gun (likely the Rail only).
 - **Accel to top speed 100 to 200 ms.** Under 100 ms reads as weightless;
   over 300 ms reads as sludge (UT3 lesson in the prior synthesis).
@@ -195,7 +195,7 @@ feel decisions, and its jump arc is within 5 percent of Quake 3's.
   "ambiguous" and must be fixed (Level Design Book: design jumps shorter than
   max, keep special jumps off the critical path,
   https://book.leveldesignbook.com/process/blockout/metrics/quake).
-- **Dodge 1.5x run** (UT99, UT2004 ratio; fragr already 9 vs 6).
+- **Dodge 1.5x run** (UT99, UT2004 ratio; Local Exception already 9 vs 6).
 - **Skill ceiling with a cap.** One owned speed tech (rocket and grenade jump,
   shipped as blast push) capped at 2.0x to 2.5x run horizontal (14 m/s cap is
   2.33x, inside). Half-Life's 1.7x bhop cap shows the industry answer: allow the
@@ -239,7 +239,7 @@ feel decisions, and its jump arc is within 5 percent of Quake 3's.
 | Simple visual reaction about 265 ms | human benchmark | PAGE | https://ki.infil.net/reaction.html |
 | CS fixed spray patterns, "first N bullets accurate"; Battlefield kill share numbers; any published "fair TTK" rule | | UNSOURCED | |
 
-### fragr today
+### Local Exception today
 
 100 HP, head band 2x (`combat.rs`). Sticky clean-hit TTK table: Flechette 4
 hits / 0.6 s, Scatter 3 hits / 0.9 s point blank (7 pellets of 10, Doom's
@@ -255,7 +255,7 @@ Harness already reports `shot_share`, `frag_weapons`, `kill_distance`,
   0.8 to 1.5 s. Reasoning: arena lineage (Quake LG about 0.63 s, Halo CE 0.6 s,
   Halo 3 BR 1.2 to 1.5 s) sits at 2x to 5x human reaction time, which lets the
   victim respond, dodge or retreat; CS and CoD (0.18 to 0.3 s) sit at or under
-  reaction time and are a different game. fragr's watch-or-join, agent-shared
+  reaction time and are a different game. Local Exception's watch-or-join, agent-shared
   identity needs the victim to have a turn.
 - **Floor.** No non-power weapon kills a full-health target in under 0.5 s
   (about 2x reaction); power items (Overtime triple damage, rocket direct plus
@@ -366,7 +366,7 @@ out 400 ms, screen shake rotation only and under 2 deg.
 | At most 2 objectives per sector; early travel times "too great" | BF6 Wake Island | PAGE | https://www.ea.com/games/battlefield/battlefield-6/news/wake-island-developer-map-guide |
 | Dust2 developer timings, Q3DM17 and Blood Gulch dimensions, BF1942 flag spacing, UT size per player count, a published "contact in 10 to 20 s" rule | | UNSOURCED | |
 
-### fragr today
+### Local Exception today
 
 Prior synthesis: small map rule "corner to corner under 25 s"; Arena Duel 23
 frags/min best, Gulch 6.4 and Tripoint 9 too slow; Sector 9 Mid Doors 5 s
@@ -401,7 +401,7 @@ contact. Harness reports `time_to_first_frag_s`, `spawn_deaths`,
 - **Conquest.** 3 to 5 sites for 8 to 16 players (BF V's 5 to 7 is for 64);
   no more than 2 contested at once for small counts.
 
-Measured (wave 21, `fragr-playtest --map-timing`, `server/src/maps/timing.rs`):
+Measured (wave 21, `localexception-playtest --map-timing`, `server/src/maps/timing.rs`):
 Sector 9 attackers 14.9 / 16.3 s to A / B, defenders 5.9 / 6.2 s, rotation
 9.0 s; Low Water attackers 11.0 / 10.9 s, defenders 4.6 s, rotation 7.5 s;
 corner to corner from 17.0 s (Larak Lot) to 108.7 s (Holdfast Atoll). Both
@@ -446,8 +446,8 @@ Sabotage maps are fast for the defence against these bands.
   change a spectator can name (lead change, power item taken, flag swing).
 - **Match lengths.** FFA 3 to 6 min (current 3); TDM 6 to 10 min; CTF 10 min,
   3 caps (UT); Sabotage rounds 90 to 120 s with a 35 to 45 s charge clock
-  (fragr 35 s; CS 40, Valorant 45), match 15 to 25 min (Valorant and CS2 are
-  30 to 45 min; fragr's population and session length argue shorter);
+  (Local Exception 35 s; CS 40, Valorant 45), match 15 to 25 min (Valorant and CS2 are
+  30 to 45 min; Local Exception's population and session length argue shorter);
   Conquest 10 to 15 min.
 - **Lead changes.** FFA lead changes 3+ per match (prior synthesis; harness
   `lead_changes_per_match` exists).
@@ -482,7 +482,7 @@ Auto: harness already reports `round_seconds`, `lead_changes`, `idle_ratio`,
 | 3 states, 4 squad behaviours; flanking emerges from cover; voiced intent with no mechanic behind it | F.E.A.R. | PAGE | https://pages.cs.wisc.edu/~dyer/cs540/handouts/gdc2006_orkin_jeff_fear.pdf |
 | Attack tokens; "deliberately miss when you're moving top speed" | DOOM 2016 | PAGE | https://www.gamedeveloper.com/design/cyber-demons-the-ai-of-doom-2016- |
 
-### fragr today
+### Local Exception today
 
 `server/src/sim/bot_senses.rs`: 120 deg cone, 64 m sight range, cover and
 vehicle hulls block, 200 to 400 ms reaction to a new sighting, aim error 0.055,
@@ -492,7 +492,7 @@ clocks. This is already in the honest band of every reference.
 
 Wave 21 (#526): five rungs on these numbers (`server/src/sim/bot_skill.rs`,
 Tourist to No Crumbs, Regular the default above), host-selectable, reaction
-never under 150 ms. `fragr-playtest --bot-ladder`, two sets of 144 seeded Duels
+never under 150 ms. `localexception-playtest --bot-ladder`, two sets of 144 seeded Duels
 per pair: each rung beats the one below 68 to 80 percent, win share against
 Regular is monotonic, dithering 3.7 to 4.4 percent of moving windows. Tables
 in `bot-and-enemy-ai-excellence-20261017.md`, wave 21.
@@ -502,7 +502,7 @@ in `bot-and-enemy-ai-excellence-20261017.md`, wave 21.
 - **Honesty (hard rules, already true; keep as tests).** No acquisition without
   LOS; hurt or heard fire may widen awareness but never reveals current
   position; reaction to a new sighting never under 150 ms for any tier (CS
-  Expert 0.20 s; Elite 0.05 s is the "feels like a cheat" tier fragr should not
+  Expert 0.20 s; Elite 0.05 s is the "feels like a cheat" tier Local Exception should not
   ship).
 - **Ladder.** 4 to 5 tiers on two or three knobs (reaction, aim error decay,
   lead prediction and movement choice), following UT and CS: low tiers do not
@@ -596,7 +596,7 @@ stats on benchmark scenes. Human: blind weapon and direction identification,
 | Push forward combat: no regen, no cover; take what you need from enemies; glory kills drop health | DOOM 2016 | PAGE | https://gdcvault.com/play/1024940/Embracing-Push-Forward-Combat-in |
 | Doom monster introduction cadence, HL2 "new mechanic every N minutes", Titanfall 2 "one mechanic per level" as dev rule, publisher death-rate or checkpoint targets | | UNSOURCED | |
 
-### fragr today
+### Local Exception today
 
 `docs/CAMPAIGN.md` owns the contract: twenty levels, five episodes, about four
 hours (so about 12 min per level average), limited continues refilled per
@@ -606,7 +606,7 @@ episode. The playtest harness runs a seeded `--campaign-survey`.
 
 - **Level length.** 8 to 15 min for a first clear at normal (240 min over 20),
   speed clear at or under 40 percent of that (Doom pars run 30 s to 3 min for a
-  speedrunner; fragr's encounter density is higher). Record an authored par
+  speedrunner; Local Exception's encounter density is higher). Record an authored par
   like Romero's: author's fast clear plus 30 s, shown at results.
 - **Checkpoint gap.** No more than 3 min of play between saves on a first
   clear, saves only in safe states (Halo's rule) with a 10 s timeout fallback.
@@ -696,7 +696,7 @@ signals do not, the numbers were wrong.
 ## 12. Gaps and suggested next research
 
 - Battle(non)sense per-game network delay tables (videos, not text): needed to
-  compare fragr's 20 Hz plus 100 ms buffer to Apex and Fortnite measured.
+  compare Local Exception's 20 Hz plus 100 ms buffer to Apex and Fortnite measured.
 - Booth's CS bot GDC 2004 slides (not retrievable), Aldridge's Halo Reach
   networking talk and Ford's Overwatch GDC 2017 talk numbers (GDC Vault video).
 - Dust2 timings: measure them in a CS2 local server with a stopwatch rather

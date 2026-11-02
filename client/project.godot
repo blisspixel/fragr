@@ -10,7 +10,9 @@ config_version=5
 
 [application]
 
-config/name="fragr"
+config/name="Local Exception"
+config/use_custom_user_dir=true
+config/custom_user_dir_name="localexception"
 config/project_settings_override="user://renderer_override.cfg"
 run/main_scene="res://scenes/boot_menu.tscn"
 boot_splash/bg_color=Color(0.04, 0.04, 0.05, 1)

@@ -36,7 +36,7 @@ Public OR local join shipped (#84). **This is the visual NOW tip.**
 
 ## Asset source
 
-Box pack at `/workspace/fragr-game-assets/` (Godot-ready):
+Box pack at `/workspace/localexception-game-assets/` (Godot-ready):
 
 - `client/assets/characters/64/` Cyanex / Kragge idle + strips + sheet (+ `@4x`)
 - `client/assets/ui/` `on_air`, `contested_frequency`, `hangar_candy`, `chrome-strip`

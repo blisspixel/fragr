@@ -43,7 +43,7 @@ Weapon roles excellence shipped (#76 / `9734faf`). **Tip stills recapture is the
 
 ## Capture path (existing)
 
-1. `cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 4`
+1. `cargo run -p localexception-server -- --bind 127.0.0.1:6767 --bots 4`
 2. Godot 4.7.2-stable on PATH as `godot`
 3. `tools/capture_tip_screenshots.sh` (Xvfb + opengl3; `LIBGL_ALWAYS_SOFTWARE=1`)
 4. Driver: `client/scripts/tip_capture.gd` timed multi-shot + mid-join Host flash + human Join FP
@@ -63,7 +63,7 @@ cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 # Capture (when display path works):
-cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 4 &
+cargo run -p localexception-server -- --bind 127.0.0.1:6767 --bots 4 &
 tools/capture_tip_screenshots.sh
 # Inspect PNGs: Contested Frequency, scoreboard/killfeed/Host, FP crosshair, no pink frames
 ```

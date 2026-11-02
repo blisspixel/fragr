@@ -1,5 +1,5 @@
 {
-  "comment": "Rule set captures. Run with FRAGR_QA_MODE and FRAGR_QA_MUTATORS set on the tour server. The frame is evidence only if the chip names the rules the server was started with.",
+  "comment": "Rule set captures. Run with LOCALEXCEPTION_QA_MODE and LOCALEXCEPTION_QA_MUTATORS set on the tour server. The frame is evidence only if the chip names the rules the server was started with.",
   "width": 1280,
   "height": 720,
   "states": [
@@ -22,7 +22,7 @@
       "camera": "body",
       "body": "human",
       "body_team": "coalition",
-      "note": "Free coalition side: a human body keeps its own art with ink-edged amber tape under the side plate. Requires FRAGR_QA_MODE=tdm."
+      "note": "Free coalition side: a human body keeps its own art with ink-edged amber tape under the side plate. Requires LOCALEXCEPTION_QA_MODE=tdm."
     },
     {
       "name": "modes_body_coalition_synthetic",

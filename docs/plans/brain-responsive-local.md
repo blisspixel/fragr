@@ -72,9 +72,9 @@ of work owns full workspace verification. No external service is called.
 
 ## Evidence
 
-`cargo test -p fragr-brain --locked` passed 114 library tests and ten binary
-tests. `cargo clippy -p fragr-brain --all-targets --locked -- -D warnings`,
-`cargo fmt -p fragr-brain -- --check` and `git diff --check` passed. Package logs
+`cargo test -p localexception-brain --locked` passed 114 library tests and ten binary
+tests. `cargo clippy -p localexception-brain --all-targets --locked -- -D warnings`,
+`cargo fmt -p localexception-brain -- --check` and `git diff --check` passed. Package logs
 are under `.agents/brain-responsive-local/package-tests-final.log` and
 `package-clippy-final.log`. The focused delayed-model socket fixture proves a new
 low-health snapshot selects the health route while inference is held, and an
@@ -98,7 +98,7 @@ resupply. Team telemetry excludes allied scores from the rival comparison.
 
 ### Six-controller socket smoke
 
-The initial smoke ran `cargo test -p fragr-brain --lib ctf --locked -- --nocapture`, with its
+The initial smoke ran `cargo test -p localexception-brain --lib ctf --locked -- --nocapture`, with its
 output saved to `.agents/brain-responsive-local/ctf-socket-smoke.log`. Eight
 tests passed, including `six_free_brains_play_ctf_on_real_sockets`. This uses
 the actual `run_server` and six reference brains over ephemeral loopback

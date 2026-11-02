@@ -393,7 +393,7 @@ fn lot_probe(mode: GameMode, bots: usize, seconds: u32, seed: u64) -> [u32; 5] {
 }
 
 /// Prints how rule bots use the lot's power items and how often they meet:
-/// `cargo test -p fragr-server --lib lot_power_probe -- --ignored --nocapture`.
+/// `cargo test -p localexception-server --lib lot_power_probe -- --ignored --nocapture`.
 #[test]
 #[ignore = "prints the rule-bot Duel and free-for-all power-item probe"]
 fn lot_power_probe() {

@@ -8,7 +8,7 @@ Measure the default first-to-three capture rule on Sector 9 with twelve mixed Re
 
 ## Scope
 
-- Extend the existing `fragr-playtest` report with `flag_drops` and `flag_returns` from the already typed flag events, plus the most recent authoritative round-end reason and capture score. Keep `flag_takes`, `captures`, `carrier_seconds`, frags and side roster counts. Add a focused fold test so these counts cannot silently drift from event semantics.
+- Extend the existing `localexception-playtest` report with `flag_drops` and `flag_returns` from the already typed flag events, plus the most recent authoritative round-end reason and capture score. Keep `flag_takes`, `captures`, `carrier_seconds`, frags and side roster counts. Add a focused fold test so these counts cannot silently drift from event semantics.
 - Run five fixed-seed observations, 40 through 44, with `--agents 12 --rounds 1 --mode ctf --map 4 --tiers reflex,planner --capture-limit 3 --time-limit-seconds 180`. Use a bounded `--max-seconds` that allows the round to finish and write each JSON report under ignored `.agents/`. The live socket runs can vary on repeat: process-local player IDs and asynchronous action timing are not replay-fixed. This measures the harness's external agent policy with zero server rule bots.
 - Record each seed's match duration, takes, drops, returns, captures, carrier time, frags, completed round and final side score when observable. Preserve failed or scoreless runs as evidence; no selection of the nicest seed.
 
@@ -22,7 +22,7 @@ Run the focused report test, formatting, Clippy and workspace tests, then the fi
 
 ## Five-run baseline, 2026-09-28
 
-Ran the debug `fragr-playtest` socket harness on Windows with an AMD Ryzen 7 7840U, using twelve external agents, alternating Reflex and Planner, six per side, zero server rule bots. Command for each seed: `target/debug/fragr-playtest.exe --agents 12 --rounds 1 --mode ctf --map 4 --tiers reflex,planner --capture-limit 3 --time-limit-seconds 180 --max-seconds 190 --seed SEED --report .agents/playtest/ctf-pacing-seed-SEED.json`. Reports and console logs are ignored local diagnostics. The report implementation is in `cfb1a93`; the binary used the same code before a later test-only change and documentation edits.
+Ran the debug `localexception-playtest` socket harness on Windows with an AMD Ryzen 7 7840U, using twelve external agents, alternating Reflex and Planner, six per side, zero server rule bots. Command for each seed: `target/debug/localexception-playtest.exe --agents 12 --rounds 1 --mode ctf --map 4 --tiers reflex,planner --capture-limit 3 --time-limit-seconds 180 --max-seconds 190 --seed SEED --report .agents/playtest/ctf-pacing-seed-SEED.json`. Reports and console logs are ignored local diagnostics. The report implementation is in `cfb1a93`; the binary used the same code before a later test-only change and documentation edits.
 
 | Seed | Seconds | Takes | Drops | Returns | Captures | Carrier seconds | Frags | Final score (Union:Coalition) |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|

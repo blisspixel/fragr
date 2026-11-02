@@ -109,18 +109,18 @@ pub fn preview_run_in(directory: &std::path::Path) -> io::Result<RunPreview> {
 }
 
 /// Where a desktop host keeps the head-to-head book: beside the runs, so the
-/// same `FRAGR_RUN_DIR` override isolates both.
+/// same `LOCALEXCEPTION_RUN_DIR` override isolates both.
 pub fn head_to_head_path() -> io::Result<PathBuf> {
     Ok(run_directory()?.join("head-to-head.json"))
 }
 
 pub(crate) fn run_directory() -> io::Result<PathBuf> {
-    if let Some(override_path) = std::env::var_os("FRAGR_RUN_DIR") {
+    if let Some(override_path) = std::env::var_os("LOCALEXCEPTION_RUN_DIR") {
         let path = PathBuf::from(override_path);
         if path.is_absolute() {
             return Ok(path);
         }
-        return Err(io::Error::other("FRAGR_RUN_DIR must be absolute"));
+        return Err(io::Error::other("LOCALEXCEPTION_RUN_DIR must be absolute"));
     }
     #[cfg(target_os = "windows")]
     let base = std::env::var_os("LOCALAPPDATA").map(PathBuf::from);
@@ -142,7 +142,7 @@ pub(crate) fn run_directory() -> io::Result<PathBuf> {
     if !base.is_absolute() {
         return Err(io::Error::other("user data directory must be absolute"));
     }
-    Ok(base.join("fragr").join("runs"))
+    Ok(base.join("localexception").join("runs"))
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -1125,7 +1125,7 @@ mod tests {
         }
         assert_eq!(
             crate::protocol::GAMEPLAY_VERSION,
-            crate::protocol::SHOT_SENSE_GAMEPLAY_VERSION
+            crate::protocol::IDENTITY_GAMEPLAY_VERSION
         );
         // M09 and M10 carry the single-schema campaign receipts (contract 55,
         // below the Local Exception contract this binary now tops out at).

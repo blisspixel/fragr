@@ -12,7 +12,7 @@ struct Fixture(PathBuf);
 impl Fixture {
     fn new() -> Self {
         let path = std::env::temp_dir().join(format!(
-            "fragr check process-{}-{}",
+            "localexception check process-{}-{}",
             std::process::id(),
             NEXT.fetch_add(1, Ordering::Relaxed)
         ));
@@ -25,14 +25,14 @@ impl Fixture {
     }
 
     fn run_executable(&self, mode: &str, timeout: &str, executable: PathBuf) -> Output {
-        Command::new(env!("CARGO_BIN_EXE_fragr-check-process"))
+        Command::new(env!("CARGO_BIN_EXE_localexception-check-process"))
             .args(["--timeout-ms", timeout, "--output"])
             .arg(self.0.join("output.log"))
             .arg("--")
             .arg(executable)
             .args(["--exact", "guard_fixture_child", "--nocapture"])
-            .env("FRAGR_GUARD_FIXTURE_MODE", mode)
-            .env("FRAGR_GUARD_FIXTURE_DIR", &self.0)
+            .env("LOCALEXCEPTION_GUARD_FIXTURE_MODE", mode)
+            .env("LOCALEXCEPTION_GUARD_FIXTURE_DIR", &self.0)
             .output()
             .unwrap()
     }
@@ -78,10 +78,10 @@ impl Drop for Fixture {
 // inherited output and lease cleanup. The enclosing tests await their exit.
 #[allow(clippy::zombie_processes)]
 fn guard_fixture_child() {
-    let Ok(mode) = std::env::var("FRAGR_GUARD_FIXTURE_MODE") else {
+    let Ok(mode) = std::env::var("LOCALEXCEPTION_GUARD_FIXTURE_MODE") else {
         return;
     };
-    let directory = PathBuf::from(std::env::var_os("FRAGR_GUARD_FIXTURE_DIR").unwrap());
+    let directory = PathBuf::from(std::env::var_os("LOCALEXCEPTION_GUARD_FIXTURE_DIR").unwrap());
     match mode.as_str() {
         "success" => println!("fixture: PASS"),
         "failure" => {
@@ -99,7 +99,7 @@ fn guard_fixture_child() {
             let mut child = Command::new(std::env::current_exe().unwrap())
                 .args(["--exact", "guard_fixture_child", "--nocapture"])
                 .env(
-                    "FRAGR_GUARD_FIXTURE_MODE",
+                    "LOCALEXCEPTION_GUARD_FIXTURE_MODE",
                     if mode == "tree" {
                         "lease"
                     } else {

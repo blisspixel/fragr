@@ -1,6 +1,6 @@
 # Design references
 
-What fragr steals from the shooters and radio systems that got it right, and what it refuses. Mechanics and feel only, never trademarks or assets. Researched 2026-09-18 against source code where it exists (Unreal Tournament 1999 v469 UnrealScript, ioquake3, linuxdoom), otherwise developer postmortems, official docs, and wikis. Items are mapped to `ROADMAP.md` phases. This file is a reference; sequencing lives in the roadmap and bounded work lives in `plans/`.
+What Local Exception steals from the shooters and radio systems that got it right, and what it refuses. Mechanics and feel only, never trademarks or assets. Researched 2026-09-18 against source code where it exists (Unreal Tournament 1999 v469 UnrealScript, ioquake3, linuxdoom), otherwise developer postmortems, official docs, and wikis. Items are mapped to `ROADMAP.md` phases. This file is a reference; sequencing lives in the roadmap and bounded work lives in `plans/`.
 
 These are reference ideas, not shipped features. Current campaign decisions in
 `CAMPAIGN.md`, spatial practice in `MAP-DESIGN.md` and the roster in `ENEMIES.md`
@@ -11,7 +11,7 @@ are a possible later challenge variant, not required campaign story.
 
 ## Arena feel and the Host
 
-| Element | Source | Why it works | fragr adaptation | Phase |
+| Element | Source | Why it works | Local Exception adaptation | Phase |
 |---|---|---|---|---|
 | Multi-kill chain with a 3 s window (Double, Multi, Ultra, Monster) and sprees at 5, 10, 15, 20, 25 kills; "X's spree was ended by Y" | UT99 source | The window makes the callout a skill signal; spree-ended turns an underdog kill into a story beat | Server emits `award` events from the authoritative kill log. The Host reads them dry: 2 "Two on the line", 3 "Party line", 4 "Switchboard's lit", 5+ "We are off script"; sprees "On the air", "Long distance", "Clear channel", "Fifty thousand watts", "Not for public release"; spree ended "Caller dropped"; first blood "First caller"; gib "DENIED" | 1 |
 | Per-bot personality knobs (accuracy, alertness, camping, combat style, favourite weapon, jumpiness) and auto-adjusted skill when a human kills or is killed | UT99 | Bots read as players because they differ on axes people can name; solo play stays in the fun band without a menu | Six floats on the named roster, nudged per human kill; the Host can reference them | 1 |
@@ -33,7 +33,7 @@ Refused: regenerating health (it removes item control), Doom or id branding, esp
 
 ## Team modes, servers, and scale
 
-| Element | Source | Why it works | fragr adaptation | Phase |
+| Element | Source | Why it works | Local Exception adaptation | Phase |
 |---|---|---|---|---|
 | Conquest tickets with majority bleed and an uncapturable home base; spawn at owned flags in waves | Battlefield 1942 | A clock both teams negotiate; territory equals spawns | `mode=control` with flag timers, tickets in the snapshot, respawn waves | 4 (waves in 1) |
 | Vehicles as data-driven world objects with per-team spawn delays; carriers as mobile spawns | Battlefield 1942 | Vehicle placement is the map's flow control | Vehicle entities with seats on the action path; spawn tables in map data | 4 |
@@ -45,7 +45,7 @@ Refused: regenerating health (it removes item control), Doom or id branding, esp
 | Killcam from recorded game data | Call of Duty | Every death gets a story and cheating accusations deflate | Server keeps a short snapshot ring; client replays the killer's view | 1 |
 | Shell shock and grenade indicators | Call of Duty 2 | Explosions become drama and stay readable | `stunned` flag in the snapshot plus a client effect | 1 |
 | Rule sets as server-side presets (PAM, promod) rather than forks | Call of Duty leagues | Competitive scenes grow from presets | `ruleset` files: round time, lives, friendly fire, team balance, killcam | 2 |
-| One binary, a config file generated on first run, ops and whitelist and ban files, a status ping with version and players and description | Minecraft | Zero-thought setup, safe upgrades, browsers show everything before connecting | `fragr-server.toml`, `ops.json`, `whitelist.json`, `banned.json`, `GET /status` on 6767 with map, mode, round phase, agent count, tags | 2 |
+| One binary, a config file generated on first run, ops and whitelist and ban files, a status ping with version and players and description | Minecraft | Zero-thought setup, safe upgrades, browsers show everything before connecting | `localexception-server.toml`, `ops.json`, `whitelist.json`, `banned.json`, `GET /status` on 6767 with map, mode, round phase, agent count, tags | 2 |
 | rcon vocabulary: status, say, map, map_restart, rotate, kick, ban | Quake lineage | The ops words everyone already knows | Same verbs over an authenticated admin channel | 2 |
 | HLTV relay with a delay and demo recording | Counter-Strike | Made the game watchable | Spectator fan-out relay off the tick; snapshot recording to a demo file | 2 and 4 |
 | Delta snapshots against the last acknowledged baseline, entity caps, byte budgets | Quake 3 | 1400-byte packets at 20 Hz carried a great feel | Per-client acked baseline in the protocol crate; measure bytes per tick per client | 2 |
@@ -71,7 +71,7 @@ Refused: regenerating health (it removes item control), Doom or id branding, esp
 
 ## Radio
 
-| Element | Source | Why it works | fragr adaptation |
+| Element | Source | Why it works | Local Exception adaptation |
 |---|---|---|---|
 | Small playlists with a host voice, station IDs, spoof ads, and news that reports what the player did | GTA III through V, Fallout 3 and New Vegas | Identity and short spoken items make five to twenty tracks feel like a station; hearing your own deed on the radio is the reward | Twenty tracks per station, DJ bumpers and ads as a second wave, match-triggered bulletins at round end |
 | DJs never talk over the action | Fallout, GTA versus Burnout 3 | Chatter over gameplay wears thin fast | Bumpers only between tracks or rounds; separate sliders for music, chatter, ads, bulletins |
@@ -85,9 +85,9 @@ The station bible, cadence, and prompt craft live in `plans/radio-stations.md`.
 
 ## Foundational classics: the aspects of fun to draw on
 
-Each of these did one thing so well that people still remember the feeling. The point is the feeling, never the assets or the names. What fragr takes from each is a feature with a home in a plan.
+Each of these did one thing so well that people still remember the feeling. The point is the feeling, never the assets or the names. What Local Exception takes from each is a feature with a home in a plan.
 
-| Game | What was fun | What fragr takes | Where it lives |
+| Game | What was fun | What Local Exception takes | Where it lives |
 |---|---|---|---|
 | GoldenEye 007 (N64) | Objectives that change with difficulty, not just enemy health; enemies that react to where they were hit; a weapon cabinet with personality (a golden gun, proximity mines, dual wield); couch multiplayer twists (one-shot kills, melee only, one golden gun on the map); the character-select joke that everyone argued about | Difficulty tiers that add objectives in the campaign; hit reactions by direction and weapon on fighter sprites; mode twists as mutators (one-shot rail only, scatter only, one golden rail on the map); a roster joke in the fighter select | `plans/campaign-continuance.md` tiers; `plans/look-pass-boomer.md` fighter sprites; Phase 4 bigger modes; `LORE.md` roster |
 | Perfect Dark (N64) | Simulants: bots with named personalities and quirks you could pick per match; counter-operative mode where a second player is the enemy; co-op through the campaign | Rule bots with personalities you choose per match, not just difficulties; a spectator who can drop in as an enemy in the campaign; co-op campaign with agents as teammates | Phase 1.4 bots that read as players; `plans/campaign-continuance.md` |

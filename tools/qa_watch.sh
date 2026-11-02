@@ -9,24 +9,24 @@ STAMP="$(date -u +%Y%m%d-%H%M%S)"
 OUT="${1:-$ROOT/.agents/watch/$STAMP}"
 mkdir -p "$OUT" || exit 1
 OUT="$(cd "$OUT" && pwd)"
-PORT="${FRAGR_WATCH_PORT:-6768}"
-WATCH_SECONDS="${FRAGR_WATCH_SECONDS:-45}"
-WATCH_SEED="${FRAGR_WATCH_SEED:-1}"
+PORT="${LOCALEXCEPTION_WATCH_PORT:-6768}"
+WATCH_SECONDS="${LOCALEXCEPTION_WATCH_SECONDS:-45}"
+WATCH_SEED="${LOCALEXCEPTION_WATCH_SEED:-1}"
 if ! [[ "$PORT" =~ ^(0|[1-9][0-9]*)$ ]] || (( PORT < 1 || PORT > 65535 )); then
-  echo "qa_watch: FRAGR_WATCH_PORT must be 1 through 65535" >&2
+  echo "qa_watch: LOCALEXCEPTION_WATCH_PORT must be 1 through 65535" >&2
   exit 1
 fi
 if ! [[ "$WATCH_SECONDS" =~ ^(0|[1-9][0-9]*)$ ]] || (( WATCH_SECONDS < 1 || WATCH_SECONDS > 3600 )); then
-  echo "qa_watch: FRAGR_WATCH_SECONDS must be 1 through 3600" >&2
+  echo "qa_watch: LOCALEXCEPTION_WATCH_SECONDS must be 1 through 3600" >&2
   exit 1
 fi
 if ! [[ "$WATCH_SEED" =~ ^(0|[1-9][0-9]*)$ ]] || (( ${#WATCH_SEED} > 20 )); then
-  echo "qa_watch: FRAGR_WATCH_SEED must be a nonnegative u64" >&2
+  echo "qa_watch: LOCALEXCEPTION_WATCH_SEED must be a nonnegative u64" >&2
   exit 1
 fi
-NAME="${FRAGR_WATCH_NAME:-WatchAgent-$$}"
+NAME="${LOCALEXCEPTION_WATCH_NAME:-WatchAgent-$$}"
 if ! [[ "$NAME" =~ ^[A-Za-z0-9_-]{1,32}$ ]]; then
-  echo "qa_watch: FRAGR_WATCH_NAME must be 1 to 32 letters, numbers, _ or -" >&2
+  echo "qa_watch: LOCALEXCEPTION_WATCH_NAME must be 1 to 32 letters, numbers, _ or -" >&2
   exit 1
 fi
 SERVER_PID=""
@@ -47,7 +47,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-GODOT_BIN="${FRAGR_GODOT:-${GODOT_BIN:-}}"
+GODOT_BIN="${LOCALEXCEPTION_GODOT:-${GODOT_BIN:-}}"
 if [ -z "$GODOT_BIN" ]; then
   for candidate in \
     "/c/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe" \
@@ -59,7 +59,7 @@ if [ -z "$GODOT_BIN" ]; then
   GODOT_BIN="$(command -v godot || command -v Godot_v4.7.2-stable_linux.x86_64 || true)"
 fi
 if [ -z "$GODOT_BIN" ]; then
-  echo "qa_watch: Godot 4.7.2 is required; set FRAGR_GODOT" >&2
+  echo "qa_watch: Godot 4.7.2 is required; set LOCALEXCEPTION_GODOT" >&2
   exit 1
 fi
 if (exec 3<>"/dev/tcp/127.0.0.1/$PORT") 2>/dev/null; then
@@ -68,7 +68,7 @@ if (exec 3<>"/dev/tcp/127.0.0.1/$PORT") 2>/dev/null; then
   exit 1
 fi
 
-cargo build -p fragr-server -p fragr-brain --release --locked >"$OUT/build.log" 2>&1 || {
+cargo build -p localexception-server -p localexception-brain --release --locked >"$OUT/build.log" 2>&1 || {
   echo "qa_watch: Rust build failed; see $OUT/build.log" >&2; exit 1; }
 "$GODOT_BIN" --path "$ROOT/client" --headless --import >"$OUT/import.log" 2>&1 || {
   echo "qa_watch: Godot import failed; see $OUT/import.log" >&2; exit 1; }
@@ -77,9 +77,9 @@ if grep -qiE 'SCRIPT ERROR|Parse Error|(^|[[:space:]])ERROR:' "$OUT/import.log";
   exit 1
 fi
 
-"$ROOT/target/release/fragr-server" --bind "127.0.0.1:$PORT" --bots 0 \
+"$ROOT/target/release/localexception-server" --bind "127.0.0.1:$PORT" --bots 0 \
   --map-file server/maps/m01-recall-notice.json --campaign-run \
-  --difficulty "${FRAGR_WATCH_DIFFICULTY:-standard}" --seed "$WATCH_SEED" --status-every-s 0 \
+  --difficulty "${LOCALEXCEPTION_WATCH_DIFFICULTY:-standard}" --seed "$WATCH_SEED" --status-every-s 0 \
   >"$OUT/server.log" 2>&1 &
 SERVER_PID=$!
 UP=0
@@ -103,9 +103,9 @@ fi
 if [ "$(uname -s)" = "Linux" ]; then
   command -v Xvfb >/dev/null 2>&1 || {
     echo "qa_watch: Xvfb is required on Linux" >&2; exit 1; }
-  DISPLAY_NUM="${FRAGR_WATCH_DISPLAY_NUM:-99}"
+  DISPLAY_NUM="${LOCALEXCEPTION_WATCH_DISPLAY_NUM:-99}"
   if ! [[ "$DISPLAY_NUM" =~ ^(0|[1-9][0-9]*)$ ]] || (( DISPLAY_NUM > 999 )); then
-    echo "qa_watch: FRAGR_WATCH_DISPLAY_NUM must be 0 through 999" >&2
+    echo "qa_watch: LOCALEXCEPTION_WATCH_DISPLAY_NUM must be 0 through 999" >&2
     exit 1
   fi
   Xvfb ":$DISPLAY_NUM" -screen 0 1280x720x24 >"$OUT/xvfb.log" 2>&1 &
@@ -116,14 +116,14 @@ if [ "$(uname -s)" = "Linux" ]; then
     exit 1
   fi
   DISPLAY=":$DISPLAY_NUM" LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
-    FRAGR_SERVER="127.0.0.1:$PORT" FRAGR_WATCH_NAME="$NAME" \
-    FRAGR_WATCH_DIR="$OUT" \
+    LOCALEXCEPTION_SERVER="127.0.0.1:$PORT" LOCALEXCEPTION_WATCH_NAME="$NAME" \
+    LOCALEXCEPTION_WATCH_DIR="$OUT" \
     "$GODOT_BIN" --path "$ROOT/client" --rendering-driver opengl3 \
     --windowed --resolution 1280x720 --script res://scripts/qa_watch.gd \
     >"$OUT/watch.log" 2>&1 &
 else
-  FRAGR_SERVER="127.0.0.1:$PORT" FRAGR_WATCH_NAME="$NAME" \
-    FRAGR_WATCH_DIR="$OUT" \
+  LOCALEXCEPTION_SERVER="127.0.0.1:$PORT" LOCALEXCEPTION_WATCH_NAME="$NAME" \
+    LOCALEXCEPTION_WATCH_DIR="$OUT" \
     "$GODOT_BIN" --path "$ROOT/client" --rendering-driver opengl3 \
     --windowed --resolution 1280x720 --script res://scripts/qa_watch.gd \
     >"$OUT/watch.log" 2>&1 &
@@ -143,7 +143,7 @@ if [ "$WATCH_READY" -ne 1 ]; then
   exit 1
 fi
 
-"$ROOT/target/release/fragr-brain" --provider local play \
+"$ROOT/target/release/localexception-brain" --provider local play \
   --server "ws://127.0.0.1:$PORT" --name "$NAME" \
   --max-seconds "$WATCH_SECONDS" \
   --timeline-path "$OUT/timeline.json" \
@@ -185,7 +185,7 @@ if [ "$BRAIN_STATUS" -ne 0 ]; then
   echo "qa_watch: brain failed; see $OUT/brain.log" >&2
   exit "$BRAIN_STATUS"
 fi
-FRAGR_WATCH_DIR="$OUT" FRAGR_WATCH_VERIFY_BRAIN="$OUT/brain.log" \
+LOCALEXCEPTION_WATCH_DIR="$OUT" LOCALEXCEPTION_WATCH_VERIFY_BRAIN="$OUT/brain.log" \
   "$GODOT_BIN" --path "$ROOT/client" --headless \
   --script res://scripts/qa_watch.gd >"$OUT/verify.log" 2>&1 || {
   echo "qa_watch: receipts do not match; see $OUT/verify.log" >&2

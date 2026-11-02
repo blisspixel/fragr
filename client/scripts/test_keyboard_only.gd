@@ -55,7 +55,7 @@ func _located(code: Key, location: KeyLocation, pressed: bool = true) -> void:
 	Input.flush_buffered_events()
 
 func _run() -> void:
-	FragrSettings.new("user://keyboard-only-unused.cfg").apply_controls()
+	LocalExceptionSettings.new("user://keyboard-only-unused.cfg").apply_controls()
 	InputDevice.reset()
 	_test_default_bindings()
 	_test_turn_ramp_and_frame_independence()
@@ -87,7 +87,7 @@ func _test_default_bindings() -> void:
 	left_ctrl.location = KEY_LOCATION_LEFT
 	_check(right_ctrl.is_action_pressed("fire") and not right_ctrl.is_action_pressed("duck"), "right Ctrl fires beside the arrows")
 	_check(left_ctrl.is_action_pressed("duck") and not left_ctrl.is_action_pressed("fire"), "left Ctrl ducks and does not fire")
-	_check(InputBindings.conflicts(FragrSettings.new("user://keyboard-only-unused.cfg")).is_empty(), "default bindings have no conflicts")
+	_check(InputBindings.conflicts(LocalExceptionSettings.new("user://keyboard-only-unused.cfg")).is_empty(), "default bindings have no conflicts")
 
 func _test_turn_ramp_and_frame_independence() -> void:
 	var rate: float = 2.8

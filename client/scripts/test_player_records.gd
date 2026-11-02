@@ -3,7 +3,7 @@ extends SceneTree
 var _failures: int = 0
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	_run.call_deferred()
 
 func _check(value: bool, message: String) -> void:
@@ -324,7 +324,7 @@ func _run() -> void:
 	_check(RecordsPanel.commentary_key(dry) == "RECORD_QUIP_DRY", "dry-trigger quip uses observed fact")
 	var panel: RecordsPanel = RecordsPanel.new()
 	panel.records = memory
-	panel.preferences = FragrSettings.new("user://unused-record-preferences.cfg")
+	panel.preferences = LocalExceptionSettings.new("user://unused-record-preferences.cfg")
 	root.add_child(panel)
 	await process_frame
 	panel.call("_select_kind", "arena")

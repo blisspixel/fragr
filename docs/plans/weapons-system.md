@@ -6,7 +6,7 @@
 
 ## Goal
 
-Add distinct weapon roles (Flechette, Rail, Scatter) to fragr with different damage, cooldown, and spread characteristics. Players can swap weapons during gameplay, adding tactical depth to combat.
+Add distinct weapon roles (Flechette, Rail, Scatter) to Local Exception with different damage, cooldown, and spread characteristics. Players can swap weapons during gameplay, adding tactical depth to combat.
 
 ## Non-goals
 

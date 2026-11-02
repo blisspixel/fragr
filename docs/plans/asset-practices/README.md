@@ -1,4 +1,4 @@
-# fragr asset production practices
+# Local Exception asset production practices
 
 Checked 2026-10-24 against primary sources (official docs, API references, changelogs, official guides), then reviewed a second time against those sources, the tool source on `main` (`9010d6ad`; `origin/wave2/integration` has merged and no longer exists), the canon docs, the candidate receipts in `client/art/model-candidates/*.glb.json` and the round ledger. This is a working guide, not canon. Lines marked **Proposal** need Nick's agreement. Detailed evidence is in [`higgsfield.md`](higgsfield.md), [`meshy.md`](meshy.md), [`elevenlabs.md`](elevenlabs.md), [`lore-gate.md`](lore-gate.md) and [`brief-template.md`](brief-template.md); where this file and those notes disagree, this file is the corrected one. Raw results from free endpoints are saved beside them. No paid call was made and no tracked file changed.
 
@@ -36,7 +36,7 @@ Checked 2026-10-24 against primary sources (official docs, API references, chang
 
 | Model | Use for | Live price (1:1 prop prompt) | Notes |
 |---|---|---|---|
-| `marketing-studio/image` (2.0 Alpha) | **The default for everything until a pilot shows something better.** Every recent fragr image spec uses it. | Low 1k $0.017, low 2k $0.023. Medium 2k $0.118 ($0.131 with one reference, $0.157 with three). Medium 2k at 16:9 $0.070. High 2k $0.439. | Quality low, medium or high only (`xhigh` is refused). Up to 16 `image_urls`. The estimate returns an exact usd figure. |
+| `marketing-studio/image` (2.0 Alpha) | **The default for everything until a pilot shows something better.** Every recent Local Exception image spec uses it. | Low 1k $0.017, low 2k $0.023. Medium 2k $0.118 ($0.131 with one reference, $0.157 with three). Medium 2k at 16:9 $0.070. High 2k $0.439. | Quality low, medium or high only (`xhigh` is refused). Up to 16 `image_urls`. The estimate returns an exact usd figure. |
 | `marketing-studio/image/flare` and `/sunburst` (GPT Image 2.5) | Pilot only: hero references where 2.0 misses a stated requirement. | Token-priced ($30 per 1M image output tokens, $8 per 1M image input tokens) | The estimate returns `{"type":"description"}` with no usd. spritegen already refuses it (fail-closed); a new budget gate is needed first. |
 | `alibaba/qwen-image-3/*` | Pilot: reproducible variants and tile candidates. The only model here with a **seed** and a real **negative_prompt**. The edit endpoint takes 1 to 3 references. | $0.075 at 2k (1536 px), $0.040 at 1k | Set `prompt_extend` and `enable_thinking` to false (both default true). |
 | `recraft/v4.1` | Pilot: flat decals, UI icons and blank signage. The **`colors`** palette control can take swatches from `palette.json`. | $0.035 standard 1k, $0.21 pro 2k | No reference images. |
@@ -115,7 +115,7 @@ AVOID: <spec default list> + <reserved-colour negatives for this faction>.
 
 | Feature | Use for | API credits |
 |---|---|---|
-| **meshy-t2.5 Smart Topology** (`model_type: "smart-topology"`; added 2026-10-15, now the Smart Topology default) | **Pilot, then hard-surface props and mechanisms.** Triangles only, `target_polycount` 100 to 30,000 (default 15,000), single image only. The docs claim "natively separated parts" only for t2, and fragr's clean-UV and separated-island evidence (2026-10-04 Pistol and Rifle, about 1.06 vertices per triangle, 55 to 61 islands) is also t2. Confirm both on t2.5 before relying on them. | 15 textured (2k or 4k), 20 at 8k, 5 untextured |
+| **meshy-t2.5 Smart Topology** (`model_type: "smart-topology"`; added 2026-10-15, now the Smart Topology default) | **Pilot, then hard-surface props and mechanisms.** Triangles only, `target_polycount` 100 to 30,000 (default 15,000), single image only. The docs claim "natively separated parts" only for t2, and Local Exception's clean-UV and separated-island evidence (2026-10-04 Pistol and Rifle, about 1.06 vertices per triangle, 55 to 61 islands) is also t2. Confirm both on t2.5 before relying on them. | 15 textured (2k or 4k), 20 at 8k, 5 untextured |
 | **meshy-7.1** (`latest`, 2026-09-18), single image or **Multi-Image** (1 to 4 views, front first; optional `texture_image_urls`, 1 to 4 more) | **Characters, organic subjects, and any subject whose depth or back came out wrong.** | 30 textured at standard geometry, 35 with `geometry_resolution` 2k or 4k. Multi-Image costs the same as single image. |
 | Rigging | Textured standard humanoid bipeds, face toward +Z, at most 320,000 faces, real `height_meters` (default 1.7). Generate in A-pose or T-pose. | 5 (walk and run clips are optional extras) |
 | **Animation API** (`action_ids`, 1 to 10 per request, one merged file; `post_process` `change_fps` to 24, 25, 30 or 60) | Idle, pain, disable, reload and shoot-while-walking sets for humanoid roles. | 3 per action |
@@ -222,7 +222,7 @@ Most of these are already measured in the `prepare_model_candidates.gd` receipts
 - `model_id` per role (v4 once its A/B passes), plus `stability`, `similarity_boost` and a fixed `seed` per role. audiogen sends only `stability` today.
 - `language_code: "en"`. Text normalisation is on by default; set `apply_text_normalization` explicitly only where numbers or codes read wrongly.
 - `previous_text`/`next_text` (or `previous_request_ids`) for narration split across requests.
-- One fragr pronunciation dictionary (PLS) for proper nouns (Latch, Tern, Edda, Splice, Mara, Unmetered, Continuance, place names). The API reference allows up to 3 locators per request. Matching is case-sensitive and only the first rule applies.
+- One Local Exception pronunciation dictionary (PLS) for proper nouns (Latch, Tern, Edda, Splice, Mara, Unmetered, Continuance, place names). The API reference allows up to 3 locators per request. Matching is case-sensitive and only the first rule applies.
 - Write delivery tags as descriptions of the voice (`[low, dry, relaxed]`, the docs' example is `[low, gravelly voice]`), not single words the model might voice as a sound.
 
 **Voice Design:**

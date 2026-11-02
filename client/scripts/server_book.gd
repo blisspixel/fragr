@@ -42,8 +42,8 @@ var favorites: Array[String] = []
 var recent: Array[String] = []
 
 static func for_tree(tree: SceneTree, settings_path: String = "") -> ServerBook:
-	var path: String = str(tree.get_meta("fragr_server_book_path", ""))
-	if path.is_empty() and not settings_path.is_empty() and settings_path != FragrSettings.PATH:
+	var path: String = str(tree.get_meta("localexception_server_book_path", ""))
+	if path.is_empty() and not settings_path.is_empty() and settings_path != LocalExceptionSettings.PATH:
 		path = settings_path + ".servers"
 	if path.is_empty():
 		path = PATH
@@ -63,7 +63,7 @@ static func canonical(value: String) -> String:
 ## Game port inside a LAN presence packet, or 0 when the packet is not one.
 static func beacon_port(packet: PackedByteArray) -> int:
 	var text: String = packet.get_string_from_utf8()
-	var prefix: String = "FRAGR/1 "
+	var prefix: String = "LOCALEXCEPTION/1 "
 	if not text.begins_with(prefix) or text.count("\n") != 1 or not text.ends_with("\n"):
 		return 0
 	var port_text: String = text.substr(prefix.length(), text.length() - prefix.length() - 1)

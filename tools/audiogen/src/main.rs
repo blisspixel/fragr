@@ -4,10 +4,10 @@
 //! the library so it is tested without touching the network.
 
 use clap::{Parser, Subcommand};
-use fragr_audiogen::casting::{
+use localexception_audiogen::casting::{
     DesignParams, LibraryQuery, SaveVoiceParams, DEFAULT_DESIGN_FORMAT, DEFAULT_DESIGN_MODEL,
 };
-use fragr_audiogen::{
+use localexception_audiogen::{
     loudness, parse_spec, read_capped, read_dotenv_key, resolve_api_key, review, run_command,
     score, Command, Error, Job, Method, MusicParams, Request, Response, RunOptions, SfxParams,
     Transport, TtsParams, API_KEY_ENV, DEFAULT_BASE_URL, DEFAULT_MUSIC_FORMAT, DEFAULT_MUSIC_MODEL,
@@ -20,9 +20,9 @@ use tracing_subscriber::EnvFilter;
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "fragr-audiogen",
-    version = env!("FRAGR_CLI_VERSION"),
-    about = "Developer-only sound effect and music generation for fragr through the ElevenLabs API. Never runs in CI or in the game."
+    name = "localexception-audiogen",
+    version = env!("LOCALEXCEPTION_CLI_VERSION"),
+    about = "Developer-only sound effect and music generation for Local Exception through the ElevenLabs API. Never runs in CI or in the game."
 )]
 struct Cli {
     /// File containing the API key. Overrides ELEVENLABS_API_KEY. Keep it out of git.
@@ -300,7 +300,7 @@ enum Cmd {
     /// results screen, with its .import file and manifest entry. Keeps all six
     /// without a pick. Dry run unless --apply.
     JinglePrune {
-        /// The game's settings file. Defaults to Godot's user data folder for fragr.
+        /// The game's settings file. Defaults to Godot's user data folder for localexception.
         #[arg(long)]
         settings: Option<PathBuf>,
         /// Shipped takes (<dir>/benchmark/<take>.mp3); its parent holds audiogen-manifest.json.
@@ -315,7 +315,7 @@ enum Cmd {
 /// Where the score take commands read.
 #[derive(clap::Args, Debug, Clone, PartialEq)]
 struct ScorePaths {
-    /// The game's settings file. Defaults to Godot's user data folder for fragr.
+    /// The game's settings file. Defaults to Godot's user data folder for localexception.
     #[arg(long)]
     settings: Option<PathBuf>,
     /// Score slot list.
@@ -465,7 +465,7 @@ fn to_command(cmd: Cmd) -> Result<Command, Error> {
             out,
         } => {
             let scripts_json = std::fs::read_to_string(&scripts)?;
-            let mut cast = fragr_audiogen::VoiceCast::new();
+            let mut cast = localexception_audiogen::VoiceCast::new();
             for (speaker, ids) in voices {
                 cast.entry(speaker).or_default().extend(ids);
             }
@@ -974,7 +974,7 @@ mod tests {
     #[test]
     fn parses_sfx_arguments() {
         let cli = Cli::try_parse_from([
-            "fragr-audiogen",
+            "localexception-audiogen",
             "--out-dir",
             "out",
             "--overwrite",
@@ -1012,7 +1012,7 @@ mod tests {
     #[test]
     fn parses_music_arguments() {
         let cli = Cli::try_parse_from([
-            "fragr-audiogen",
+            "localexception-audiogen",
             "music",
             "--name",
             "music/match_01",
@@ -1040,7 +1040,7 @@ mod tests {
 
     #[test]
     fn parses_batch_and_quota() {
-        let dir = std::env::temp_dir().join("fragr-audiogen-main-batch");
+        let dir = std::env::temp_dir().join("localexception-audiogen-main-batch");
         std::fs::create_dir_all(&dir).unwrap();
         let spec = dir.join("spec.json");
         std::fs::write(
@@ -1049,7 +1049,7 @@ mod tests {
         )
         .unwrap();
         let cli = Cli::try_parse_from([
-            "fragr-audiogen",
+            "localexception-audiogen",
             "batch",
             "--spec",
             spec.to_str().unwrap(),
@@ -1064,11 +1064,15 @@ mod tests {
             }
             other => panic!("unexpected {other:?}"),
         }
-        let missing =
-            Cli::try_parse_from(["fragr-audiogen", "batch", "--spec", "does-not-exist.json"])
-                .unwrap();
+        let missing = Cli::try_parse_from([
+            "localexception-audiogen",
+            "batch",
+            "--spec",
+            "does-not-exist.json",
+        ])
+        .unwrap();
         assert!(matches!(to_command(missing.command), Err(Error::Io(_))));
-        let quota = Cli::try_parse_from(["fragr-audiogen", "quota"]).unwrap();
+        let quota = Cli::try_parse_from(["localexception-audiogen", "quota"]).unwrap();
         assert_eq!(to_command(quota.command).unwrap(), Command::Quota);
         std::fs::remove_dir_all(&dir).unwrap();
     }
@@ -1076,7 +1080,7 @@ mod tests {
     #[test]
     fn parses_tts_and_voices() {
         let cli = Cli::try_parse_from([
-            "fragr-audiogen",
+            "localexception-audiogen",
             "tts",
             "--name",
             "radio/news/generic-01-count",
@@ -1104,14 +1108,14 @@ mod tests {
             }
             other => panic!("unexpected {other:?}"),
         }
-        let voices = Cli::try_parse_from(["fragr-audiogen", "voices"]).unwrap();
+        let voices = Cli::try_parse_from(["localexception-audiogen", "voices"]).unwrap();
         assert_eq!(to_command(voices.command).unwrap(), Command::Voices);
     }
 
     #[test]
     fn parses_library_design_and_save_voice() {
         let cli = Cli::try_parse_from([
-            "fragr-audiogen",
+            "localexception-audiogen",
             "library",
             "--search",
             "narrator",
@@ -1132,7 +1136,7 @@ mod tests {
             other => panic!("unexpected {other:?}"),
         }
         let cli = Cli::try_parse_from([
-            "fragr-audiogen",
+            "localexception-audiogen",
             "--out-dir",
             "/tmp/x",
             "design",
@@ -1159,7 +1163,7 @@ mod tests {
             other => panic!("unexpected {other:?}"),
         }
         let cli = Cli::try_parse_from([
-            "fragr-audiogen",
+            "localexception-audiogen",
             "save-voice",
             "--generated-voice-id",
             "gen1",
@@ -1177,7 +1181,7 @@ mod tests {
 
     #[test]
     fn parses_scripts_command() {
-        let dir = std::env::temp_dir().join("fragr-audiogen-main-scripts");
+        let dir = std::env::temp_dir().join("localexception-audiogen-main-scripts");
         std::fs::create_dir_all(&dir).unwrap();
         let scripts = dir.join("scripts.json");
         std::fs::write(
@@ -1186,7 +1190,7 @@ mod tests {
         )
         .unwrap();
         let cli = Cli::try_parse_from([
-            "fragr-audiogen",
+            "localexception-audiogen",
             "scripts",
             "--scripts",
             scripts.to_str().unwrap(),
@@ -1224,7 +1228,7 @@ mod tests {
         );
         // The converter needs no key: a missing key file must not stop it.
         let cli = Cli::try_parse_from([
-            "fragr-audiogen",
+            "localexception-audiogen",
             "--api-key-file",
             "definitely-missing.key",
             "scripts",
@@ -1245,8 +1249,14 @@ mod tests {
 
     #[test]
     fn parses_review_and_promote() {
-        let cli =
-            Cli::try_parse_from(["fragr-audiogen", "review", "--port", "0", "--no-open"]).unwrap();
+        let cli = Cli::try_parse_from([
+            "localexception-audiogen",
+            "review",
+            "--port",
+            "0",
+            "--no-open",
+        ])
+        .unwrap();
         match cli.command {
             Cmd::Review {
                 paths,
@@ -1260,7 +1270,7 @@ mod tests {
             other => panic!("unexpected {other:?}"),
         }
         let cli = Cli::try_parse_from([
-            "fragr-audiogen",
+            "localexception-audiogen",
             "promote",
             "--min-tracks",
             "5",
@@ -1295,7 +1305,7 @@ mod tests {
     #[test]
     fn promote_dry_run_and_apply_need_no_key() {
         let dir = std::env::temp_dir().join(format!(
-            "fragr-audiogen-main-promote-{}",
+            "localexception-audiogen-main-promote-{}",
             std::process::id()
         ));
         let _ = std::fs::remove_dir_all(&dir);
@@ -1314,7 +1324,7 @@ mod tests {
         .unwrap();
         let args = |extra: &[&str]| {
             let mut args = vec![
-                "fragr-audiogen".to_string(),
+                "localexception-audiogen".to_string(),
                 "--api-key-file".into(),
                 "definitely-missing.key".into(),
             ];
@@ -1362,7 +1372,7 @@ mod tests {
     #[test]
     fn review_reports_a_bad_layout() {
         let cli = Cli::try_parse_from([
-            "fragr-audiogen",
+            "localexception-audiogen",
             "review",
             "--port",
             "0",
@@ -1379,16 +1389,22 @@ mod tests {
         // A second review on a busy port says so instead of a bare io error.
         let busy = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
         let port = busy.local_addr().unwrap().port().to_string();
-        let cli = Cli::try_parse_from(["fragr-audiogen", "review", "--port", &port, "--no-open"])
-            .unwrap();
+        let cli = Cli::try_parse_from([
+            "localexception-audiogen",
+            "review",
+            "--port",
+            &port,
+            "--no-open",
+        ])
+        .unwrap();
         let err = run(cli, &mut Vec::new()).unwrap_err();
         assert!(err.to_string().contains("--port 0"), "{err}");
     }
 
     #[test]
     fn rejects_missing_required_arguments() {
-        assert!(Cli::try_parse_from(["fragr-audiogen", "sfx", "--name", "x"]).is_err());
-        assert!(Cli::try_parse_from(["fragr-audiogen"]).is_err());
+        assert!(Cli::try_parse_from(["localexception-audiogen", "sfx", "--name", "x"]).is_err());
+        assert!(Cli::try_parse_from(["localexception-audiogen"]).is_err());
     }
 
     #[test]
@@ -1400,7 +1416,7 @@ mod tests {
     #[test]
     fn dry_run_needs_no_key_and_writes_nothing() {
         let cli = Cli::try_parse_from([
-            "fragr-audiogen",
+            "localexception-audiogen",
             "--dry-run",
             "--api-key-file",
             "definitely-missing.key",
@@ -1422,13 +1438,13 @@ mod tests {
 
     #[test]
     fn live_run_reads_a_dotenv_file() {
-        let dir = std::env::temp_dir().join("fragr-audiogen-main-dotenv");
+        let dir = std::env::temp_dir().join("localexception-audiogen-main-dotenv");
         std::fs::create_dir_all(&dir).unwrap();
         let env_file = dir.join(".env");
         std::fs::write(&env_file, "elevenlabs=sk_test_only\n").unwrap();
         // An unreachable host proves the key resolved and the request was attempted.
         let cli = Cli::try_parse_from([
-            "fragr-audiogen",
+            "localexception-audiogen",
             "--env-file",
             env_file.to_str().unwrap(),
             "--base-url",
@@ -1444,7 +1460,7 @@ mod tests {
     #[test]
     fn live_run_requires_a_readable_key() {
         let cli = Cli::try_parse_from([
-            "fragr-audiogen",
+            "localexception-audiogen",
             "--api-key-file",
             "definitely-missing.key",
             "quota",
@@ -1456,8 +1472,10 @@ mod tests {
 
     #[test]
     fn score_commands_read_settings_and_prune_without_a_key() {
-        let dir =
-            std::env::temp_dir().join(format!("fragr-audiogen-main-score-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!(
+            "localexception-audiogen-main-score-{}",
+            std::process::id()
+        ));
         let _ = std::fs::remove_dir_all(&dir);
         let score = dir.join("audio/score");
         for slot in ["l01", "l02"] {
@@ -1479,7 +1497,7 @@ mod tests {
         .unwrap();
         let args = |command: &str, extra: &[&str]| {
             let mut args: Vec<String> = vec![
-                "fragr-audiogen".into(),
+                "localexception-audiogen".into(),
                 "--api-key-file".into(),
                 "definitely-missing.key".into(),
                 command.into(),
@@ -1527,7 +1545,7 @@ mod tests {
         assert!(!score.join("l01/a.mp3").exists() && score.join("l01/b.mp3").exists());
         assert!(score.join("l02/a.mp3").exists() && score.join("l02/b.mp3").exists());
         let missing = vec![
-            "fragr-audiogen".to_string(),
+            "localexception-audiogen".to_string(),
             "score-picks".into(),
             "--settings".into(),
             dir.join("nope.cfg").display().to_string(),
@@ -1535,7 +1553,8 @@ mod tests {
         let err = run(Cli::try_parse_from(missing).unwrap(), &mut Vec::new()).unwrap_err();
         assert!(err.to_string().contains("--settings"), "{err}");
         let cli =
-            Cli::try_parse_from(["fragr-audiogen", "review", "--score", "--no-open"]).unwrap();
+            Cli::try_parse_from(["localexception-audiogen", "review", "--score", "--no-open"])
+                .unwrap();
         match cli.command {
             Cmd::Review { paths, .. } => assert_eq!(paths.config(), review::ReviewConfig::score()),
             other => panic!("unexpected {other:?}"),
@@ -1555,7 +1574,7 @@ mod tests {
     #[test]
     fn loudness_measures_levels_and_checks_the_gameplay_target() {
         let dir = std::env::temp_dir().join(format!(
-            "fragr-audiogen-main-loudness-{}",
+            "localexception-audiogen-main-loudness-{}",
             std::process::id()
         ));
         std::fs::create_dir_all(&dir).unwrap();
@@ -1581,7 +1600,7 @@ mod tests {
         let report = dir.join("out/report.json");
         let mut out = Vec::new();
         let cli = Cli::try_parse_from([
-            "fragr-audiogen",
+            "localexception-audiogen",
             "loudness",
             "--check",
             "--json",
@@ -1600,7 +1619,7 @@ mod tests {
         let quiet = dir.join("quiet.wav");
         std::fs::write(&quiet, tone(-40.0, 5.0)).unwrap();
         let cli = Cli::try_parse_from([
-            "fragr-audiogen",
+            "localexception-audiogen",
             "loudness",
             "--check",
             quiet.to_str().unwrap(),
@@ -1616,7 +1635,7 @@ mod tests {
         std::fs::write(&clip, tone(-40.0, 0.5)).unwrap();
         let before = std::fs::read(&clip).unwrap();
         let cli = Cli::try_parse_from([
-            "fragr-audiogen",
+            "localexception-audiogen",
             "--dry-run",
             "loudness",
             "--level-to",
@@ -1627,7 +1646,7 @@ mod tests {
         run(cli, &mut Vec::new()).unwrap();
         assert_eq!(std::fs::read(&clip).unwrap(), before);
         let cli = Cli::try_parse_from([
-            "fragr-audiogen",
+            "localexception-audiogen",
             "loudness",
             "--level-to",
             "-18",
@@ -1660,7 +1679,7 @@ mod tests {
                 clip.to_str().unwrap(),
             ],
         ] {
-            let mut full = vec!["fragr-audiogen", "loudness"];
+            let mut full = vec!["localexception-audiogen", "loudness"];
             full.extend(args);
             let cli = Cli::try_parse_from(full).unwrap();
             assert!(run(cli, &mut Vec::new()).is_err());
@@ -1678,8 +1697,10 @@ mod tests {
 
     #[test]
     fn jingle_prune_reads_the_pick_and_keeps_only_it() {
-        let dir =
-            std::env::temp_dir().join(format!("fragr-audiogen-main-jingle-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!(
+            "localexception-audiogen-main-jingle-{}",
+            std::process::id()
+        ));
         let _ = std::fs::remove_dir_all(&dir);
         let jingle = dir.join("audio/jingle");
         std::fs::create_dir_all(jingle.join(score::JINGLE_SLOT)).unwrap();
@@ -1693,7 +1714,7 @@ mod tests {
         let settings = dir.join("settings.cfg");
         let args = |extra: &[&str]| {
             let mut args: Vec<String> = vec![
-                "fragr-audiogen".into(),
+                "localexception-audiogen".into(),
                 "jingle-prune".into(),
                 "--settings".into(),
                 settings.display().to_string(),

@@ -67,7 +67,7 @@ cargo test --workspace
 cargo llvm-cov --workspace --locked --summary-only --fail-under-lines 80
 ```
 
-Trigger: Solo Scrap or `cargo run -p fragr-server -- --bots 4`, start Active round, wait ~20s (or set `boss_spawn_ticks` in tests). Observe `boss_spawn` / drone in snapshot; frag it for `boss_down`.
+Trigger: Solo Scrap or `cargo run -p localexception-server -- --bots 4`, start Active round, wait ~20s (or set `boss_spawn_ticks` in tests). Observe `boss_spawn` / drone in snapshot; frag it for `boss_down`.
 
 ## Spend / safety
 

@@ -6,11 +6,11 @@ var run_directory: String = ""
 var settings_path: String = ""
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	settings_path = "user://m10-local-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", settings_path)
+	set_meta("localexception_settings_path", settings_path)
 	run_directory = ProjectSettings.globalize_path("user://m10-run-%d" % OS.get_process_id())
-	OS.set_environment("FRAGR_RUN_DIR", run_directory)
+	OS.set_environment("LOCALEXCEPTION_RUN_DIR", run_directory)
 	_run.call_deferred()
 
 func _finalize() -> void:
@@ -22,7 +22,7 @@ func _finalize() -> void:
 		for filename: String in DirAccess.get_files_at(run_directory):
 			DirAccess.remove_absolute(run_directory.path_join(filename))
 		DirAccess.remove_absolute(run_directory)
-	OS.unset_environment("FRAGR_RUN_DIR")
+	OS.unset_environment("LOCALEXCEPTION_RUN_DIR")
 
 func _check(value: bool, message: String) -> void:
 	if not value:
@@ -113,7 +113,7 @@ func _ship_presentation(game: Node) -> void:
 	_check(lamps == 8 and signs == ["m10_cargo_deck", "m10_passenger_deck", "m10_command_deck", "m10_ship_confirmation"], "actual accepted map retains bounded lights and four owning ship panels")
 
 func _run() -> void:
-	var preferences: FragrSettings = FragrSettings.new(settings_path)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	preferences.set_value("video", "display_mode", 0)
 	_check(preferences.save_to_disk() == OK, "isolated settings save")
 	_check(DirAccess.make_dir_recursive_absolute(run_directory) == OK, "isolated run directory")

@@ -6,10 +6,10 @@ extends "res://scripts/qa_tour.gd"
 ## Latch on the tank and leaving, the roofs and the trench. Observations only;
 ## the agent's inputs are its own.
 ##
-## Run against `fragr-server --bots 0 --map-file server/maps/m19-planned-works.json`
-## with `fragr-agent-adapter scripted-bot` joined, on a real display:
-## `FRAGR_SERVER=127.0.0.1:<port> FRAGR_QA_DIR=<out> godot --path client
-## --script res://qa/m19_live_review.gd`. Stills land in FRAGR_QA_DIR.
+## Run against `localexception-server --bots 0 --map-file server/maps/m19-planned-works.json`
+## with `localexception-agent-adapter scripted-bot` joined, on a real display:
+## `LOCALEXCEPTION_SERVER=127.0.0.1:<port> LOCALEXCEPTION_QA_DIR=<out> godot --path client
+## --script res://qa/m19_live_review.gd`. Stills land in LOCALEXCEPTION_QA_DIR.
 const MANIFEST: String = "res://qa/m19-live-review.json"
 const CHASE_BACK: float = 5.2
 const CHASE_UP: float = 2.4

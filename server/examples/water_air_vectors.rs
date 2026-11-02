@@ -1,6 +1,6 @@
-use fragr_server::movement::{Arena, Solid};
-use fragr_server::protocol::{VehicleKind, WaterRegion};
-use fragr_server::vehicles::{vehicle_step_kind, VehicleInput, VehicleMotion};
+use localexception_server::movement::{Arena, Solid};
+use localexception_server::protocol::{VehicleKind, WaterRegion};
+use localexception_server::vehicles::{vehicle_step_kind, VehicleInput, VehicleMotion};
 
 fn main() {
     let arena = Arena {

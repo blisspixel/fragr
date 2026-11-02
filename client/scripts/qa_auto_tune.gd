@@ -6,7 +6,7 @@ extends SceneTree
 ## only; the tuner's logic is proven by test_auto_tune.gd. Never forces
 ## frames: an occluded window must fail the measurement.
 ##
-## FRAGR_QA_DIR=<dir> godot --path client --script res://scripts/qa_auto_tune.gd
+## LOCALEXCEPTION_QA_DIR=<dir> godot --path client --script res://scripts/qa_auto_tune.gd
 ## Optional user args: --card-only (the first-launch card, then quit);
 ## --results-only (the saved qa-report.json's result card and the first-launch
 ## card at exact 1920x1080 and Steam Deck 1280x800 sizes, in SubViewports so a
@@ -16,7 +16,7 @@ var failures: Array[String] = []
 var report: Dictionary = {}
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	MouseCapture.release()
 	_run.call_deferred()
 
@@ -41,9 +41,9 @@ func _shot(file: String) -> void:
 	root.get_texture().get_image().save_png(directory.path_join(file))
 
 func _run() -> void:
-	directory = OS.get_environment("FRAGR_QA_DIR")
+	directory = OS.get_environment("LOCALEXCEPTION_QA_DIR")
 	if directory.is_empty() or DisplayServer.get_name() == "headless":
-		push_error("qa_auto_tune requires a rendered window and FRAGR_QA_DIR")
+		push_error("qa_auto_tune requires a rendered window and LOCALEXCEPTION_QA_DIR")
 		quit(1)
 		return
 	DirAccess.make_dir_recursive_absolute(directory)
@@ -51,19 +51,19 @@ func _run() -> void:
 		await _preview()
 		return
 	var settings_path: String = directory.path_join("settings.cfg")
-	set_meta("fragr_settings_path", settings_path)
-	set_meta("fragr_records_path", directory.path_join("records"))
-	set_meta("fragr_benchmark_dir", directory.path_join("results"))
-	set_meta("fragr_server_book_path", directory.path_join("servers.cfg"))
-	OS.set_environment("FRAGR_RUN_DIR", directory.path_join("runs"))
-	var preferences: FragrSettings = FragrSettings.new(settings_path)
+	set_meta("localexception_settings_path", settings_path)
+	set_meta("localexception_records_path", directory.path_join("records"))
+	set_meta("localexception_benchmark_dir", directory.path_join("results"))
+	set_meta("localexception_server_book_path", directory.path_join("servers.cfg"))
+	OS.set_environment("LOCALEXCEPTION_RUN_DIR", directory.path_join("runs"))
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	preferences.set_value("video", "display_mode", 0)
 	preferences.set_value("audio", "master", 0.0)
 	preferences.save_to_disk()
 	root.mode = Window.MODE_WINDOWED
 	root.size = Vector2i(1920, 1080)
 	# The card shows for a fresh settings file; force it past the automation guard.
-	set_meta(&"fragr_tune_offer_force", true)
+	set_meta(&"localexception_tune_offer_force", true)
 	change_scene_to_file("res://scenes/boot_menu.tscn")
 	await process_frame
 	await process_frame
@@ -77,7 +77,7 @@ func _run() -> void:
 	if not _check(start != null, "the card has Start now"):
 		await _finish()
 		return
-	remove_meta(&"fragr_tune_offer_force")
+	remove_meta(&"localexception_tune_offer_force")
 	start.pressed.emit()
 	if not _check(await _until(func() -> bool: return root.get_node_or_null("GameManager") != null, 30), "Start runs the owned local match"):
 		await _finish()
@@ -108,7 +108,7 @@ func _run() -> void:
 	_check(str(report.get("state", "")) == "complete", "the tune completed: " + str(report.get("error", "")))
 	if str(report.get("state", "")) == "complete":
 		_check(report.get("auto_tune") is Dictionary and not (report["auto_tune"]["lines"] as Array).is_empty(), "the report carries the plain-words result")
-		var saved: FragrSettings = FragrSettings.new(settings_path)
+		var saved: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 		saved.load_from_disk()
 		_check((saved.get_value("video", "tune") as Dictionary).get("source") == "measured", "the choice is saved")
 		await _shot("03-result-card.png")
@@ -126,10 +126,10 @@ func _preview() -> void:
 		return
 	# _finish writes qa-report.json back; keep the run's report in it.
 	report = (saved as Dictionary).duplicate(true)
-	set_meta("fragr_settings_path", directory.path_join("preview-settings.cfg"))
-	set_meta("fragr_records_path", directory.path_join("preview-records"))
-	set_meta("fragr_server_book_path", directory.path_join("preview-servers.cfg"))
-	set_meta(&"fragr_tune_offer_force", true)
+	set_meta("localexception_settings_path", directory.path_join("preview-settings.cfg"))
+	set_meta("localexception_records_path", directory.path_join("preview-records"))
+	set_meta("localexception_server_book_path", directory.path_join("preview-servers.cfg"))
+	set_meta(&"localexception_tune_offer_force", true)
 	var port: SubViewport = SubViewport.new()
 	port.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	port.size_2d_override_stretch = true
@@ -148,8 +148,8 @@ func _preview() -> void:
 			_check(Rect2(Vector2.ZERO, Vector2(port.size_2d_override)).encloses(rect), "%s %s fits" % [tag, button.name])
 		view.queue_free()
 		await process_frame
-		if has_meta(&"fragr_tune_offered"):
-			remove_meta(&"fragr_tune_offered")
+		if has_meta(&"localexception_tune_offered"):
+			remove_meta(&"localexception_tune_offered")
 		var menu: Control = load("res://scenes/boot_menu.tscn").instantiate()
 		port.add_child(menu)
 		await process_frame

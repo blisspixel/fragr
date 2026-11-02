@@ -1,6 +1,6 @@
 # Plan-only GCP container host
 
-This directory describes one authoritative `fragr-server` container on
+This directory describes one authoritative `localexception-server` container on
 Container-Optimized OS. It has never been applied. Read
 [the host plan](../../docs/plans/cos-container-host.md) and
 [the cloud operator guide](../docs/DURABLE-HOST.md) before proposing an apply.
@@ -9,7 +9,7 @@ Any apply needs Nick's written approval and a current priced plan.
 ## Prerequisites for a future approved test
 
 1. Create a private Docker repository in the chosen region and publish the
-   locally tested Linux `fragr-server` image. Record its immutable sha256
+   locally tested Linux `localexception-server` image. Record its immutable sha256
    manifest digest. This Terraform consumes an existing repository; it does
    not publish or build an image.
 2. Create an enabled Secret Manager version containing a single 16 to 256

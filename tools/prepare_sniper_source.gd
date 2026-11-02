@@ -19,7 +19,7 @@ const OPTIC_FRONT_CUT: AABB = AABB(Vector3(0.055, 0.135, -0.027), Vector3(0.057,
 const OPTIC_BACK_CUT: AABB = AABB(Vector3(0.416, 0.137, -0.025), Vector3(0.029, 0.088, 0.085))
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

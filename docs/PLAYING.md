@@ -1,4 +1,4 @@
-# Playing fragr
+# Playing Local Exception
 
 [Back to the README](../README.md) | [Campaign contract](CAMPAIGN.md) |
 [Current build order](ROADMAP.md)
@@ -6,7 +6,7 @@
 ## Choose a game
 
 **Recall Notice** is the local solo campaign development mission. Build the
-server (`cargo build -p fragr-server --release --locked`), run
+server (`cargo build -p localexception-server --release --locked`), run
 `godot --path client`, then choose **Single Player > Recall Notice** and a
 difficulty. The client starts its own server on loopback. Find Latch's transfer
 record in transfer control, after dispatch, recover weapons from the Annex, and
@@ -93,7 +93,7 @@ Standalone source maps explore campaign environments without changing
 your campaign save. Build and start one server from the repository root:
 
 ```bash
-cargo run -p fragr-server --release --locked -- --bind 127.0.0.1:6767 --bots 0 --map-file server/maps/test/m12_habitat_development.json
+cargo run -p localexception-server --release --locked -- --bind 127.0.0.1:6767 --bots 0 --map-file server/maps/test/m12_habitat_development.json
 ```
 
 For The Weight of Permission, replace the final path with
@@ -129,12 +129,12 @@ separates development checks from the combined battlefield still to come.
 
 **Calibration** is a separate Episode 0 arena challenge. Run
 `./tools/solo_scrap.sh` from the repository root. It starts the Host-led
-challenge with four named bots. Set `FRAGR_SOLO_BROADCAST=0` for plain Solo
+challenge with four named bots. Set `LOCALEXCEPTION_SOLO_BROADCAST=0` for plain Solo
 Scrap practice. On Windows, run the shell wrapper from Git Bash. To launch
 the two processes yourself:
 
 ```bash
-cargo run -p fragr-server --locked -- --bind 127.0.0.1:6767 --bots 4 --solo-broadcast
+cargo run -p localexception-server --locked -- --bind 127.0.0.1:6767 --bots 4 --solo-broadcast
 godot --path client res://scenes/main.tscn -- --solo
 ```
 
@@ -394,9 +394,9 @@ save. The
 and remaining acceptance.
 
 The local file is `run.json` under the platform user-data `runs` directory:
-`%LOCALAPPDATA%/fragr/runs` on Windows,
-`~/Library/Application Support/fragr/runs` on macOS, or
-`$XDG_DATA_HOME/fragr/runs` (usually `~/.local/share/fragr/runs`) on Linux.
+`%LOCALAPPDATA%/localexception/runs` on Windows,
+`~/Library/Application Support/localexception/runs` on macOS, or
+`$XDG_DATA_HOME/localexception/runs` (usually `~/.local/share/localexception/runs`) on Linux.
 A build reads only its own save format. A save from a different build, or one
 whose mission content has since changed, cannot be continued: the menu says so
 and offers a new run, which replaces the old file. A damaged file is reported

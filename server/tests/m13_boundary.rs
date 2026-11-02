@@ -1,14 +1,14 @@
 //! M13 joins use the production socket, and controller facts stay map-bound.
-use fragr_server::maps::{AuthoredMap, AuthoredSource};
-use fragr_server::mission::MissionClient;
-use fragr_server::navigation::Navigator;
-use fragr_server::protocol::{
+use localexception_server::maps::{AuthoredMap, AuthoredSource};
+use localexception_server::mission::MissionClient;
+use localexception_server::navigation::Navigator;
+use localexception_server::protocol::{
     Action, AmmoPool, InteractionKind, InteractionPrompt, M13LiftPhase, M13MapGeometry, MissionId,
     MissionPhase, MissionReady, MissionState, Role, ServerMessage, WeaponType, M13_OBJECTIVE_IDS,
     M13_WORKER_RESPONSES,
 };
-use fragr_server::session::GameSession;
-use fragr_server::sim::PLAYER_FLOOR_Y;
+use localexception_server::session::GameSession;
+use localexception_server::sim::PLAYER_FLOOR_Y;
 use std::sync::{Arc, OnceLock};
 use uuid::Uuid;
 
@@ -228,7 +228,7 @@ fn foundry_moving_returning_and_blocked_decks_freeze_rider_intent() {
             interact: true,
             throw_grenade: true,
             weapon_swap: Some(WeaponType::Rocket),
-            look_at: Some(fragr_server::protocol::LookAt {
+            look_at: Some(localexception_server::protocol::LookAt {
                 x: Some(30.0),
                 y: Some(2.0),
                 z: Some(40.0),
@@ -396,8 +396,8 @@ fn foundry_workers_require_real_route_positions_and_monotonic_arrival_receipts()
 
 #[test]
 fn foundry_relay_steering_selects_finite_ray_ammo_or_actual_supply() {
-    use fragr_server::inventory::Inventory;
-    use fragr_server::protocol::{EquipmentPolicy, MissionObjectiveAction};
+    use localexception_server::inventory::Inventory;
+    use localexception_server::protocol::{EquipmentPolicy, MissionObjectiveAction};
     let (mut session, id, mut client, geometry) = fixture();
     let MissionObjectiveAction::Shoot { approach, aim, .. } = geometry.objectives[4].action else {
         panic!("relay")
@@ -493,7 +493,7 @@ fn foundry_relay_steering_selects_finite_ray_ammo_or_actual_supply() {
     // Navigation may replace the supply aim with a waypoint yaw. Exercise its
     // actual discrete movement against the canonical collision to prove where
     // this resupply intent goes, without relying on private route memory.
-    use fragr_server::movement::{live_step, MoveInput, MoveState, TOP_SPEED};
+    use localexception_server::movement::{live_step, MoveInput, MoveState, TOP_SPEED};
     let floor = session
         .state
         .map
@@ -652,8 +652,8 @@ async fn foundry_socket_requires_capability_and_delivers_map_before_state_for_ev
     use tokio_tungstenite::{connect_async, tungstenite::Message};
     let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
     let (stop_tx, stop_rx) = tokio::sync::oneshot::channel();
-    let server = tokio::spawn(fragr_server::run::run_server(
-        fragr_server::run::ServerOptions {
+    let server = tokio::spawn(localexception_server::run::run_server(
+        localexception_server::run::ServerOptions {
             bind: "127.0.0.1:0".into(),
             bots: 0,
             authored: Some(AuthoredSource::Mission(MissionId::WeightOfPermission)),
@@ -669,11 +669,11 @@ async fn foundry_socket_requires_capability_and_delivers_map_before_state_for_ev
         .expect("bounded preparation")
         .unwrap();
     // The foundry places Ranged Sweepers: its floor is locational damage.
-    let floor = fragr_server::protocol::ZONES_GAMEPLAY_VERSION;
+    let floor = localexception_server::protocol::ZONES_GAMEPLAY_VERSION;
     for version in [floor - 1, floor] {
         for role in ["human", "agent", "spectator"] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
-            socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Foundry reader","gameplay_version":version,"geometry_version":fragr_server::protocol::GEOMETRY_VERSION}).to_string())).await.unwrap();
+            socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Foundry reader","gameplay_version":version,"geometry_version":localexception_server::protocol::GEOMETRY_VERSION}).to_string())).await.unwrap();
             tokio::time::timeout(Duration::from_secs(8), async {
                 let mut welcomed = false;
                 let mut mapped = false;

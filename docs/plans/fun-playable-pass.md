@@ -7,7 +7,7 @@
 
 ## Goal
 
-Take fragr from solid foundation (match loop + MCP events landed) to exceptionally fun and immediately playable. Stranger runs cargo + opens Godot and feels a compelling fight within 60 seconds.
+Take Local Exception from solid foundation (match loop + MCP events landed) to exceptionally fun and immediately playable. Stranger runs cargo + opens Godot and feels a compelling fight within 60 seconds.
 
 ## Non-goals
 
@@ -113,12 +113,12 @@ cargo test --workspace
 cargo build --workspace
 
 # Smoke test
-cargo run -p fragr-server -- --bots 4 &
+cargo run -p localexception-server -- --bots 4 &
 # Open client/ in Godot 4.7.2, press F5
 # Verify: spawns visible, bots fight, first frag within 10s, killfeed clear, arena readable
 # Press J to join, verify human can frag bot
 # Press L to leave, verify spectate resumes
-pkill -f fragr-server
+pkill -f localexception-server
 ```
 
 Manual Godot check:

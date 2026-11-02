@@ -1,7 +1,7 @@
 //! Command line front end for the agent playtest harness.
 
 use clap::Parser;
-use fragr_playtest::{
+use localexception_playtest::{
     check_contested_ctf, check_contested_sabotage, check_ctf_route_smoke,
     check_sabotage_route_smoke, check_thresholds, run, Config, Policy,
 };
@@ -10,9 +10,9 @@ use tracing_subscriber::EnvFilter;
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "fragr-playtest",
-    version = env!("FRAGR_CLI_VERSION"),
-    about = "Scripted agents play fragr rounds in-process and file a metrics report."
+    name = "localexception-playtest",
+    version = env!("LOCALEXCEPTION_CLI_VERSION"),
+    about = "Scripted agents play Local Exception rounds in-process and file a metrics report."
 )]
 struct Cli {
     /// Guided campaign trials with limited vision, reaction and aim.
@@ -28,8 +28,8 @@ struct Cli {
     campaign_survey: bool,
     /// Bounded campaign endpoint. M19 starts with its standalone discovery kit;
     /// m02-carry saves an earned M01 departure and reopens a bounded M02 window.
-    #[arg(long, value_enum, requires = "campaign_survey", default_value_t = fragr_playtest::campaign::Scenario::RecallNotice)]
-    survey_mission: fragr_playtest::campaign::Scenario,
+    #[arg(long, value_enum, requires = "campaign_survey", default_value_t = localexception_playtest::campaign::Scenario::RecallNotice)]
+    survey_mission: localexception_playtest::campaign::Scenario,
     /// Prove a joined fighter takes and scores a flag through a real socket.
     #[arg(long, conflicts_with_all = [
         "ctf_contested", "fanout_matrix", "fanout_seconds", "soak",
@@ -64,7 +64,7 @@ struct Cli {
     fanout_stress: bool,
     /// With --fanout-matrix: the link rows instead. Four watchers read
     /// through a simulated link (capacity, delay, jitter, loss, outages) in
-    /// this process, on loopback; see `fragr_playtest::link`.
+    /// this process, on loopback; see `localexception_playtest::link`.
     #[arg(long, requires = "fanout_matrix", conflicts_with = "fanout_stress")]
     fanout_link: bool,
     /// Bots-only Sabotage survey on Sector 9: whole seeded matches of rule
@@ -108,8 +108,8 @@ struct Cli {
     /// With --bot-survey: the rung every surveyed bot plays at (tourist,
     /// walk-in, regular, headliner, no-crumbs), so one rung's headshot share,
     /// kill time and gun share can be read on its own.
-    #[arg(long, value_enum, requires = "bot_survey", default_value_t = fragr_server::sim::BotSkill::Regular)]
-    survey_skill: fragr_server::sim::BotSkill,
+    #[arg(long, value_enum, requires = "bot_survey", default_value_t = localexception_server::sim::BotSkill::Regular)]
+    survey_skill: localexception_server::sim::BotSkill,
     /// With --bot-survey: keep only rows whose label contains one of these
     /// comma-separated pieces (for example `duel-,conquest-`).
     #[arg(long, requires = "bot_survey", value_delimiter = ',')]
@@ -120,8 +120,8 @@ struct Cli {
     #[arg(long, requires = "sabotage_survey")]
     survey_five_v_five: bool,
     /// Sabotage match length for --mode sabotage and the survey: short or match.
-    #[arg(long, value_enum, default_value_t = fragr_server::protocol::SabotageFormat::Short)]
-    sabotage_format: fragr_server::protocol::SabotageFormat,
+    #[arg(long, value_enum, default_value_t = localexception_server::protocol::SabotageFormat::Short)]
+    sabotage_format: localexception_server::protocol::SabotageFormat,
     /// Seconds measured in each of the twelve fanout matrix rows.
     #[arg(long, default_value_t = 10)]
     fanout_seconds: u64,
@@ -156,12 +156,12 @@ struct Cli {
     #[arg(long, default_value_t = 1)]
     seed: u64,
     /// Match mode: ffa, tdm, or ctf. Capture the flag runs on a map with stands.
-    #[arg(long, value_enum, default_value_t = fragr_server::protocol::GameMode::Ffa)]
-    mode: fragr_server::protocol::GameMode,
+    #[arg(long, value_enum, default_value_t = localexception_server::protocol::GameMode::Ffa)]
+    mode: localexception_server::protocol::GameMode,
     /// A host rule twist, repeatable: rail-only, shotgun-only, fists-only,
     /// licence-to-kill, golden-rail, two-lives.
     #[arg(long = "mutator", value_enum)]
-    mutators: Vec<fragr_server::protocol::Mutator>,
+    mutators: Vec<localexception_server::protocol::Mutator>,
     /// Agent policies, dealt round robin: reflex, planner, or a comma
     /// separated mix such as `reflex,planner` for an even split.
     #[arg(long, default_value = "reflex")]
@@ -186,7 +186,7 @@ struct Cli {
     /// Rotate maps each round during the soak.
     #[arg(long)]
     soak_map_rotate: bool,
-    /// The `fragr-server` binary to soak. Defaults to the one beside this tool.
+    /// The `localexception-server` binary to soak. Defaults to the one beside this tool.
     #[arg(long)]
     soak_server: Option<PathBuf>,
     /// NDJSON sample log. The server's own log is written beside it.
@@ -219,7 +219,7 @@ struct Cli {
     /// Rule bots beside the synthetic fighters. At most 96.
     #[arg(long, default_value_t = 4)]
     traffic_bots: usize,
-    /// The `fragr-server` binary to stress. Defaults to the one beside this tool.
+    /// The `localexception-server` binary to stress. Defaults to the one beside this tool.
     #[arg(long)]
     traffic_server: Option<PathBuf>,
     /// Deterministic lag-compensation matrix: in-process, no sockets. A still
@@ -259,7 +259,7 @@ struct Cli {
     #[arg(long, requires = "rewind_matrix", default_value_t = 1000, value_parser = clap::value_parser!(u32).range(1..=100_000))]
     rewind_trials: u32,
     /// With --rewind-matrix: every row again on modelled links with jitter
-    /// and retransmission stalls (`fragr_playtest::rewind::JITTER_LINKS`).
+    /// and retransmission stalls (`localexception_playtest::rewind::JITTER_LINKS`).
     #[arg(long, requires = "rewind_matrix")]
     rewind_jitter: bool,
     /// Peeker's advantage over real sockets: two human clients join an
@@ -277,7 +277,7 @@ struct Cli {
     #[arg(long, requires = "peek_probe", default_value_t = 40, value_parser = clap::value_parser!(u32).range(1..=500))]
     peek_trials: u32,
     /// With --peek-probe: the round trips to measure, milliseconds.
-    #[arg(long, requires = "peek_probe", value_delimiter = ',', default_values_t = fragr_playtest::peek::RTTS_MS, value_parser = clap::value_parser!(u32).range(0..=1000))]
+    #[arg(long, requires = "peek_probe", value_delimiter = ',', default_values_t = localexception_playtest::peek::RTTS_MS, value_parser = clap::value_parser!(u32).range(0..=1000))]
     peek_rtt: Vec<u32>,
     /// With --peek-probe: extra one-way jitter on the link, milliseconds.
     #[arg(long, requires = "peek_probe", default_value_t = 0, value_parser = clap::value_parser!(u32).range(0..=200))]
@@ -295,7 +295,7 @@ struct Cli {
     ledge_scan: bool,
     /// Run the harness or soak server with fun metrics on, keeping them under
     /// this run directory (`<dir>/fun-metrics`), as `--fun-metrics` and
-    /// `FRAGR_RUN_DIR` do for a host.
+    /// `LOCALEXCEPTION_RUN_DIR` do for a host.
     #[arg(long, value_name = "RUN_DIR")]
     fun_metrics: Option<PathBuf>,
     /// Read a host's fun metrics folder and print the tables the bot survey
@@ -321,7 +321,7 @@ struct Cli {
     ])]
     interest_survey: bool,
     /// With --interest-survey: the round trips, milliseconds.
-    #[arg(long, requires = "interest_survey", value_delimiter = ',', default_values_t = fragr_playtest::interest::RTTS_MS, value_parser = clap::value_parser!(u32).range(0..=1000))]
+    #[arg(long, requires = "interest_survey", value_delimiter = ',', default_values_t = localexception_playtest::interest::RTTS_MS, value_parser = clap::value_parser!(u32).range(0..=1000))]
     interest_rtt: Vec<u32>,
     /// With --interest-survey: a world may arrive up to this many ticks late.
     #[arg(long, requires = "interest_survey", default_value_t = 0, value_parser = clap::value_parser!(u64).range(0..=10))]
@@ -332,9 +332,9 @@ struct Cli {
 }
 
 fn interest_report(cli: &Cli) -> Result<(), String> {
-    use fragr_playtest::interest;
+    use localexception_playtest::interest;
     let report = interest::run(
-        &fragr_server::sim::MapKind::ALL,
+        &localexception_server::sim::MapKind::ALL,
         &cli.interest_rtt,
         cli.interest_jitter,
         cli.interest_seconds,
@@ -350,8 +350,8 @@ fn interest_report(cli: &Cli) -> Result<(), String> {
 }
 
 async fn peek_report(cli: &Cli) -> Result<(), String> {
-    use fragr_playtest::peek;
-    let map = fragr_server::sim::MapKind::from_cli(&cli.map)
+    use localexception_playtest::peek;
+    let map = localexception_server::sim::MapKind::from_cli(&cli.map)
         .ok_or_else(|| format!("invalid --map {:?}", cli.map))?;
     let report = peek::run(
         map,
@@ -389,7 +389,7 @@ async fn peek_report(cli: &Cli) -> Result<(), String> {
 }
 
 fn ledge_report(cli: &Cli) -> Result<(), String> {
-    use fragr_server::maps::ledges;
+    use localexception_server::maps::ledges;
     let report = ledges::scan_all().map_err(|e| e.to_string())?;
     print!("{}", ledges::table(&report));
     write_json(&cli.report, &report)?;
@@ -417,7 +417,7 @@ fn write_json(path: &Path, value: &impl serde::Serialize) -> Result<(), String> 
 }
 
 fn rewind_report(cli: &Cli) -> Result<(), String> {
-    use fragr_playtest::rewind::{run_jitter_matrix, run_matrix, RewindMode};
+    use localexception_playtest::rewind::{run_jitter_matrix, run_matrix, RewindMode};
     let modes = [RewindMode::Off, RewindMode::On];
     let report = if cli.rewind_jitter {
         run_jitter_matrix(cli.seed, cli.rewind_trials, &modes)
@@ -452,15 +452,15 @@ fn rewind_report(cli: &Cli) -> Result<(), String> {
     std::fs::write(&cli.report, text).map_err(|e| e.to_string())
 }
 
-fn soak_config(cli: &Cli) -> Result<fragr_playtest::soak::SoakConfig, String> {
-    let map = fragr_server::sim::MapKind::from_cli(&cli.map)
+fn soak_config(cli: &Cli) -> Result<localexception_playtest::soak::SoakConfig, String> {
+    let map = localexception_server::sim::MapKind::from_cli(&cli.map)
         .ok_or_else(|| format!("invalid --map {:?}", cli.map))?;
     let binary = cli
         .soak_server
         .clone()
-        .or_else(fragr_playtest::soak::default_server_binary)
-        .ok_or("no fragr-server beside this tool; build it or pass --soak-server")?;
-    Ok(fragr_playtest::soak::SoakConfig {
+        .or_else(localexception_playtest::soak::default_server_binary)
+        .ok_or("no localexception-server beside this tool; build it or pass --soak-server")?;
+    Ok(localexception_playtest::soak::SoakConfig {
         seconds: cli.soak_seconds,
         sample_seconds: cli.soak_sample_seconds,
         bots: cli.soak_bots,
@@ -469,26 +469,26 @@ fn soak_config(cli: &Cli) -> Result<fragr_playtest::soak::SoakConfig, String> {
         map,
         map_rotate: cli.soak_map_rotate,
         seed: cli.seed,
-        launch: fragr_playtest::soak::Launch::Binary(binary),
+        launch: localexception_playtest::soak::Launch::Binary(binary),
         log: cli.soak_log.clone(),
         fun_metrics: cli.fun_metrics.clone(),
     })
 }
 
-fn traffic_config(cli: &Cli) -> Result<fragr_playtest::traffic::TrafficConfig, String> {
-    let map = fragr_server::sim::MapKind::from_cli(&cli.map)
+fn traffic_config(cli: &Cli) -> Result<localexception_playtest::traffic::TrafficConfig, String> {
+    let map = localexception_server::sim::MapKind::from_cli(&cli.map)
         .ok_or_else(|| format!("invalid --map {:?}", cli.map))?;
     let binary = cli
         .traffic_server
         .clone()
-        .or_else(fragr_playtest::soak::default_server_binary)
-        .ok_or("no fragr-server beside this tool; build it or pass --traffic-server")?;
+        .or_else(localexception_playtest::soak::default_server_binary)
+        .ok_or("no localexception-server beside this tool; build it or pass --traffic-server")?;
     let report = if cli.report.as_path() == Path::new(".agents/playtest/report.json") {
         PathBuf::from(".agents/traffic/report.json")
     } else {
         cli.report.clone()
     };
-    Ok(fragr_playtest::traffic::TrafficConfig {
+    Ok(localexception_playtest::traffic::TrafficConfig {
         seconds: cli.traffic_seconds,
         fighters: cli.traffic_fighters,
         spectators: cli.traffic_spectators,
@@ -497,12 +497,12 @@ fn traffic_config(cli: &Cli) -> Result<fragr_playtest::traffic::TrafficConfig, S
         burst: cli.traffic_burst,
         map,
         seed: cli.seed,
-        launch: fragr_playtest::soak::Launch::Binary(binary),
+        launch: localexception_playtest::soak::Launch::Binary(binary),
         report,
     })
 }
 
-fn print_traffic(report: &fragr_playtest::traffic::TrafficReport) {
+fn print_traffic(report: &localexception_playtest::traffic::TrafficReport) {
     println!(
         "traffic: {} fighters, {} spectators, {} bots, {} Hz for {} s, {} actions, {} fighter snapshots, {} spectator snapshots, {:.0} KiB in, ticks {} to {}, p99 {} ms, health {}",
         report.fighters,
@@ -566,7 +566,7 @@ fn print_traffic(report: &fragr_playtest::traffic::TrafficReport) {
     }
 }
 
-fn print_soak(verdict: &fragr_playtest::soak::Verdict, log: &std::path::Path) {
+fn print_soak(verdict: &localexception_playtest::soak::Verdict, log: &std::path::Path) {
     let s = &verdict.summary;
     let mib = |bytes: Option<u64>| {
         bytes.map_or("unavailable".to_string(), |b| {
@@ -604,11 +604,11 @@ fn print_soak(verdict: &fragr_playtest::soak::Verdict, log: &std::path::Path) {
 }
 
 fn map_timing_report(cli: &Cli) -> Result<(), String> {
-    use fragr_server::maps::timing;
-    let maps: Vec<fragr_server::sim::MapKind> = match &cli.survey_map {
-        Some(raw) => vec![fragr_server::sim::MapKind::from_cli(raw)
+    use localexception_server::maps::timing;
+    let maps: Vec<localexception_server::sim::MapKind> = match &cli.survey_map {
+        Some(raw) => vec![localexception_server::sim::MapKind::from_cli(raw)
             .ok_or_else(|| format!("invalid --survey-map {raw:?}"))?],
-        None => fragr_server::sim::MapKind::ALL.to_vec(),
+        None => localexception_server::sim::MapKind::ALL.to_vec(),
     };
     let rows: Vec<timing::MapTiming> = maps.into_iter().map(timing::map_timing).collect();
     write_report(&cli.report, &rows)?;
@@ -648,7 +648,7 @@ fn map_timing_report(cli: &Cli) -> Result<(), String> {
 }
 
 fn ladder_report(cli: &Cli) -> Result<(), String> {
-    use fragr_playtest::ladder;
+    use localexception_playtest::ladder;
     let config = ladder::LadderConfig {
         seeds: (cli.seed..cli.seed + cli.survey_seeds).collect(),
         round_ticks: cli.time_limit_seconds.saturating_mul(20),
@@ -712,7 +712,7 @@ fn write_report<T: serde::Serialize>(path: &Path, value: &T) -> Result<(), Strin
         .map_err(|error| format!("cannot write {}: {error}", path.display()))
 }
 
-fn print_survey(report: &fragr_playtest::sabotage::SurveyReport) {
+fn print_survey(report: &localexception_playtest::sabotage::SurveyReport) {
     let finished = report.matches.iter().filter(|m| m.finished).count();
     println!(
         "sabotage survey: {} of {} matches finished, {} rounds, attackers won {:.0} percent, mean round {:.1} s, longest {:.1} s",
@@ -785,7 +785,7 @@ fn print_survey(report: &fragr_playtest::sabotage::SurveyReport) {
     println!("attackers won by site: {}", shares.join(", "));
 }
 
-fn print_bot_survey(report: &fragr_playtest::bot_survey::BotSurveyReport) {
+fn print_bot_survey(report: &localexception_playtest::bot_survey::BotSurveyReport) {
     println!(
         "bot survey: {} seeds, {:.0} s rounds, {} bots",
         report.seeds.len(),
@@ -944,14 +944,14 @@ fn config_from(cli: &Cli) -> Result<Config, String> {
         return Ok(Config {
             agents: 1,
             rounds: 1,
-            map: fragr_server::sim::MapKind::Sector9,
+            map: localexception_server::sim::MapKind::Sector9,
             capture_limit: 1,
             time_limit_ticks: 20 * 180,
             max_ticks: 20 * 190,
             seed: 42,
             tiers: vec![Policy::RouteProbe],
-            rules: fragr_server::rules::RuleSet::new(
-                fragr_server::protocol::GameMode::Ctf,
+            rules: localexception_server::rules::RuleSet::new(
+                localexception_server::protocol::GameMode::Ctf,
                 &[],
                 false,
             )
@@ -963,36 +963,38 @@ fn config_from(cli: &Cli) -> Result<Config, String> {
         return Ok(Config {
             agents: 2,
             rounds: 1,
-            map: fragr_server::sim::MapKind::Sector9,
+            map: localexception_server::sim::MapKind::Sector9,
             time_limit_ticks: 20 * 105,
             max_ticks: 20 * 140,
             seed: 42,
             tiers: vec![Policy::RouteProbe],
-            rules: fragr_server::rules::RuleSet::new(
-                fragr_server::protocol::GameMode::Sabotage,
+            rules: localexception_server::rules::RuleSet::new(
+                localexception_server::protocol::GameMode::Sabotage,
                 &[],
                 false,
             )
             .map_err(|error| format!("invalid Sabotage route rules: {error}"))?,
-            sabotage: fragr_server::rules::SabotageConfig {
+            sabotage: localexception_server::rules::SabotageConfig {
                 muster_ticks: 20 * 3,
-                ..fragr_server::rules::SabotageConfig::default()
+                ..localexception_server::rules::SabotageConfig::default()
             },
             ..Config::default()
         });
     }
-    if cli.ctf_contested && cli.mode != fragr_server::protocol::GameMode::Ctf {
+    if cli.ctf_contested && cli.mode != localexception_server::protocol::GameMode::Ctf {
         return Err("--ctf-contested requires --mode ctf".into());
     }
-    if cli.sabotage_contested && cli.mode != fragr_server::protocol::GameMode::Sabotage {
+    if cli.sabotage_contested && cli.mode != localexception_server::protocol::GameMode::Sabotage {
         return Err("--sabotage-contested requires --mode sabotage".into());
     }
-    let map = fragr_server::sim::MapKind::from_cli(&cli.map)
+    let map = localexception_server::sim::MapKind::from_cli(&cli.map)
         .ok_or_else(|| format!("invalid --map {:?}", cli.map))?;
-    if cli.mode == fragr_server::protocol::GameMode::Ctf && map.ctf_stands().is_none() {
+    if cli.mode == localexception_server::protocol::GameMode::Ctf && map.ctf_stands().is_none() {
         return Err("ctf requires a map with validated flag stands".into());
     }
-    if cli.mode == fragr_server::protocol::GameMode::Sabotage && map.sabotage_map().is_none() {
+    if cli.mode == localexception_server::protocol::GameMode::Sabotage
+        && map.sabotage_map().is_none()
+    {
         return Err("sabotage requires a map with validated sites (map 4, Sector 9)".into());
     }
     Ok(Config {
@@ -1004,21 +1006,21 @@ fn config_from(cli: &Cli) -> Result<Config, String> {
         time_limit_ticks: cli.time_limit_seconds * 20,
         max_ticks: cli.max_seconds * 20,
         seed: cli.seed,
-        tiers: fragr_playtest::Policy::parse_list(&cli.tiers)
+        tiers: localexception_playtest::Policy::parse_list(&cli.tiers)
             .map_err(|e| format!("invalid --tiers {:?}: {e}", cli.tiers))?,
-        rules: fragr_server::rules::RuleSet::new(cli.mode, &cli.mutators, false)
+        rules: localexception_server::rules::RuleSet::new(cli.mode, &cli.mutators, false)
             .map_err(|e| format!("invalid rule set: {e}"))?,
         // Harness rounds muster for three seconds; the live clock is
         // --time-limit-seconds.
-        sabotage: fragr_server::rules::SabotageConfig {
+        sabotage: localexception_server::rules::SabotageConfig {
             format: cli.sabotage_format,
             muster_ticks: 20 * 3,
-            ..fragr_server::rules::SabotageConfig::default()
+            ..localexception_server::rules::SabotageConfig::default()
         },
         fun_metrics: cli
             .fun_metrics
             .clone()
-            .map(|run_dir| run_dir.join(fragr_server::fun_metrics::store::DIRECTORY)),
+            .map(|run_dir| run_dir.join(localexception_server::fun_metrics::store::DIRECTORY)),
     })
 }
 
@@ -1081,7 +1083,7 @@ async fn main() {
         return;
     }
     if let Some(folder) = &cli.fun_summary {
-        let summary = match fragr_server::fun_metrics::summary::summarise_folder(folder) {
+        let summary = match localexception_server::fun_metrics::summary::summarise_folder(folder) {
             Ok(summary) => summary,
             Err(error) => {
                 eprintln!("error: cannot read {}: {error}", folder.display());
@@ -1099,29 +1101,32 @@ async fn main() {
             eprintln!("error: cannot write {}: {error}", cli.report.display());
             std::process::exit(2);
         }
-        print!("{}", fragr_server::fun_metrics::summary::table(&summary));
+        print!(
+            "{}",
+            localexception_server::fun_metrics::summary::table(&summary)
+        );
         println!("report: {}", cli.report.display());
         return;
     }
     if cli.bot_survey {
-        let mut config = fragr_playtest::bot_survey::BotSurveyConfig {
+        let mut config = localexception_playtest::bot_survey::BotSurveyConfig {
             seeds: (cli.seed..cli.seed + cli.survey_seeds).collect(),
             round_ticks: cli.time_limit_seconds.saturating_mul(20),
             skill: cli.survey_skill,
-            ..fragr_playtest::bot_survey::BotSurveyConfig::default()
+            ..localexception_playtest::bot_survey::BotSurveyConfig::default()
         };
         if cli.survey_lot {
-            config.scenarios = fragr_playtest::bot_survey::lot_scenarios();
+            config.scenarios = localexception_playtest::bot_survey::lot_scenarios();
         }
         if cli.survey_maps {
-            config.scenarios = fragr_playtest::bot_survey::every_map_scenarios();
+            config.scenarios = localexception_playtest::bot_survey::every_map_scenarios();
         }
         if let Some(map) = &cli.survey_map {
-            let Some(map) = fragr_server::sim::MapKind::from_cli(map) else {
+            let Some(map) = localexception_server::sim::MapKind::from_cli(map) else {
                 eprintln!("error: invalid --survey-map {map:?}");
                 std::process::exit(2);
             };
-            config.scenarios = fragr_playtest::bot_survey::map_scenarios(map);
+            config.scenarios = localexception_playtest::bot_survey::map_scenarios(map);
         }
         if !cli.survey_only.is_empty() {
             config.scenarios.retain(|scenario| {
@@ -1131,7 +1136,7 @@ async fn main() {
                     .any(|piece| label.contains(piece.as_str()))
             });
         }
-        let report = fragr_playtest::bot_survey::run_bot_survey(&config);
+        let report = localexception_playtest::bot_survey::run_bot_survey(&config);
         if let Some(parent) = cli.report.parent() {
             if !parent.as_os_str().is_empty() {
                 if let Err(error) = std::fs::create_dir_all(parent) {
@@ -1147,16 +1152,18 @@ async fn main() {
         }
         print_bot_survey(&report);
         println!("report: {}", cli.report.display());
-        let mut problems = fragr_playtest::bot_survey::check_bot_survey(&report);
+        let mut problems = localexception_playtest::bot_survey::check_bot_survey(&report);
         if cli.survey_lot {
-            let lot = fragr_playtest::bot_survey::lot_scenario().label();
+            let lot = localexception_playtest::bot_survey::lot_scenario().label();
             for row in report.scenarios.iter().filter(|row| row.scenario == lot) {
-                problems.extend(fragr_playtest::bot_survey::check_lot_targets(row));
+                problems.extend(localexception_playtest::bot_survey::check_lot_targets(row));
             }
         }
         if cli.survey_maps {
             for (row, scenario) in report.scenarios.iter().zip(&config.scenarios) {
-                for miss in fragr_playtest::bot_survey::check_map_targets(row, scenario.mode) {
+                for miss in
+                    localexception_playtest::bot_survey::check_map_targets(row, scenario.mode)
+                {
                     println!("target: {miss}");
                 }
             }
@@ -1173,24 +1180,24 @@ async fn main() {
         let map = match cli
             .survey_map
             .as_deref()
-            .map(fragr_server::sim::MapKind::from_cli)
+            .map(localexception_server::sim::MapKind::from_cli)
         {
-            None => fragr_server::sim::MapKind::Sector9,
+            None => localexception_server::sim::MapKind::Sector9,
             Some(Some(map)) if map.sabotage_map().is_some() => map,
             Some(_) => {
                 eprintln!("error: --survey-map needs a map with Sabotage sites");
                 std::process::exit(2);
             }
         };
-        let config = fragr_playtest::sabotage::SurveyConfig {
+        let config = localexception_playtest::sabotage::SurveyConfig {
             map,
             seeds: (cli.seed..cli.seed + cli.survey_seeds).collect(),
             bots: cli.survey_bots as usize,
             format: cli.sabotage_format,
             five_vs_five: cli.survey_five_v_five,
-            ..fragr_playtest::sabotage::SurveyConfig::default()
+            ..localexception_playtest::sabotage::SurveyConfig::default()
         };
-        let report = fragr_playtest::sabotage::run_survey(&config);
+        let report = localexception_playtest::sabotage::run_survey(&config);
         if let Some(parent) = cli.report.parent() {
             if !parent.as_os_str().is_empty() {
                 if let Err(error) = std::fs::create_dir_all(parent) {
@@ -1212,7 +1219,7 @@ async fn main() {
         }
         print_survey(&report);
         println!("report: {}", cli.report.display());
-        let problems = fragr_playtest::sabotage::check_survey(&report);
+        let problems = localexception_playtest::sabotage::check_survey(&report);
         for problem in &problems {
             println!("threshold: {problem}");
         }
@@ -1230,7 +1237,7 @@ async fn main() {
             }
         };
         let report_path = config.report.clone();
-        let report = match fragr_playtest::traffic::run(config).await {
+        let report = match localexception_playtest::traffic::run(config).await {
             Ok(report) => report,
             Err(error) => {
                 eprintln!("error: {error}");
@@ -1253,7 +1260,7 @@ async fn main() {
             }
         };
         let log = config.log.clone();
-        let verdict = match fragr_playtest::soak::run_soak(config).await {
+        let verdict = match localexception_playtest::soak::run_soak(config).await {
             Ok(verdict) => verdict,
             Err(error) => {
                 eprintln!("error: {error}");
@@ -1268,11 +1275,11 @@ async fn main() {
     }
     if cli.fanout_matrix {
         let measured = if cli.fanout_stress {
-            fragr_playtest::fanout::stress(cli.fanout_seconds).await
+            localexception_playtest::fanout::stress(cli.fanout_seconds).await
         } else if cli.fanout_link {
-            fragr_playtest::fanout::links(cli.fanout_seconds).await
+            localexception_playtest::fanout::links(cli.fanout_seconds).await
         } else {
-            fragr_playtest::fanout::matrix(cli.fanout_seconds).await
+            localexception_playtest::fanout::matrix(cli.fanout_seconds).await
         };
         let report = match measured {
             Ok(report) => report,
@@ -1364,7 +1371,7 @@ async fn main() {
             "rules: {}, sides {:?}, {} host reactions, {} team kills",
             rules.name, report.sides, report.host_reactions, report.team_kills
         );
-        if rules.mode == fragr_server::protocol::GameMode::Sabotage {
+        if rules.mode == localexception_server::protocol::GameMode::Sabotage {
             let rounds: Vec<String> = report
                 .sabotage_rounds
                 .iter()
@@ -1382,7 +1389,7 @@ async fn main() {
                 rounds.join(", ")
             );
         }
-        if rules.mode == fragr_server::protocol::GameMode::Ctf {
+        if rules.mode == localexception_server::protocol::GameMode::Ctf {
             println!(
                 "flags: {} takes, {} drops, {} returns, {} captures, {:.1} carrier seconds, last round {:?} {:?}",
                 report.flag_takes,
@@ -1420,7 +1427,7 @@ fn campaign_report(cli: &Cli) -> Result<(), String> {
         .seed
         .checked_add(cli.survey_seeds)
         .ok_or("seed range overflow")?;
-    let report = fragr_playtest::campaign::run_scenario(
+    let report = localexception_playtest::campaign::run_scenario(
         cli.survey_mission,
         cli.seed..end,
         cli.max_seconds.saturating_mul(20),
@@ -1450,19 +1457,22 @@ mod tests {
 
     #[test]
     fn campaign_survey_refuses_ignored_arena_options() {
-        assert!(Cli::try_parse_from(["fragr-playtest", "--campaign-survey"]).is_ok());
-        assert!(
-            Cli::try_parse_from(["fragr-playtest", "--survey-mission", "m19-teaching"]).is_err()
-        );
+        assert!(Cli::try_parse_from(["localexception-playtest", "--campaign-survey"]).is_ok());
         assert!(Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
+            "--survey-mission",
+            "m19-teaching"
+        ])
+        .is_err());
+        assert!(Cli::try_parse_from([
+            "localexception-playtest",
             "--campaign-survey",
             "--survey-mission",
             "unknown"
         ])
         .is_err());
         let m19 = Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--campaign-survey",
             "--survey-mission",
             "m19-teaching",
@@ -1470,10 +1480,10 @@ mod tests {
         .unwrap();
         assert_eq!(
             m19.survey_mission,
-            fragr_playtest::campaign::Scenario::M19Teaching
+            localexception_playtest::campaign::Scenario::M19Teaching
         );
         let market = Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--campaign-survey",
             "--survey-mission",
             "m19-market",
@@ -1481,11 +1491,14 @@ mod tests {
         .unwrap();
         assert_eq!(
             market.survey_mission,
-            fragr_playtest::campaign::Scenario::M19Market
+            localexception_playtest::campaign::Scenario::M19Market
         );
-        assert!(Cli::try_parse_from(["fragr-playtest", "--survey-mission", "m19-market"]).is_err());
+        assert!(
+            Cli::try_parse_from(["localexception-playtest", "--survey-mission", "m19-market"])
+                .is_err()
+        );
         let carry = Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--campaign-survey",
             "--survey-mission",
             "m02-carry",
@@ -1493,10 +1506,10 @@ mod tests {
         .unwrap();
         assert_eq!(
             carry.survey_mission,
-            fragr_playtest::campaign::Scenario::M02Carry
+            localexception_playtest::campaign::Scenario::M02Carry
         );
         let tanks = Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--campaign-survey",
             "--survey-mission",
             "m19-tanks",
@@ -1504,7 +1517,7 @@ mod tests {
         .unwrap();
         assert_eq!(
             tanks.survey_mission,
-            fragr_playtest::campaign::Scenario::M19Tanks
+            localexception_playtest::campaign::Scenario::M19Tanks
         );
         for args in [
             ["--map", "2"],
@@ -1513,21 +1526,28 @@ mod tests {
             ["--soak-seconds", "10"],
             ["--traffic-hz", "20"],
         ] {
-            assert!(
-                Cli::try_parse_from(["fragr-playtest", "--campaign-survey", args[0], args[1]])
-                    .is_err()
-            );
+            assert!(Cli::try_parse_from([
+                "localexception-playtest",
+                "--campaign-survey",
+                args[0],
+                args[1]
+            ])
+            .is_err());
         }
         for mode in ["--bot-survey", "--soak", "--fanout-matrix", "--traffic"] {
-            assert!(Cli::try_parse_from(["fragr-playtest", "--campaign-survey", mode]).is_err());
+            assert!(
+                Cli::try_parse_from(["localexception-playtest", "--campaign-survey", mode])
+                    .is_err()
+            );
         }
     }
 
     #[test]
     fn campaign_assert_preserves_failures_and_report_errors_are_fatal() {
-        let dir = std::env::temp_dir().join(format!("fragr-campaign-{}", uuid::Uuid::new_v4()));
+        let dir =
+            std::env::temp_dir().join(format!("localexception-campaign-{}", uuid::Uuid::new_v4()));
         let mut cli = Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--campaign-survey",
             "--survey-seeds",
             "1",
@@ -1549,7 +1569,7 @@ mod tests {
             .iter()
             .all(|row| row["outcome"] == "timeout"));
         assert!(report["review"].is_null());
-        cli.survey_mission = fragr_playtest::campaign::Scenario::M19Market;
+        cli.survey_mission = localexception_playtest::campaign::Scenario::M19Market;
         assert!(campaign_report(&cli)
             .unwrap_err()
             .contains("did not pass its endpoint"));
@@ -1575,13 +1595,19 @@ mod tests {
     async fn peek_probe_writes_its_report() {
         // Timing on a loaded test host is not the gate; `peek::check` is
         // tested on fixed rows and `--assert` runs it on a real probe.
-        assert!(Cli::try_parse_from(["fragr-playtest", "--peek-trials", "2"]).is_err());
-        assert!(Cli::try_parse_from(["fragr-playtest", "--peek-probe", "--soak"]).is_err());
-        let defaults = Cli::try_parse_from(["fragr-playtest", "--peek-probe"]).unwrap();
-        assert_eq!(defaults.peek_rtt, fragr_playtest::peek::RTTS_MS.to_vec());
-        let dir = std::env::temp_dir().join(format!("fragr-peek-{}", uuid::Uuid::new_v4()));
+        assert!(Cli::try_parse_from(["localexception-playtest", "--peek-trials", "2"]).is_err());
+        assert!(
+            Cli::try_parse_from(["localexception-playtest", "--peek-probe", "--soak"]).is_err()
+        );
+        let defaults = Cli::try_parse_from(["localexception-playtest", "--peek-probe"]).unwrap();
+        assert_eq!(
+            defaults.peek_rtt,
+            localexception_playtest::peek::RTTS_MS.to_vec()
+        );
+        let dir =
+            std::env::temp_dir().join(format!("localexception-peek-{}", uuid::Uuid::new_v4()));
         let mut cli = Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--peek-probe",
             "--peek-trials",
             "2",
@@ -1602,11 +1628,15 @@ mod tests {
 
     #[test]
     fn ledge_scan_writes_its_report() {
-        let dir = std::env::temp_dir().join(format!("fragr-ledges-{}", uuid::Uuid::new_v4()));
-        let mut cli = Cli::try_parse_from(["fragr-playtest", "--ledge-scan"]).unwrap();
-        assert!(
-            Cli::try_parse_from(["fragr-playtest", "--ledge-scan", "--rewind-matrix"]).is_err()
-        );
+        let dir =
+            std::env::temp_dir().join(format!("localexception-ledges-{}", uuid::Uuid::new_v4()));
+        let mut cli = Cli::try_parse_from(["localexception-playtest", "--ledge-scan"]).unwrap();
+        assert!(Cli::try_parse_from([
+            "localexception-playtest",
+            "--ledge-scan",
+            "--rewind-matrix"
+        ])
+        .is_err());
         cli.report = dir.join("nested").join("ledges.json");
         ledge_report(&cli).unwrap();
         let written: serde_json::Value =
@@ -1618,12 +1648,15 @@ mod tests {
 
     #[test]
     fn rewind_matrix_writes_its_report_and_refuses_other_modes() {
-        assert!(Cli::try_parse_from(["fragr-playtest", "--rewind-trials", "5"]).is_err());
-        assert!(Cli::try_parse_from(["fragr-playtest", "--rewind-matrix", "--soak"]).is_err());
-        let dir = std::env::temp_dir().join(format!("fragr-rewind-{}", uuid::Uuid::new_v4()));
+        assert!(Cli::try_parse_from(["localexception-playtest", "--rewind-trials", "5"]).is_err());
+        assert!(
+            Cli::try_parse_from(["localexception-playtest", "--rewind-matrix", "--soak"]).is_err()
+        );
+        let dir =
+            std::env::temp_dir().join(format!("localexception-rewind-{}", uuid::Uuid::new_v4()));
         let report = dir.join("rewind.json");
         let mut cli = Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--rewind-matrix",
             "--rewind-trials",
             "4",
@@ -1638,14 +1671,14 @@ mod tests {
             serde_json::from_str(&std::fs::read_to_string(&report).unwrap()).unwrap();
         assert_eq!(written["trials"], 4);
         assert_eq!(written["rows"].as_array().unwrap().len(), 8);
-        assert!(Cli::try_parse_from(["fragr-playtest", "--rewind-jitter"]).is_err());
+        assert!(Cli::try_parse_from(["localexception-playtest", "--rewind-jitter"]).is_err());
         cli.rewind_jitter = true;
         rewind_report(&cli).unwrap();
         let written: serde_json::Value =
             serde_json::from_str(&std::fs::read_to_string(&report).unwrap()).unwrap();
         assert_eq!(
             written["rows"].as_array().unwrap().len(),
-            8 * fragr_playtest::rewind::JITTER_LINKS.len()
+            8 * localexception_playtest::rewind::JITTER_LINKS.len()
         );
         // A report path under a file cannot be created.
         cli.report = report.join("nested.json");
@@ -1655,30 +1688,38 @@ mod tests {
 
     #[test]
     fn parses_defaults_and_map() {
-        let cli = Cli::try_parse_from(["fragr-playtest"]).unwrap();
+        let cli = Cli::try_parse_from(["localexception-playtest"]).unwrap();
         let config = config_from(&cli).unwrap();
         assert_eq!(config.agents, 4);
         assert_eq!(config.rounds, 1);
         assert_eq!(config.frag_limit, 5);
         assert_eq!(config.time_limit_ticks, 1200);
         assert_eq!(config.max_ticks, 2400);
-        assert_eq!(config.map, fragr_server::sim::MapKind::ArenaDuel);
+        assert_eq!(config.map, localexception_server::sim::MapKind::ArenaDuel);
         assert!(!cli.assert);
         assert!(!cli.fanout_matrix);
         assert!(!cli.fanout_stress);
         assert_eq!(cli.fanout_seconds, 10);
         // The stress rows are a variant of the matrix, never a mode alone.
-        assert!(Cli::try_parse_from(["fragr-playtest", "--fanout-stress"]).is_err());
-        let stress =
-            Cli::try_parse_from(["fragr-playtest", "--fanout-matrix", "--fanout-stress"]).unwrap();
+        assert!(Cli::try_parse_from(["localexception-playtest", "--fanout-stress"]).is_err());
+        let stress = Cli::try_parse_from([
+            "localexception-playtest",
+            "--fanout-matrix",
+            "--fanout-stress",
+        ])
+        .unwrap();
         assert!(stress.fanout_matrix && stress.fanout_stress);
         assert!(!stress.fanout_link);
-        let link =
-            Cli::try_parse_from(["fragr-playtest", "--fanout-matrix", "--fanout-link"]).unwrap();
+        let link = Cli::try_parse_from([
+            "localexception-playtest",
+            "--fanout-matrix",
+            "--fanout-link",
+        ])
+        .unwrap();
         assert!(link.fanout_link && !link.fanout_stress);
-        assert!(Cli::try_parse_from(["fragr-playtest", "--fanout-link"]).is_err());
+        assert!(Cli::try_parse_from(["localexception-playtest", "--fanout-link"]).is_err());
         assert!(Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--fanout-matrix",
             "--fanout-link",
             "--fanout-stress"
@@ -1688,16 +1729,19 @@ mod tests {
 
     #[test]
     fn controlled_route_and_contested_ctf_have_distinct_gate_configs() {
-        let route = Cli::try_parse_from(["fragr-playtest", "--ctf-route-smoke"]).unwrap();
+        let route = Cli::try_parse_from(["localexception-playtest", "--ctf-route-smoke"]).unwrap();
         let config = config_from(&route).unwrap();
         assert_eq!(config.agents, 1);
-        assert_eq!(config.map, fragr_server::sim::MapKind::Sector9);
+        assert_eq!(config.map, localexception_server::sim::MapKind::Sector9);
         assert_eq!(config.tiers, vec![Policy::RouteProbe]);
         assert_eq!(config.capture_limit, 1);
-        assert_eq!(config.rules.mode(), fragr_server::protocol::GameMode::Ctf);
+        assert_eq!(
+            config.rules.mode(),
+            localexception_server::protocol::GameMode::Ctf
+        );
         for extra in [["--map", "99"], ["--mode", "tdm"], ["--seed", "99"]] {
             assert!(Cli::try_parse_from([
-                "fragr-playtest",
+                "localexception-playtest",
                 "--ctf-route-smoke",
                 extra[0],
                 extra[1]
@@ -1706,7 +1750,7 @@ mod tests {
         }
 
         let contested = Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--mode",
             "ctf",
             "--map",
@@ -1716,29 +1760,34 @@ mod tests {
         ])
         .unwrap();
         assert!(config_from(&contested).is_ok());
-        assert!(Cli::try_parse_from(["fragr-playtest", "--ctf-contested"]).is_err());
+        assert!(Cli::try_parse_from(["localexception-playtest", "--ctf-contested"]).is_err());
         let wrong_mode =
-            Cli::try_parse_from(["fragr-playtest", "--assert", "--ctf-contested"]).unwrap();
+            Cli::try_parse_from(["localexception-playtest", "--assert", "--ctf-contested"])
+                .unwrap();
         assert!(config_from(&wrong_mode).is_err());
     }
 
     #[test]
     fn sabotage_gates_have_their_own_configs() {
-        let route = Cli::try_parse_from(["fragr-playtest", "--sabotage-route-smoke"]).unwrap();
+        let route =
+            Cli::try_parse_from(["localexception-playtest", "--sabotage-route-smoke"]).unwrap();
         let config = config_from(&route).unwrap();
         assert_eq!(config.agents, 2);
-        assert_eq!(config.map, fragr_server::sim::MapKind::Sector9);
+        assert_eq!(config.map, localexception_server::sim::MapKind::Sector9);
         assert_eq!(config.tiers, vec![Policy::RouteProbe]);
         assert_eq!(
             config.rules.mode(),
-            fragr_server::protocol::GameMode::Sabotage
+            localexception_server::protocol::GameMode::Sabotage
         );
-        assert!(
-            Cli::try_parse_from(["fragr-playtest", "--sabotage-route-smoke", "--map", "1"])
-                .is_err()
-        );
+        assert!(Cli::try_parse_from([
+            "localexception-playtest",
+            "--sabotage-route-smoke",
+            "--map",
+            "1"
+        ])
+        .is_err());
         let contested = Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--mode",
             "sabotage",
             "--map",
@@ -1749,14 +1798,19 @@ mod tests {
         .unwrap();
         let config = config_from(&contested).unwrap();
         assert_eq!(config.sabotage.muster_ticks, 60);
-        assert!(Cli::try_parse_from(["fragr-playtest", "--sabotage-contested"]).is_err());
-        let wrong_mode =
-            Cli::try_parse_from(["fragr-playtest", "--assert", "--sabotage-contested"]).unwrap();
+        assert!(Cli::try_parse_from(["localexception-playtest", "--sabotage-contested"]).is_err());
+        let wrong_mode = Cli::try_parse_from([
+            "localexception-playtest",
+            "--assert",
+            "--sabotage-contested",
+        ])
+        .unwrap();
         assert!(config_from(&wrong_mode).is_err());
-        let no_sites = Cli::try_parse_from(["fragr-playtest", "--mode", "sabotage"]).unwrap();
+        let no_sites =
+            Cli::try_parse_from(["localexception-playtest", "--mode", "sabotage"]).unwrap();
         assert!(config_from(&no_sites).is_err(), "Arena Duel has no sites");
         let survey = Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--sabotage-survey",
             "--survey-seeds",
             "3",
@@ -1771,7 +1825,7 @@ mod tests {
     #[test]
     fn parses_custom_arguments() {
         let cli = Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--agents",
             "8",
             "--rounds",
@@ -1790,19 +1844,22 @@ mod tests {
         let config = config_from(&cli).unwrap();
         assert_eq!(config.agents, 8);
         assert_eq!(config.rounds, 2);
-        assert_eq!(config.map, fragr_server::sim::MapKind::ComplianceYard);
+        assert_eq!(
+            config.map,
+            localexception_server::sim::MapKind::ComplianceYard
+        );
         assert_eq!(config.frag_limit, 3);
         assert_eq!(config.time_limit_ticks, 900);
         assert_eq!(config.max_ticks, 4000);
         assert!(cli.assert);
-        let bad = Cli::try_parse_from(["fragr-playtest", "--map", "moon"]).unwrap();
+        let bad = Cli::try_parse_from(["localexception-playtest", "--map", "moon"]).unwrap();
         assert!(config_from(&bad).is_err());
     }
 
     #[test]
     fn parses_a_rule_set() {
         let cli = Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--mode",
             "tdm",
             "--mutator",
@@ -1818,7 +1875,7 @@ mod tests {
             "Team Deathmatch: Rail Only, Licence to Kill"
         );
         let clash = Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--mutator",
             "rail-only",
             "--mutator",
@@ -1827,7 +1884,7 @@ mod tests {
         .unwrap();
         assert!(config_from(&clash).is_err());
         let ctf_without_stands = Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--mode",
             "ctf",
             "--map",
@@ -1839,13 +1896,14 @@ mod tests {
             "Compliance Yard has no flag stands"
         );
         // Map 1 is Larak Lot, the FFA and Duel home: no flag stands.
-        let ctf_default = Cli::try_parse_from(["fragr-playtest", "--mode", "ctf"]).unwrap();
+        let ctf_default =
+            Cli::try_parse_from(["localexception-playtest", "--mode", "ctf"]).unwrap();
         assert!(
             config_from(&ctf_default).is_err(),
             "Larak Lot has no flag stands"
         );
         let ctf = Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--mode",
             "ctf",
             "--map",
@@ -1855,14 +1913,14 @@ mod tests {
         ])
         .unwrap();
         let ctf_config = config_from(&ctf).unwrap();
-        assert_eq!(ctf_config.map, fragr_server::sim::MapKind::Sector9);
+        assert_eq!(ctf_config.map, localexception_server::sim::MapKind::Sector9);
         assert_eq!(ctf_config.capture_limit, 2);
     }
 
     #[test]
     fn parses_soak_arguments_and_prints_a_verdict() {
         let cli = Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--soak",
             "--soak-seconds",
             "120",
@@ -1887,23 +1945,29 @@ mod tests {
         assert_eq!((config.seconds, config.sample_seconds), (120, 15));
         assert_eq!((config.bots, config.agents, config.spectators), (6, 5, 3));
         assert!(config.map_rotate);
-        assert_eq!(config.map, fragr_server::sim::MapKind::ComplianceYard);
+        assert_eq!(
+            config.map,
+            localexception_server::sim::MapKind::ComplianceYard
+        );
         assert!(matches!(
             config.launch,
-            fragr_playtest::soak::Launch::Binary(ref path) if path == std::path::Path::new("server-under-test")
+            localexception_playtest::soak::Launch::Binary(ref path) if path == std::path::Path::new("server-under-test")
         ));
-        let defaults = Cli::try_parse_from(["fragr-playtest", "--soak"]).unwrap();
+        let defaults = Cli::try_parse_from(["localexception-playtest", "--soak"]).unwrap();
         assert_eq!(defaults.soak_seconds, 3600);
         assert_eq!(defaults.soak_sample_seconds, 60);
         assert_eq!(defaults.soak_log, PathBuf::from(".agents/soak/soak.ndjson"));
-        assert!(Cli::try_parse_from(["fragr-playtest", "--soak", "--fanout-matrix"]).is_err());
-        assert!(Cli::try_parse_from(["fragr-playtest", "--traffic", "--soak"]).is_err());
-        let bad = Cli::try_parse_from(["fragr-playtest", "--soak", "--map", "moon"]).unwrap();
+        assert!(
+            Cli::try_parse_from(["localexception-playtest", "--soak", "--fanout-matrix"]).is_err()
+        );
+        assert!(Cli::try_parse_from(["localexception-playtest", "--traffic", "--soak"]).is_err());
+        let bad =
+            Cli::try_parse_from(["localexception-playtest", "--soak", "--map", "moon"]).unwrap();
         assert!(soak_config(&bad).is_err());
         print_soak(
-            &fragr_playtest::soak::check_soak(
+            &localexception_playtest::soak::check_soak(
                 &[],
-                fragr_playtest::soak::Expected {
+                localexception_playtest::soak::Expected {
                     agents: 1,
                     spectators: 0,
                 },
@@ -1915,7 +1979,7 @@ mod tests {
     #[test]
     fn parses_traffic_arguments() {
         let cli = Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--traffic",
             "--traffic-fighters",
             "12",
@@ -1946,11 +2010,11 @@ mod tests {
         assert_eq!(config.burst, 3);
         assert_eq!(config.bots, 0);
         assert_eq!(config.seed, 9);
-        assert_eq!(config.map, fragr_server::sim::MapKind::Sector9);
+        assert_eq!(config.map, localexception_server::sim::MapKind::Sector9);
         assert_eq!(config.report, PathBuf::from(".agents/traffic/report.json"));
         assert!(cli.assert);
         let custom = Cli::try_parse_from([
-            "fragr-playtest",
+            "localexception-playtest",
             "--traffic",
             "--report",
             ".agents/traffic/custom.json",
@@ -1962,7 +2026,8 @@ mod tests {
             traffic_config(&custom).unwrap().report,
             PathBuf::from(".agents/traffic/custom.json")
         );
-        let bad = Cli::try_parse_from(["fragr-playtest", "--traffic", "--map", "moon"]).unwrap();
+        let bad =
+            Cli::try_parse_from(["localexception-playtest", "--traffic", "--map", "moon"]).unwrap();
         assert!(traffic_config(&bad).is_err());
     }
 }

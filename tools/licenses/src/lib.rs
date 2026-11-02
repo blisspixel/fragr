@@ -1,8 +1,8 @@
-//! Third-party license notices for a packaged fragr-server.
+//! Third-party license notices for a packaged localexception-server.
 //!
 //! The input is `cargo metadata` JSON. Only registry crates reached from the
 //! root package through normal (linked) dependencies are listed; workspace
-//! crates are fragr itself and ship under the root `LICENSE`. Every listed crate
+//! crates are localexception itself and ship under the root `LICENSE`. Every listed crate
 //! must carry a license expression that the cargo-deny allowlist satisfies, and
 //! either its own license files or a standard text for each license it names.
 //! Standard texts under `texts/` come from spdx/license-list-data v3.29.0.
@@ -382,10 +382,10 @@ pub fn render(crates: &[Crate], allow: &[String]) -> Result<String, Vec<String>>
         return Err(problems);
     }
     let mut doc = String::new();
-    let _ = writeln!(doc, "Third-party software in fragr-server\n");
+    let _ = writeln!(doc, "Third-party software in localexception-server\n");
     let _ = writeln!(
         doc,
-        "fragr-server links the Rust crates below. Each is listed with its SPDX license"
+        "localexception-server links the Rust crates below. Each is listed with its SPDX license"
     );
     let _ = writeln!(
         doc,
@@ -393,7 +393,7 @@ pub fn render(crates: &[Crate], allow: &[String]) -> Result<String, Vec<String>>
     );
     let _ = writeln!(
         doc,
-        "text where a crate ships none. fragr itself is under licenses/fragr-LICENSE.txt.\n"
+        "text where a crate ships none. localexception itself is under licenses/localexception-LICENSE.txt.\n"
     );
     for (label, expression, _) in &sections {
         let _ = writeln!(doc, "  {label}  ({expression})");
@@ -437,8 +437,10 @@ mod tests {
     }
 
     fn scratch(name: &str) -> PathBuf {
-        let dir =
-            std::env::temp_dir().join(format!("fragr-licenses-{}-{name}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!(
+            "localexception-licenses-{}-{name}",
+            std::process::id()
+        ));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         dir
@@ -522,8 +524,8 @@ mod tests {
     fn graph_walk_keeps_linked_registry_crates_only() {
         let metadata = json!({
             "packages": [
-                {"id": "root", "name": "fragr-server", "version": "0.1.0", "source": null, "manifest_path": "/w/server/Cargo.toml", "license": "Apache-2.0"},
-                {"id": "sib", "name": "fragr-other", "version": "0.1.0", "source": null, "manifest_path": "/w/other/Cargo.toml", "license": "Apache-2.0"},
+                {"id": "root", "name": "localexception-server", "version": "0.1.0", "source": null, "manifest_path": "/w/server/Cargo.toml", "license": "Apache-2.0"},
+                {"id": "sib", "name": "localexception-other", "version": "0.1.0", "source": null, "manifest_path": "/w/other/Cargo.toml", "license": "Apache-2.0"},
                 {"id": "a", "name": "alpha", "version": "1.0.0", "source": "registry", "manifest_path": "/r/alpha/Cargo.toml", "license": "MIT", "license_file": null},
                 {"id": "b", "name": "beta", "version": "2.0.0", "source": "registry", "manifest_path": "/r/beta/Cargo.toml", "license": null, "license_file": "COPYING.md"},
                 {"id": "d", "name": "devonly", "version": "1.0.0", "source": "registry", "manifest_path": "/r/dev/Cargo.toml", "license": "MIT"},
@@ -541,7 +543,7 @@ mod tests {
                 {"id": "b", "deps": []}, {"id": "d", "deps": []}, {"id": "k", "deps": []}
             ]}
         });
-        let crates = distributed_crates(&metadata, "fragr-server").unwrap();
+        let crates = distributed_crates(&metadata, "localexception-server").unwrap();
         let names: Vec<_> = crates.iter().map(|c| c.name.as_str()).collect();
         assert_eq!(names, ["alpha", "beta"]);
         assert_eq!(crates[1].license, None);
@@ -550,10 +552,10 @@ mod tests {
             Some(Path::new("/r/beta").join("COPYING.md"))
         );
         assert!(distributed_crates(&metadata, "missing").is_err());
-        assert!(distributed_crates(&json!({}), "fragr-server").is_err());
-        assert!(distributed_crates(&json!({"packages": []}), "fragr-server").is_err());
-        let orphan = json!({"packages": [{"id": "root", "name": "fragr-server", "source": null}], "resolve": {"nodes": []}});
-        assert!(distributed_crates(&orphan, "fragr-server").is_err());
+        assert!(distributed_crates(&json!({}), "localexception-server").is_err());
+        assert!(distributed_crates(&json!({"packages": []}), "localexception-server").is_err());
+        let orphan = json!({"packages": [{"id": "root", "name": "localexception-server", "source": null}], "resolve": {"nodes": []}});
+        assert!(distributed_crates(&orphan, "localexception-server").is_err());
     }
 
     #[test]

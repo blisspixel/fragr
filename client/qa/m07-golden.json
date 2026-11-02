@@ -1,5 +1,5 @@
 {
-  "comment": "M07 golden-slice art review. Eye-height spectator views of every beat on the authored route, with the curfew patrol, the only guards placed before their encounter wakes. Run with FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m07_declared_goods.json. Look at each still against docs/design/moon.md, the art bible and the Recall Notice bar; this is art review, not combat or fresh-player evidence. The Ranged Sweepers and later guards appear only through the combat route in client/qa/m07_declared_goods.json.",
+  "comment": "M07 golden-slice art review. Eye-height spectator views of every beat on the authored route, with the curfew patrol, the only guards placed before their encounter wakes. Run with LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MAP_FILE=server/maps/m07_declared_goods.json. Look at each still against docs/design/moon.md, the art bible and the Recall Notice bar; this is art review, not combat or fresh-player evidence. The Ranged Sweepers and later guards appear only through the combat route in client/qa/m07_declared_goods.json.",
   "width": 1280,
   "height": 720,
   "states": [

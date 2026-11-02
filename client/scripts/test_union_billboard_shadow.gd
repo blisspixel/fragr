@@ -5,7 +5,7 @@ var _failures: int = 0
 var _out: String
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	call_deferred("_run")
 
 func _check(ok: bool, message: String) -> void:
@@ -65,7 +65,7 @@ func _run() -> void:
 			print("test_union_billboard_shadow: PASS headless boundary; rendered pixel gates require a framebuffer")
 		quit(0 if _failures == 0 else 1)
 		return
-	_out = OS.get_environment("FRAGR_UNION_SHADOW_CAPTURE_DIR")
+	_out = OS.get_environment("LOCALEXCEPTION_UNION_SHADOW_CAPTURE_DIR")
 	if _out.is_empty():
 		_out = ProjectSettings.globalize_path("res://../.agents/union-shadow-fixture")
 	DirAccess.make_dir_recursive_absolute(_out)

@@ -3,13 +3,13 @@
 //! measures whether the round loop works for both sides (plants, defuses,
 //! detonations, eliminations and clock wins) and whether any round sticks.
 //! A survey is objective-loop evidence, never a human fun verdict.
-use fragr_server::protocol::{
+use localexception_server::protocol::{
     GameEvent, GameMode, SabotageEventKind, SabotageFormat, SabotageReason, ServerMessage, SiteId,
     Team,
 };
-use fragr_server::rules::{RuleSet, SabotageConfig};
-use fragr_server::session::GameSession;
-use fragr_server::sim::{MapKind, MatchConfig};
+use localexception_server::rules::{RuleSet, SabotageConfig};
+use localexception_server::session::GameSession;
+use localexception_server::sim::{MapKind, MatchConfig};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -248,10 +248,10 @@ fn survey_seed(config: &SurveyConfig, seed: u64, report: &mut SurveyReport) {
                 } => {
                     for p in &session.state.players {
                         let armed = [
-                            fragr_server::protocol::WeaponType::Tack,
-                            fragr_server::protocol::WeaponType::Flechette,
-                            fragr_server::protocol::WeaponType::Scatter,
-                            fragr_server::protocol::WeaponType::Rail,
+                            localexception_server::protocol::WeaponType::Tack,
+                            localexception_server::protocol::WeaponType::Flechette,
+                            localexception_server::protocol::WeaponType::Scatter,
+                            localexception_server::protocol::WeaponType::Rail,
                         ]
                         .into_iter()
                         .any(|w| p.inventory.usable(w));

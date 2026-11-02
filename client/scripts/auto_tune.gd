@@ -81,7 +81,7 @@ var passed: bool = false
 var final_low_1: float = 0.0
 
 ## A tuner for this player's settings and machine.
-static func for_settings(preferences: FragrSettings, fingerprint: Dictionary, output: Vector2i, power: String) -> AutoTune:
+static func for_settings(preferences: LocalExceptionSettings, fingerprint: Dictionary, output: Vector2i, power: String) -> AutoTune:
 	var tune: AutoTune = AutoTune.new()
 	tune.renderer = str(fingerprint.get("renderer", RenderingServer.get_current_rendering_method()))
 	tune.target = preferences.target_fps()
@@ -490,7 +490,7 @@ static func cap_offer(target: int, refresh: int, vsync: bool, vrr: bool = false)
 	return target if refresh > target else 0
 
 ## Put a choice into settings, leaving every pinned option alone.
-static func apply_record(preferences: FragrSettings, record: Dictionary) -> void:
+static func apply_record(preferences: LocalExceptionSettings, record: Dictionary) -> void:
 	if not preferences.pinned("quality") and record.has("tier"):
 		preferences.set_value("video", "quality", int(record["tier"]))
 	if not preferences.pinned("render_scale") and record.has("render_scale"):
@@ -561,7 +561,7 @@ static func stale_reason(record: Dictionary, fingerprint: Dictionary) -> String:
 	if str(record.get("hardware_key", "")) != HardwareProfile.hardware_key(fingerprint):
 		return "Your graphics hardware, driver or renderer changed since the last tune."
 	if int(record.get("revision", -1)) != RenderQuality.RENDER_COST_REVISION:
-		return "This version of fragr draws differently from the one that tuned your settings."
+		return "This version of localexception draws differently from the one that tuned your settings."
 	if bool(record.get("retune_advised", false)):
 		return "Frames fell short of your target in recent play."
 	if str(record.get("display_key", "")) != HardwareProfile.display_key(fingerprint):

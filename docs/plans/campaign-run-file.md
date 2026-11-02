@@ -134,7 +134,7 @@ The menu previews through the Rust validator and exposes Continue Run only for
 a compatible playable save. Exit to Menu disconnects and stops the owned child
 without sending Leave; a wire Leave durably marks the run abandoned. A failed
 run and an M01-complete run remain visible but are not offered as Continue Run.
-The opening is skipped on resume. Tests isolate `FRAGR_RUN_DIR` so they cannot
+The opening is skipped on resume. Tests isolate `LOCALEXCEPTION_RUN_DIR` so they cannot
 read or change the player's normal save.
 
 Evidence on this branch: focused run-document and store tests (9 passed), real
@@ -165,14 +165,14 @@ also proves a subsequent tick after owner removal keeps the same completed
 document. This receipt is under ignored
 `.agents/departure-recheck-93260f88fd884025bcb1f4c94ccf8b74/`.
 
-The probe used the release binaries with an isolated `FRAGR_RUN_DIR` and an
+The probe used the release binaries with an isolated `LOCALEXCEPTION_RUN_DIR` and an
 open parent stdin lease:
 
 ```text
-fragr-server --local-mission recall_notice --run-mode new --difficulty standard --seed 67
-fragr-brain --provider local --no-ledger play --server <ready.url> --name FreeRunProbe --max-seconds 240
-fragr-server --local-run-preview
-fragr-server --local-mission recall_notice --run-mode resume
+localexception-server --local-mission recall_notice --run-mode new --difficulty standard --seed 67
+localexception-brain --provider local --no-ledger play --server <ready.url> --name FreeRunProbe --max-seconds 240
+localexception-server --local-run-preview
+localexception-server --local-mission recall_notice --run-mode resume
 ```
 
 The run file is a mission-entry save, not a mid-level checkpoint. Participant

@@ -137,7 +137,7 @@ lifecycle and verify the actual desktop clip after rendered process shutdown.
 ## Architecture and research
 
 Use `server/src/navigation.rs` with the existing `movement::Arena`, `Solid`,
-`STEP_UP`, and fighter radius. Share it through `fragr-server`, as with combat
+`STEP_UP`, and fighter radius. Share it through `localexception-server`, as with combat
 geometry. No second client collision authority or separate map representation.
 Build static topology at map load, cache routes per controller, and invalidate
 them on map replacement, respawn, blocked progress, or changed destinations.
@@ -178,7 +178,7 @@ queries, and 16/64/128-fighter ticks before accepting the chosen representation.
 Baseline command, verified against the actual CLI:
 
 ```bash
-cargo run -p fragr-playtest --release --locked -- --agents 6 --tiers reflex,planner --map 3 --seed 42 --rounds 1 --frag-limit 8 --time-limit-seconds 60 --max-seconds 75 --assert --report .agents/playtest/navigation-baseline-map3.json
+cargo run -p localexception-playtest --release --locked -- --agents 6 --tiers reflex,planner --map 3 --seed 42 --rounds 1 --frag-limit 8 --time-limit-seconds 60 --max-seconds 75 --assert --report .agents/playtest/navigation-baseline-map3.json
 ```
 
 Baseline receipt: `.agents/navigation-baseline-map3.log` and the report above.

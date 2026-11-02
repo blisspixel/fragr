@@ -14,22 +14,22 @@
 //! frame through prediction (about 8 to 25 ms, `tools/qa_feel.sh`), so this
 //! is the upper bound of the peeker's advantage: the head start a peeker has
 //! before the player holding the angle can see it. Valorant's published
-//! baseline for the same quantity is about 141 ms; fragr's target is under
+//! baseline for the same quantity is about 141 ms; localexception's target is under
 //! 150 ms at a 50 ms round trip.
 //!
 //! What it is not: one machine, a modelled link on loopback, and a modelled
 //! holder frame clock rather than a rendered frame. The holder joins as a watcher:
 //! since gameplay 66 a fighter's socket withholds a body it cannot see yet
-//! (`fragr_playtest::interest` measures that), and the stream's timing is
+//! (`localexception_playtest::interest` measures that), and the stream's timing is
 //! the same either way.
 
 use crate::link::LinkProfile;
 use crate::presentation::{Timeline, TICK_USEC};
 use crate::{transport, Error, TICKS_PER_SECOND};
-use fragr_server::protocol::{Action, ClientMessage, Role, ServerMessage};
-use fragr_server::run::{run_server_with_metrics, RunMetrics, ServerOptions};
-use fragr_server::sim::{MapKind, MatchConfig};
 use futures_util::{SinkExt, StreamExt};
+use localexception_server::protocol::{Action, ClientMessage, Role, ServerMessage};
+use localexception_server::run::{run_server_with_metrics, RunMetrics, ServerOptions};
+use localexception_server::sim::{MapKind, MatchConfig};
 use serde::Serialize;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
@@ -176,11 +176,11 @@ fn hello(name: &str, role: Role) -> Result<Message, Error> {
             body: None,
             dress: None,
             seat: None,
-            gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
-            geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
+            gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
+            geometry_version: localexception_server::protocol::GEOMETRY_VERSION,
             role,
             name: name.into(),
-            ticket: fragr_server::join_ticket::ticket_for(role),
+            ticket: localexception_server::join_ticket::ticket_for(role),
             resume: None,
         })
         .map_err(transport)?,
@@ -206,7 +206,7 @@ async fn holder_task(
     mut stop: watch::Receiver<bool>,
     ready: oneshot::Sender<()>,
 ) -> Result<Vec<Arrival>, Error> {
-    let mut world = fragr_server::protocol::WorldReader::new();
+    let mut world = localexception_server::protocol::WorldReader::new();
     let mut arrivals = Vec::new();
     let mut ready = Some(ready);
     loop {

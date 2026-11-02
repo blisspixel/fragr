@@ -1,5 +1,5 @@
 {
-  "comment": "The run checkpoint-cue.json left behind, reopened: the Single Player page says the run picks up at its last checkpoint; resuming puts the fighter back where it saved (off the spawn, facing the intake) with one upright BACK AT YOUR LAST CHECKPOINT feed line; a death in the intake fight then offers the continue back to that checkpoint. FRAGR_QA_LOCAL_MISSION=recall_notice FRAGR_QA_RUN_FIXTURE=<checkpoint-cue output>/run.",
+  "comment": "The run checkpoint-cue.json left behind, reopened: the Single Player page says the run picks up at its last checkpoint; resuming puts the fighter back where it saved (off the spawn, facing the intake) with one upright BACK AT YOUR LAST CHECKPOINT feed line; a death in the intake fight then offers the continue back to that checkpoint. LOCALEXCEPTION_QA_LOCAL_MISSION=recall_notice LOCALEXCEPTION_QA_RUN_FIXTURE=<checkpoint-cue output>/run.",
   "width": 1280,
   "height": 720,
   "states": [

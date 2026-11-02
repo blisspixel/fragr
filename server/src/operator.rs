@@ -86,7 +86,7 @@ pub fn ready_card(facts: &ReadyFacts, style: Style) -> String {
     let _ = writeln!(
         out,
         "{} No game window: the match runs in this process, and bots fight whether or not anyone watches.",
-        style.bold(&format!("fragr dedicated server {}.", facts.version))
+        style.bold(&format!("localexception dedicated server {}.", facts.version))
     );
     let row = |out: &mut String, label: &str, text: &str| {
         let _ = writeln!(out, "  {} {text}", style.bold(&format!("{label:<7}")));
@@ -103,7 +103,7 @@ pub fn ready_card(facts: &ReadyFacts, style: Style) -> String {
     row(
         &mut out,
         "Watch",
-        "Start fragr, open Multiplayer and join an address above. Watching and joining are optional.",
+        "Start localexception, open Multiplayer and join an address above. Watching and joining are optional.",
     );
     row(&mut out, "Desk", desk_line(facts.desk));
     row(&mut out, "Tally", tally_line(facts.fun_metrics));
@@ -240,9 +240,10 @@ fn write_joins(out: &mut String, joins: &JoinReport, lan_beacon: bool, style: St
 fn admit_line(facts: &ReadyFacts) -> String {
     let mut text = if facts.ticketed {
         if facts.spectator_tickets {
-            "Tickets required for fighters and watchers (FRAGR_JOIN_SECRET).".to_string()
+            "Tickets required for fighters and watchers (LOCALEXCEPTION_JOIN_SECRET).".to_string()
         } else {
-            "Tickets required for fighters (FRAGR_JOIN_SECRET); watchers need none.".to_string()
+            "Tickets required for fighters (LOCALEXCEPTION_JOIN_SECRET); watchers need none."
+                .to_string()
         }
     } else {
         "Open: no join ticket. Anyone who can reach the port may watch or join.".to_string()
@@ -550,7 +551,7 @@ mod tests {
         assert!(!card.contains('\x1b'), "{card}");
         assert!(card.is_ascii(), "legacy consoles: {card}");
         for needle in [
-            "fragr dedicated server 0.90.0.",
+            "localexception dedicated server 0.90.0.",
             "No game window",
             "Larak Lot, Free-for-all.",
             "Bots: 4 fixed rule bots",

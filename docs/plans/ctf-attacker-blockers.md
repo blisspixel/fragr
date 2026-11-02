@@ -33,8 +33,8 @@ cover both firing and route resumption, plus carrier priority and RouteProbe
 behavior. The role-election fixture puts opposing sides outside local combat
 range so its unchanged assertions continue to test election independently.
 
-`cargo test -p fragr-playtest --locked` passed 72 library tests and five CLI
-tests. `cargo clippy -p fragr-playtest --all-targets --locked -- -D warnings`
+`cargo test -p localexception-playtest --locked` passed 72 library tests and five CLI
+tests. `cargo clippy -p localexception-playtest --all-targets --locked -- -D warnings`
 passed. The final focused blocker test also passed after the carried-flag
 fixture was made internally consistent. Logs are
 `.agents/m04-buildout-20260930/ctf-blockers-tests.log`,
@@ -43,7 +43,7 @@ fixture was made internally consistent. Logs are
 The exact contested command passed with exit 0:
 
 ```text
-cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode ctf --map 4 --tiers reflex,planner --capture-limit 1 --time-limit-seconds 180 --max-seconds 240 --assert --ctf-contested --report .agents/playtest/m04-ci-ctf-blockers.json
+cargo run -p localexception-playtest --locked -- --agents 4 --rounds 1 --mode ctf --map 4 --tiers reflex,planner --capture-limit 1 --time-limit-seconds 180 --max-seconds 240 --assert --ctf-contested --report .agents/playtest/m04-ci-ctf-blockers.json
 ```
 
 | Observed metric | Previous sample | Corrected sample |

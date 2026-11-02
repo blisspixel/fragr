@@ -124,7 +124,7 @@ the West Hall service door also reach their site in the same test.
 
 ## Evidence
 
-Bots-only survey, `fragr-playtest --sabotage-survey --seed 40 --survey-seeds
+Bots-only survey, `localexception-playtest --sabotage-survey --seed 40 --survey-seeds
 16`, short format, 2026-10-02 on this Windows host, no sockets:
 
 | Bots | Matches finished | Rounds | Attack wins | Rounds with a plant | Detonations | Defuses | Mean round | Longest |
@@ -204,7 +204,7 @@ and `RoundEnd.sabotage` the round and match result. `docs/protocol.md` and
 - Pure tests for the format arithmetic in `rules.rs`; wire tests for every new
   shape on the server, adapter and Godot sides.
 - Route timing and reachability with actual `GameState` players.
-- `fragr-playtest --mode sabotage` socket smoke with asserted plants and round
+- `localexception-playtest --mode sabotage` socket smoke with asserted plants and round
   results, and a seeded bots-only survey across at least 16 seeds asserting
   plants, defuses, wins on both sides and no stuck round.
 - Mixed human, agent and spectator sessions; a rendered tour under the machine
@@ -218,7 +218,7 @@ synthesized tones; final assets are listed for a later bounded batch.
 
 ## Success criteria
 
-- [ ] A host runs `fragr-server --mode sabotage --map 4 --bots 8` and a seeded
+- [ ] A host runs `localexception-server --mode sabotage --map 4 --bots 8` and a seeded
       bots-only match ends with a winner, with plants, defuses and round wins
       for both sides.
 - [ ] A human can join or watch and read the sites, the carrier, plant and
@@ -270,7 +270,7 @@ plain bars, and Host voice lines for plant, defuse, detonation and the swap
   presentation. Wrote this plan.
 - 2026-10-02: Server rules, wire types, Sector 9 layout, rule bots, the shared
   wire controller, adapter `round_state` fields and 33 deterministic tests are
-  in. `fragr-playtest --sabotage-survey` runs seeded bots-only matches without
+  in. `localexception-playtest --sabotage-survey` runs seeded bots-only matches without
   sockets. First 8-seed surveys: every match finishes, but the attack wins only
   about a quarter of rounds and plants are rare, because attackers die
   crossing into the West Hall. Staging at the north and south mid doors
@@ -311,11 +311,11 @@ plain bars, and Host voice lines for plant, defuse, detonation and the swap
 Shipped in two PRs: #325 (server rules, wire, layout, rule bots, controller,
 adapter, harness gates, CI, protocol docs) and #333 (Godot
 presentation, tours, scripted bot objective, player docs). To play:
-`fragr-server --mode sabotage --map 4 --bots 8`, then join from the client.
+`localexception-server --mode sabotage --map 4 --bots 8`, then join from the client.
 Open: human playtest on real hands, final art and audio (see the asset
 table), the exit-time texture leak in tours, and the 2v2 Pairs cut and
 Rescue as follow-ups.
 Fast iteration build: `CARGO_PROFILE_RELEASE_INCREMENTAL=true
-CARGO_PROFILE_RELEASE_CODEGEN_UNITS=256 cargo build -p fragr-playtest --release
---target-dir target/iter`, then `target/iter/release/fragr-playtest
+CARGO_PROFILE_RELEASE_CODEGEN_UNITS=256 cargo build -p localexception-playtest --release
+--target-dir target/iter`, then `target/iter/release/localexception-playtest
 --sabotage-survey --seed 40 --survey-seeds 8`.

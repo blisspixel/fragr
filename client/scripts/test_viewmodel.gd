@@ -317,7 +317,7 @@ func _check_missing_art(hud: CanvasLayer, weapon: TextureRect) -> void:
 	_check(weapon.texture == WeaponArt.IDLE["Flechette"], "known Rifle still settles to its own idle after unsupported fire")
 
 func _run() -> void:
-	set_meta("fragr_settings_path", "user://test-viewmodel-%d.cfg" % OS.get_process_id())
+	set_meta("localexception_settings_path", "user://test-viewmodel-%d.cfg" % OS.get_process_id())
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
 	var hud: CanvasLayer = scene.get_node("HUD")
 	scene.remove_child(hud)

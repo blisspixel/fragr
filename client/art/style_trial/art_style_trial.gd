@@ -90,8 +90,8 @@ var _bake: String
 var _view: SubViewport
 var _camera: Camera3D
 var _stage: Node3D
-var _settings: FragrSettings
-var _pixel_settings: FragrSettings
+var _settings: LocalExceptionSettings
+var _pixel_settings: LocalExceptionSettings
 var _sources: Dictionary[String, RefCounted] = {}
 var _atlases: Dictionary[String, Texture2D] = {}
 var _normals: Dictionary[String, Texture2D] = {}
@@ -104,8 +104,8 @@ var _receipt: Dictionary = {}
 var _failures: PackedStringArray = []
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
-	set_meta("fragr_settings_path", "")
+	set_meta("localexception_automated", true)
+	set_meta("localexception_settings_path", "")
 	call_deferred("_run")
 
 func _run() -> void:
@@ -200,8 +200,8 @@ func _map_info(source: String) -> Dictionary:
 	return {}
 
 func _build_scene(info: Dictionary) -> void:
-	_settings = FragrSettings.new("")
-	_pixel_settings = FragrSettings.new("")
+	_settings = LocalExceptionSettings.new("")
+	_pixel_settings = LocalExceptionSettings.new("")
 	_pixel_settings.set_value("video", "pixel_scale", 2)
 	_view = SubViewport.new()
 	_view.size = OUTPUT

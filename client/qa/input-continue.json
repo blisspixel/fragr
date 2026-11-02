@@ -1,5 +1,5 @@
 {
-  "comment": "Continue prompt glyph evidence on a live one-seat M01 run. Run with FRAGR_QA_BOTS=0, FRAGR_QA_CAMPAIGN_RUN=1, FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json and FRAGR_QA_MANIFEST=res://qa/input-continue.json. The player walks past the Tack into the intake guard's fire without shooting back, falls, and the continue card is captured for each device. No pad is attached: the positional layout comes from a real trigger event, the letter and shape layouts are forced and recorded in the manifest.",
+  "comment": "Continue prompt glyph evidence on a live one-seat M01 run. Run with LOCALEXCEPTION_QA_BOTS=0, LOCALEXCEPTION_QA_CAMPAIGN_RUN=1, LOCALEXCEPTION_QA_MAP_FILE=server/maps/m01-recall-notice.json and LOCALEXCEPTION_QA_MANIFEST=res://qa/input-continue.json. The player walks past the Tack into the intake guard's fire without shooting back, falls, and the continue card is captured for each device. No pad is attached: the positional layout comes from a real trigger event, the letter and shape layouts are forced and recorded in the manifest.",
   "width": 1280,
   "height": 720,
   "combat_travel": false,

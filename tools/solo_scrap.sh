@@ -6,11 +6,11 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-BIND="${FRAGR_BIND:-127.0.0.1:6767}"
-BOTS="${FRAGR_BOTS:-4}"
-MAP="${FRAGR_MAP:-1}"
-MAP_ROTATE="${FRAGR_MAP_ROTATE:-0}"
-SOLO_BROADCAST="${FRAGR_SOLO_BROADCAST:-1}"
+BIND="${LOCALEXCEPTION_BIND:-127.0.0.1:6767}"
+BOTS="${LOCALEXCEPTION_BOTS:-4}"
+MAP="${LOCALEXCEPTION_MAP:-1}"
+MAP_ROTATE="${LOCALEXCEPTION_MAP_ROTATE:-0}"
+SOLO_BROADCAST="${LOCALEXCEPTION_SOLO_BROADCAST:-1}"
 GODOT_BIN="${GODOT_BIN:-}"
 
 resolve_godot() {
@@ -35,10 +35,10 @@ resolve_godot() {
 
 resolve_godot
 
-echo "Building fragr-server..."
-cargo build -p fragr-server
+echo "Building localexception-server..."
+cargo build -p localexception-server
 
-SERVER_BIN="$ROOT/target/debug/fragr-server"
+SERVER_BIN="$ROOT/target/debug/localexception-server"
 if [ ! -x "$SERVER_BIN" ]; then
   echo "Missing $SERVER_BIN after build" >&2
   exit 1
@@ -59,7 +59,7 @@ else
   MAP_FACE="Compliance Yard (map $MAP)"
 fi
 echo "Starting Solo Broadcast server on $BIND with $BOTS NODS (map face=$MAP_FACE, map=$MAP)..."
-"$SERVER_BIN" --bind "$BIND" --bots "$BOTS" "${MAP_ARGS[@]}" >/tmp/fragr-solo-server.log 2>&1 &
+"$SERVER_BIN" --bind "$BIND" --bots "$BOTS" "${MAP_ARGS[@]}" >/tmp/localexception-solo-server.log 2>&1 &
 SERVER_PID=$!
 
 cleanup() {
@@ -74,7 +74,7 @@ trap cleanup EXIT INT TERM
 for _ in $(seq 1 50); do
   if ! kill -0 "$SERVER_PID" >/dev/null 2>&1; then
     echo "Server exited early. Log:" >&2
-    cat /tmp/fragr-solo-server.log >&2 || true
+    cat /tmp/localexception-solo-server.log >&2 || true
     exit 1
   fi
   if command -v nc >/dev/null 2>&1; then
@@ -88,9 +88,9 @@ for _ in $(seq 1 50); do
   sleep 0.1
 done
 
-export FRAGR_SERVER="$BIND"
-export FRAGR_SOLO=1
-export FRAGR_MAP="$MAP"
+export LOCALEXCEPTION_SERVER="$BIND"
+export LOCALEXCEPTION_SOLO=1
+export LOCALEXCEPTION_MAP="$MAP"
 
 echo "Launching Solo Broadcast Episode 0 (human on loopback). Server pid=$SERVER_PID"
 echo "Controls: WASD move, mouse look, LMB fire, L leave to spectate, ESC mouse"

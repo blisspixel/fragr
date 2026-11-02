@@ -1,15 +1,15 @@
 //! Survey readings that only the bots-only survey needs: how a fighter
 //! walks. Sight itself (cone, range, line) and the quantile reading are the
-//! server's (`fragr_server::fun_metrics`), shared with a host's fun metrics,
+//! server's (`localexception_server::fun_metrics`), shared with a host's fun metrics,
 //! so the survey and a real server measure contact the same way.
-use fragr_server::movement::Solid;
-use fragr_server::session::GameSession;
-use fragr_server::sim::Player;
+use localexception_server::movement::Solid;
+use localexception_server::session::GameSession;
+use localexception_server::sim::Player;
 use std::collections::HashMap;
 use uuid::Uuid;
 
-pub use fragr_server::fun_metrics::sight::{alive, feet, hostile, sees, SIGHT};
-pub use fragr_server::fun_metrics::{spread, Spread};
+pub use localexception_server::fun_metrics::sight::{alive, feet, hostile, sees, SIGHT};
+pub use localexception_server::fun_metrics::{spread, Spread};
 
 /// A dither window, ticks: four seconds.
 const WINDOW: u32 = 80;

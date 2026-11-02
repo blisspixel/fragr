@@ -13,10 +13,10 @@ extends "res://scripts/qa_tour.gd"
 ## pixels. Nameplates, the subject's shadow and its own lights are off for
 ## every read, so the mask is the figure alone. Observation only.
 ##
-## Run with `FRAGR_QA_SCRIPT=res://qa/contrast_scan.gd` and a manifest:
-## `contrast-scan.json` with `FRAGR_QA_MAP=1..8 FRAGR_QA_BOTS=9` for the
+## Run with `LOCALEXCEPTION_QA_SCRIPT=res://qa/contrast_scan.gd` and a manifest:
+## `contrast-scan.json` with `LOCALEXCEPTION_QA_MAP=1..8 LOCALEXCEPTION_QA_BOTS=9` for the
 ## multiplayer maps, `contrast-scan-m01.json` or `contrast-scan-m06.json`
-## with `FRAGR_QA_BOTS=0` and that level's `FRAGR_QA_MAP_FILE`.
+## with `LOCALEXCEPTION_QA_BOTS=0` and that level's `LOCALEXCEPTION_QA_MAP_FILE`.
 ## `contrast-scan.json` (the report) and crops land in the tour's output.
 
 const SCAN_SECONDS: float = 0.5

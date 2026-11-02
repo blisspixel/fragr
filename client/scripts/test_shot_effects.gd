@@ -33,7 +33,7 @@ class PawnProbe extends Node:
 		fired.append(weapon)
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	call_deferred("_run")
 
 func _check(ok: bool, message: String) -> void:
@@ -206,7 +206,7 @@ func _test_incoming_camera(effects: ShotEffects) -> void:
 	camera.free()
 
 func _run() -> void:
-	root.set_meta("fragr_automated", true)
+	root.set_meta("localexception_automated", true)
 	if DisplayServer.get_name() != "headless":
 		# Keep raster evidence isolated from the headless match-glue fixtures.
 		await _rendered_camera_change()
@@ -315,7 +315,7 @@ func _run() -> void:
 	_test_incoming_camera(effects)
 	# The real match route must retain the weapon even with no surviving pawn.
 	var game: Node = load("res://scenes/main.tscn").instantiate()
-	game.settings = FragrSettings.new()
+	game.settings = LocalExceptionSettings.new()
 	var hud: HudProbe = HudProbe.new()
 	game.hud = hud
 	game.net_client = game.get_node("NetClient")

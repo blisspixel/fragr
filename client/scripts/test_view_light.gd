@@ -45,7 +45,7 @@ func _run() -> void:
 	_check(not ViewLight.flash(camera, "Fists") and not ViewLight.flash(camera, "Shiv") and not ViewLight.flash(camera, "Article Blade"),
 		"blades and fists make no muzzle light")
 	_check(muzzle != null and not muzzle.visible, "a blade left the light dark")
-	_check(ViewLight.flash(camera, "Tack", FragrSettings.FLASHES_FULL), "the Pistol lights its muzzle")
+	_check(ViewLight.flash(camera, "Tack", LocalExceptionSettings.FLASHES_FULL), "the Pistol lights its muzzle")
 	var full: float = muzzle.light_energy if muzzle != null else 0.0
 	_check(muzzle != null and muzzle.visible and is_equal_approx(full, float(ViewLight.FLASHES["tack"]["energy"])), "Full flashes fire at the gun's peak")
 	_check(muzzle != null and muzzle.light_color == ViewLight.flash_colour("Tack"), "the light takes the gun's colour")
@@ -55,11 +55,11 @@ func _run() -> void:
 	_check(muzzle.visible and muzzle.light_energy < full and muzzle.light_energy > 0.0, "the pulse decays")
 	view._process(0.2)
 	_check(not muzzle.visible and is_zero_approx(muzzle.light_energy) and view.flash_energy() == 0.0, "the pulse is gone after its seconds")
-	ViewLight.flash(camera, "Tack", FragrSettings.FLASHES_REDUCED)
-	_check(is_equal_approx(muzzle.light_energy, full * ViewLight.FLASH_SCALE[FragrSettings.FLASHES_REDUCED]), "Reduced flashes dim the light")
+	ViewLight.flash(camera, "Tack", LocalExceptionSettings.FLASHES_REDUCED)
+	_check(is_equal_approx(muzzle.light_energy, full * ViewLight.FLASH_SCALE[LocalExceptionSettings.FLASHES_REDUCED]), "Reduced flashes dim the light")
 	ViewLight.cancel(camera)
 	_check(not muzzle.visible and is_zero_approx(muzzle.light_energy), "a rejected shot puts its light out at once")
-	_check(not ViewLight.flash(camera, "Tack", FragrSettings.FLASHES_OFF) and not muzzle.visible, "Off flashes make no light")
+	_check(not ViewLight.flash(camera, "Tack", LocalExceptionSettings.FLASHES_OFF) and not muzzle.visible, "Off flashes make no light")
 	ViewLight.cancel(null)
 
 	# The measurement.

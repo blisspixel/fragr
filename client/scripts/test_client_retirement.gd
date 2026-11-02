@@ -8,18 +8,18 @@ var _quit_observed: bool = false
 var _owned_pids: Array[int] = []
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
-	set_meta("fragr_records_path", "")
+	set_meta("localexception_automated", true)
+	set_meta("localexception_records_path", "")
 	_settings_path = "user://exit-retirement-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", _settings_path)
-	OS.set_environment("FRAGR_SERVER", "127.0.0.1:1")
-	OS.set_environment("FRAGR_RUN_DIR", ProjectSettings.globalize_path("user://exit-run-%d" % OS.get_process_id()))
+	set_meta("localexception_settings_path", _settings_path)
+	OS.set_environment("LOCALEXCEPTION_SERVER", "127.0.0.1:1")
+	OS.set_environment("LOCALEXCEPTION_RUN_DIR", ProjectSettings.globalize_path("user://exit-run-%d" % OS.get_process_id()))
 	_run.call_deferred()
 
 func _finalize() -> void:
 	MouseCapture.release()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(_settings_path))
-	OS.unset_environment("FRAGR_RUN_DIR")
+	OS.unset_environment("LOCALEXCEPTION_RUN_DIR")
 	if not _quit_observed:
 		push_error("test_client_retirement: exit bypassed observed retirement")
 
@@ -57,7 +57,7 @@ func _all_released(references: Array[WeakRef]) -> bool:
 	return true
 
 func _run() -> void:
-	var prefs: FragrSettings = FragrSettings.new(_settings_path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(_settings_path)
 	prefs.set_value("video", "display_mode", 0)
 	_expect(prefs.save_to_disk() == OK, "isolated window settings saved")
 	var owner: ClientRetirement = ClientRetirement.for_tree(self)
@@ -89,7 +89,7 @@ func _run() -> void:
 	await process_frame
 	_expect(await owner.drain(), "rapid main-scene return retires its pending skies")
 	_expect(current_scene != null and current_scene.has_method("_start_campaign"), "ordinary leave reaches the menu")
-	var mode: String = OS.get_environment("FRAGR_EXIT_CASE")
+	var mode: String = OS.get_environment("LOCALEXCEPTION_EXIT_CASE")
 	if mode.is_empty():
 		mode = "menu"
 	if mode == "owned":
@@ -136,7 +136,7 @@ func _run() -> void:
 			current_scene.add_child(pause)
 			_press(pause, "Quit to desktop")
 		"console":
-			var console: FragrConsole = FragrConsole.new()
+			var console: LocalExceptionConsole = LocalExceptionConsole.new()
 			current_scene.add_child(console)
 			console.run("quit")
 		"window", "owned", "minimized":

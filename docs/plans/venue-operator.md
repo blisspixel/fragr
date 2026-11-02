@@ -22,9 +22,9 @@ does not run the room. An Auditor does not run it either.
 ## What those servers added, and why
 
 Checked 2026-10-06. Their numbers, tick rates, and account systems are not
-fragr's. The reasons are.
+Local Exception's. The reasons are.
 
-| Tool | Where it showed up | Why it exists | Fragr today |
+| Tool | Where it showed up | Why it exists | LocalException today |
 |---|---|---|---|
 | A name and a note on the door | Zandronum `sv_hostname` is the master-list name. `sv_motd` is the welcome, used for rules and how to reach the admin, and a player can ask for it again. Source `hostname` is the browser row, and `motd.txt` is the join screen. Minecraft `motd` is the multiplayer list line. | A row that only says the game is not a place. People read the house rules before they sit down. | `GET /status` names the map, the mode, and anonymous counts. It has no venue name and no house line. The Host line is the broadcaster, on purpose. |
 | A private door | Zandronum `sv_joinpassword`. Source `sv_password` (empty means public). Minecraft `white-list` for a friends' server, plus `enable-status` so a closed door can still answer a ping. | A forwarded port is a public invitation. The word you tell a friend is a different tool from a ban list. | Join tickets are fighter clearance, and spectators are not ticketed. An allow list is a set of networks. There is no passphrase, so a private night is private only while the port stays unforwarded. |
@@ -65,14 +65,14 @@ named pipe whose access list is the creating user. On Unix it is a socket
 file mode `0600` in a directory mode `0700`. The pipe or socket name is
 random. A pointer file for that game port, in a user-owned directory, tells
 `--attach` where to dial. The pointer holds a path, never a password.
-`FRAGR_DESK_DIR` overrides the directory for a test. A second local user
+`LOCALEXCEPTION_DESK_DIR` overrides the directory for a test. A second local user
 cannot open the endpoint.
 
 There is no TCP listener for the desk, including on loopback. A loopback
 port is any local account, and a password on it is the hazard the Minecraft
 wiki names. A person away from the machine reaches the desk by logging into
 that account and running `--attach`. SSH is the remote channel. This plan
-does not add a fragr password protocol.
+does not add a Local Exception password protocol.
 
 The game port does not accept desk verbs. They are not `ClientMessage`
 values and they are not fields on `Action`. `Action` denies unknown fields,
@@ -102,8 +102,8 @@ slice 3, never from a process listing:
   shows it before Watch or Join. It is a posted notice. It is not a Host
   line, not markup, and not a second `say`.
 
-`FRAGR_VENUE_PASSPHRASE` is 8 to 64 scalars, or a file path via
-`FRAGR_VENUE_PASSPHRASE_FILE`. Unset means the door is open. The value is
+`LOCALEXCEPTION_VENUE_PASSPHRASE` is 8 to 64 scalars, or a file path via
+`LOCALEXCEPTION_VENUE_PASSPHRASE_FILE`. Unset means the door is open. The value is
 never logged, never put on status, and never accepted as a command-line
 argument. Status gains additive `private: true` when a phrase is set.
 Absent means open, so an older host stays joinable and Watch and Join stay

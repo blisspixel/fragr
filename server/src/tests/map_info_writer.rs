@@ -1,15 +1,15 @@
 //! Writes the wire MapInfo of an authored map file for offline presentation
 //! review (`tools/preview_campaign_props.gd`). Run with `--ignored`; both
 //! paths are absolute because cargo runs the test from `server/`:
-//!   FRAGR_MAP_FILE=/abs/server/maps/m19-planned-works.json FRAGR_MAP_INFO=/abs/out.json \
-//!     cargo test -p fragr-server --lib authored_write_map_info -- --ignored
+//!   LOCALEXCEPTION_MAP_FILE=/abs/server/maps/m19-planned-works.json LOCALEXCEPTION_MAP_INFO=/abs/out.json \
+//!     cargo test -p localexception-server --lib authored_write_map_info -- --ignored
 
 #[test]
 #[ignore = "writes the MapInfo used by the offline campaign prop preview"]
 fn authored_write_map_info() {
     let (Ok(source), Ok(out)) = (
-        std::env::var("FRAGR_MAP_FILE"),
-        std::env::var("FRAGR_MAP_INFO"),
+        std::env::var("LOCALEXCEPTION_MAP_FILE"),
+        std::env::var("LOCALEXCEPTION_MAP_INFO"),
     ) else {
         return;
     };

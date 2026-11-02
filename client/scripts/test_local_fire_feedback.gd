@@ -363,8 +363,8 @@ func _live_seams() -> void:
 	hud.free()
 
 func _run() -> void:
-	root.set_meta("fragr_automated", true)
-	root.set_meta("fragr_settings_path", "user://test_local_fire_feedback_settings.cfg")
+	root.set_meta("localexception_automated", true)
+	root.set_meta("localexception_settings_path", "user://test_local_fire_feedback_settings.cfg")
 	if DisplayServer.get_name() != "headless":
 		await _rendered_sequence()
 		_finish()

@@ -16,12 +16,12 @@ const POSES: Array[Dictionary] = [
 const VIEWS: Array[float] = [0.0, PI * 0.5, PI]
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	MouseCapture.release()
 	_run.call_deferred()
 
 func _run() -> void:
-	var directory: String = OS.get_environment("FRAGR_ENFORCER_SOURCE_CAPTURE")
+	var directory: String = OS.get_environment("LOCALEXCEPTION_ENFORCER_SOURCE_CAPTURE")
 	if not directory.is_absolute_path() or DirAccess.make_dir_recursive_absolute(directory) != OK:
 		push_error("qa_enforcer_source: require owned absolute capture directory")
 		quit(1)

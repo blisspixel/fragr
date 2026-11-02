@@ -8,7 +8,7 @@ var _bounds: Array[AABB] = [AABB(Vector3(-3,3,-2),Vector3(6,3,4))]
 var _triangles: int = 0
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	_run.call_deferred()
 
 func _run() -> void:

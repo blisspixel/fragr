@@ -10,7 +10,7 @@ and staging. This anchor is a production target, not finished-appearance evidenc
 completed level 18 save without a refill; completion leaves pending level 20.
 The free local agent completes it on all three difficulties: the seeded
 `free_local_controller_completes_planned_works_on_every_tier` route, and live
-`fragr-brain --provider local` runs on the standalone map's discovery kit
+`localexception-brain --provider local` runs on the standalone map's discovery kit
 (seeds 1 and 2 on each tier, 2026-10-23: all six departed; Severe seed 1 after
 one retry). The worn and racked jetpack is the generated candidate prepared by
 `tools/prepare_jetpack_source.gd` (`JetpackRig.MODEL_PATH`, receipt beside

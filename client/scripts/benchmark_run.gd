@@ -26,20 +26,20 @@ const MAX_RESULT_BYTES: int = 32 * 1024 * 1024
 const MAX_HISTORY_FILES: int = 64
 ## Tree metas the menu reads on return: run the same benchmark again, or say
 ## that the last one was cancelled.
-const AGAIN_META: StringName = &"fragr_benchmark_again"
-const CANCELLED_META: StringName = &"fragr_benchmark_cancelled"
+const AGAIN_META: StringName = &"localexception_benchmark_again"
+const CANCELLED_META: StringName = &"localexception_benchmark_cancelled"
 ## Auto settings replay a shorter fight with the local server still running,
 ## so the processor cost of solo play is in every frame (AutoTune).
 const TUNE_WORKLOAD_ID: String = "larak-lot-r2-10-bots-20s-orbit-host-running"
 ## Set on the tree when an auto-tune run was cancelled.
-const TUNE_CANCELLED_META: StringName = &"fragr_tune_cancelled"
+const TUNE_CANCELLED_META: StringName = &"localexception_tune_cancelled"
 
 var phase: String = "idle"
 var camera: Node3D = null
 var manager: Node = null
-var preferences: FragrSettings = null
+var preferences: LocalExceptionSettings = null
 var compare_all: bool = false
-var render_settings: FragrSettings = null
+var render_settings: LocalExceptionSettings = null
 ## Returns Array[Rect2]: other layers' text the benchmark HUD must clear.
 var reserved_query: Callable
 var capture: BenchmarkCapture = BenchmarkCapture.new()
@@ -110,7 +110,7 @@ static func present_uncapped() -> void:
 		return
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 
-static func restore_presentation(settings: FragrSettings) -> void:
+static func restore_presentation(settings: LocalExceptionSettings) -> void:
 	if settings == null:
 		return
 	settings.apply_video()
@@ -515,7 +515,7 @@ func _preset_finished(summary: Dictionary) -> void:
 	summary["output_size"] = [output.x, output.y]
 	var world_size: Vector2i = Vector2i(Vector2(output) * get_viewport().scaling_3d_scale)
 	summary["world_size"] = [world_size.x, world_size.y]
-	var measured: FragrSettings = render_settings if render_settings != null else preferences
+	var measured: LocalExceptionSettings = render_settings if render_settings != null else preferences
 	summary["settings"] = measured._values["video"].duplicate(true) if measured != null else {}
 	summary["settings"]["vsync"] = false
 	summary["settings"]["fps_cap"] = 0
@@ -600,7 +600,7 @@ func _finish_tune() -> Dictionary:
 		if trial is Dictionary and str(fingerprint.get("renderer", "")) == "gl_compatibility":
 			lines = _settle_compatibility(lines, float(result["low_1_count_fps"]), float((trial as Dictionary)["forward_low_1"]))
 			record["lines"] = Array(lines)
-		var candidate: FragrSettings = preferences.draft()
+		var candidate: LocalExceptionSettings = preferences.draft()
 		AutoTune.apply_record(candidate, record)
 		candidate.set_value("video", "tune", record)
 		FrameGovernor.clear()
@@ -730,7 +730,7 @@ static func csv(document: Dictionary) -> String:
 	return "\n".join(lines) + "\n"
 
 func _save_report(document: Dictionary) -> String:
-	output_directory = str(get_tree().get_meta("fragr_benchmark_dir", "user://benchmarks"))
+	output_directory = str(get_tree().get_meta("localexception_benchmark_dir", "user://benchmarks"))
 	output_directory = ProjectSettings.globalize_path(output_directory)
 	if DirAccess.make_dir_recursive_absolute(output_directory) != OK:
 		return "Results could not be saved."

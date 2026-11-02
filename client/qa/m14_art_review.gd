@@ -9,7 +9,7 @@ var _out: String
 var _rows: Array[Dictionary] = []
 
 func _initialize() -> void:
-	set_meta("fragr_automated",true)
+	set_meta("localexception_automated",true)
 	_run.call_deferred()
 
 func _capture(label: String,eye: Vector3,target: Vector3) -> void:

@@ -1,9 +1,9 @@
 //! Real socket admission, mixed control roles, vacancy and existing resume grace.
-use fragr_server::protocol::{GameMode, Mutator};
-use fragr_server::rules::{RuleSet, SabotageConfig};
-use fragr_server::run::{run_server, ServerOptions};
-use fragr_server::sim::{MapKind, MatchConfig};
 use futures_util::{SinkExt, StreamExt};
+use localexception_server::protocol::{GameMode, Mutator};
+use localexception_server::rules::{RuleSet, SabotageConfig};
+use localexception_server::run::{run_server, ServerOptions};
+use localexception_server::sim::{MapKind, MatchConfig};
 use serde_json::{json, Value};
 use std::time::Duration;
 use tokio_tungstenite::tungstenite::Message;
@@ -62,7 +62,7 @@ async fn hello(url: &str, role: &str, resume: Option<&str>) -> (Socket, Value) {
     socket
         .send(Message::Text(
             json!({"type":"hello", "role":role, "name":"Seat probe",
-        "gameplay_version":fragr_server::protocol::GAMEPLAY_VERSION, "geometry_version":2,
+        "gameplay_version":localexception_server::protocol::GAMEPLAY_VERSION, "geometry_version":2,
         "resume":resume, "body":"synthetic"})
             .to_string(),
         ))
@@ -304,7 +304,8 @@ async fn five_seats_mixed_sockets_bots_overflow_spectators_leave_and_parked_resu
     .await;
     let parked_tick = hidden["tick"].as_u64().unwrap();
     snapshot(&mut watcher, |s| {
-        s["tick"].as_u64().unwrap() >= parked_tick + fragr_server::resume::RESUME_GRACE_TICKS + 20
+        s["tick"].as_u64().unwrap()
+            >= parked_tick + localexception_server::resume::RESUME_GRACE_TICKS + 20
     })
     .await;
     let (fresh, welcome) = hello(&url, "human", None).await;
@@ -420,7 +421,7 @@ async fn five_seats_live_socket_join_waits_without_active_body_or_shots_until_ne
         .unwrap()
         .iter()
         .any(|p| p["id"] == id));
-    let later_state: fragr_server::protocol::Snapshot =
+    let later_state: localexception_server::protocol::Snapshot =
         serde_json::from_value(later.clone()).unwrap();
     assert!(!later_state
         .shot_results
@@ -502,7 +503,8 @@ async fn five_seats_real_pistol_shots_spend_finite_ammo_and_resume_keeps_it() {
         .unwrap();
     // Inspect the actually committed resolved shot, rather than a HUD effect.
     snapshot(&mut watcher, |s| {
-        let state: fragr_server::protocol::Snapshot = serde_json::from_value(s.clone()).unwrap();
+        let state: localexception_server::protocol::Snapshot =
+            serde_json::from_value(s.clone()).unwrap();
         state
             .shot_results
             .iter()
@@ -569,7 +571,7 @@ fn five_seats_invalid_cli_profiles_report_clear_errors() {
             "--sabotage-five-v-five",
         ],
     ] {
-        let output = std::process::Command::new(env!("CARGO_BIN_EXE_fragr-server"))
+        let output = std::process::Command::new(env!("CARGO_BIN_EXE_localexception-server"))
             .args(args)
             .output()
             .unwrap();

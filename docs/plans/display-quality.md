@@ -21,7 +21,7 @@ independent of renderer behavior and keeping pixel materials crisp.
 - Optional FSR1/FSR2 upscaling only on Forward+. Preserve the chosen preference
   when using another renderer, but explain and apply the standard fallback. FSR2
   supplies its own temporal antialiasing; do not stack MSAA on it.
-- Use `FragrSettings` validation and persistence. One presentation helper owns
+- Use `LocalExceptionSettings` validation and persistence. One presentation helper owns
   resolution math, renderer capabilities and quality application. Apply in boot
   and match scenes, after map environment replacement and window resize.
 - No renderer restart machinery, new dependency, hardware ray tracing, automatic

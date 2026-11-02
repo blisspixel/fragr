@@ -13,18 +13,18 @@ extends SceneTree
 ## with the project's canvas_items/expand stretch reproduced through
 ## size_2d_override, so a tiling window manager cannot substitute its own
 ## window size. Needs a real framebuffer (DISPLAY or WAYLAND_DISPLAY); headless
-## stills are blank. Output: FRAGR_HUD_QA_DIR, default .agents/hud-layout/<stamp>.
+## stills are blank. Output: LOCALEXCEPTION_HUD_QA_DIR, default .agents/hud-layout/<stamp>.
 ## Exit 1 if any measured top text overlaps another, leaves the view, or a
 ## result card is not upright after it settles.
 
 const SIZES: Array[Vector2i] = [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(2560, 1080)]
 const BASE: Vector2 = Vector2(1920.0, 1080.0)
 const STYLES: Array[Dictionary] = [
-	{"name": "s100", "scale": 1.0, "text": FragrSettings.TEXT_STANDARD},
-	{"name": "s100-large", "scale": 1.0, "text": FragrSettings.TEXT_LARGE},
-	{"name": "s150", "scale": 1.5, "text": FragrSettings.TEXT_STANDARD},
-	{"name": "s150-large", "scale": 1.5, "text": FragrSettings.TEXT_LARGE},
-	{"name": "s75", "scale": 0.75, "text": FragrSettings.TEXT_STANDARD},
+	{"name": "s100", "scale": 1.0, "text": LocalExceptionSettings.TEXT_STANDARD},
+	{"name": "s100-large", "scale": 1.0, "text": LocalExceptionSettings.TEXT_LARGE},
+	{"name": "s150", "scale": 1.5, "text": LocalExceptionSettings.TEXT_STANDARD},
+	{"name": "s150-large", "scale": 1.5, "text": LocalExceptionSettings.TEXT_LARGE},
+	{"name": "s75", "scale": 0.75, "text": LocalExceptionSettings.TEXT_STANDARD},
 ]
 ## Top-band text must end this far above the crosshair at the canvas center.
 const AIM_CLEARANCE: float = 64.0
@@ -39,8 +39,8 @@ var report: Array[Dictionary] = []
 var problems: int = 0
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
-	set_meta("fragr_settings_path", "user://qa-hud-layout-%d.cfg" % OS.get_process_id())
+	set_meta("localexception_automated", true)
+	set_meta("localexception_settings_path", "user://qa-hud-layout-%d.cfg" % OS.get_process_id())
 	_run.call_deferred()
 
 func _run() -> void:
@@ -48,7 +48,7 @@ func _run() -> void:
 		push_error("qa_hud_layout: needs a real framebuffer")
 		quit(1)
 		return
-	out_dir = OS.get_environment("FRAGR_HUD_QA_DIR")
+	out_dir = OS.get_environment("LOCALEXCEPTION_HUD_QA_DIR")
 	if out_dir.is_empty():
 		out_dir = ProjectSettings.globalize_path("res://../.agents/hud-layout/" + Time.get_datetime_string_from_system(true).replace(":", ""))
 	DirAccess.make_dir_recursive_absolute(out_dir)

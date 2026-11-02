@@ -50,7 +50,7 @@ Update `client/assets/README.md` to document import settings if not already clea
 
 ### 2. Application name
 
-Client application name has been changed to "fragr Client" in `client/project.godot`.
+Client application name has been changed to "Local Exception Client" in `client/project.godot`.
 
 ### 3. Weapon icons on HUD
 
@@ -148,7 +148,7 @@ Brighten arena for better visibility:
 ### During implementation
 
 - [x] Set import flags on all PNG assets (nearest, no mipmaps)
-- [x] Application name changed to fragr
+- [x] Application name changed to Local Exception
 - [x] Player sprites render correctly (billboard, tinted)
 - [x] Weapon icons show on HUD based on state
 - [x] Floor and wall textures applied
@@ -157,7 +157,7 @@ Brighten arena for better visibility:
 
 ### Post-implementation
 
-- [ ] Smoke test: `cargo run -p fragr-server` with 4 bots
+- [ ] Smoke test: `cargo run -p localexception-server` with 4 bots
 - [ ] Godot client shows pixel art characters fighting
 - [ ] Weapon icons visible and change with weapon state
 - [ ] Muzzle flash and rail effects use correct sprites

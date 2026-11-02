@@ -21,8 +21,8 @@ var _failures: int = 0
 var _vp: SubViewport
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
-	set_meta("fragr_settings_path", "user://menu-focus-capture-%d.cfg" % OS.get_process_id())
+	set_meta("localexception_automated", true)
+	set_meta("localexception_settings_path", "user://menu-focus-capture-%d.cfg" % OS.get_process_id())
 	for arg: String in OS.get_cmdline_user_args():
 		if arg.begins_with("--out="):
 			_out = arg.trim_prefix("--out=")

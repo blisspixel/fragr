@@ -9,9 +9,9 @@ var _settings_path: String = ""
 var hud: CanvasLayer
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	_settings_path = "user://announcer-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", _settings_path)
+	set_meta("localexception_settings_path", _settings_path)
 	_run.call_deferred()
 
 func _check(condition: bool, message: String) -> void:
@@ -34,25 +34,25 @@ func _run() -> void:
 	await _test_match_menu()
 	await _test_audio_page()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(_settings_path))
-	FragrSettings.new(_settings_path + ".defaults").apply_audio()
+	LocalExceptionSettings.new(_settings_path + ".defaults").apply_audio()
 	if _failures == 0:
 		print("test_announcer: PASS modes and volume, Host call gate, match menu row, audio page")
 	quit(0 if _failures == 0 else 1)
 
 func _test_settings() -> void:
-	var prefs: FragrSettings = FragrSettings.new(_settings_path)
-	_check(prefs.announcer() == FragrSettings.ANNOUNCER_ON, "the announcer defaults to On")
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(_settings_path)
+	_check(prefs.announcer() == LocalExceptionSettings.ANNOUNCER_ON, "the announcer defaults to On")
 	for bad: Variant in [3, -1, "off", 1.5, null]:
 		prefs.set_value("audio", "announcer", bad)
-		_check(prefs.announcer() == FragrSettings.ANNOUNCER_ON, "an invalid announcer mode falls back to On: " + str(bad))
-	prefs.set_value("audio", "announcer", FragrSettings.ANNOUNCER_OFF)
+		_check(prefs.announcer() == LocalExceptionSettings.ANNOUNCER_ON, "an invalid announcer mode falls back to On: " + str(bad))
+	prefs.set_value("audio", "announcer", LocalExceptionSettings.ANNOUNCER_OFF)
 	prefs.set_value("audio", "announcer_volume", 4.0)
 	_check(float(prefs.get_value("audio", "announcer_volume")) == 1.0, "announcer volume is bounded")
 	_check(prefs.save_to_disk() == OK, "announcer settings save")
-	var loaded: FragrSettings = FragrSettings.new(_settings_path)
+	var loaded: LocalExceptionSettings = LocalExceptionSettings.new(_settings_path)
 	loaded.load_from_disk()
-	_check(loaded.announcer() == FragrSettings.ANNOUNCER_OFF, "the announcer mode survives a reload")
-	_check(FragrSettings.announcer_labels() == (["ON", "BIG MOMENTS ONLY", "OFF"] as Array[String]), "three named choices: " + str(FragrSettings.announcer_labels()))
+	_check(loaded.announcer() == LocalExceptionSettings.ANNOUNCER_OFF, "the announcer mode survives a reload")
+	_check(LocalExceptionSettings.announcer_labels() == (["ON", "BIG MOMENTS ONLY", "OFF"] as Array[String]), "three named choices: " + str(LocalExceptionSettings.announcer_labels()))
 	loaded.set_value("audio", "announcer_volume", 0.0)
 	loaded.apply_audio()
 	var bus: int = AudioServer.get_bus_index(&"Announcer")
@@ -82,13 +82,13 @@ func _host_calls() -> Array[bool]:
 	]
 
 func _test_hud_gate() -> void:
-	var prefs: FragrSettings = FragrSettings.new(_settings_path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(_settings_path)
 	prefs.reset_all()
 	hud.apply_preferences(prefs)
 	var calls: Array[bool] = _host_calls()
 	_check(calls == ([true, true, true, true, true] as Array[bool]), "On shows every Host call: " + str(calls))
 	_check(_ducks() == ([true, true] as Array[bool]), "On lowers the radio for the bumper and the result")
-	prefs.set_value("audio", "announcer", FragrSettings.ANNOUNCER_BIG_MOMENTS)
+	prefs.set_value("audio", "announcer", LocalExceptionSettings.ANNOUNCER_BIG_MOMENTS)
 	hud.apply_preferences(prefs)
 	calls = _host_calls()
 	_check(calls == ([true, false, false, true, false] as Array[bool]), "Big moments only keeps the calls the server marks big (first blood, the triple frag): " + str(calls))
@@ -96,7 +96,7 @@ func _test_hud_gate() -> void:
 	# no second list.
 	_check(MatchRules.reaction_big({"kind": "golden_rail", "big": true}) and not MatchRules.reaction_big({"kind": "first_blood"}) and not MatchRules.reaction_big({"kind": "first_blood", "big": "true"}), "a call is big only when the server says so")
 	_check(_ducks() == ([false, true] as Array[bool]), "Big moments only lowers the radio for a result, not the warmup bumper")
-	prefs.set_value("audio", "announcer", FragrSettings.ANNOUNCER_OFF)
+	prefs.set_value("audio", "announcer", LocalExceptionSettings.ANNOUNCER_OFF)
 	hud.apply_preferences(prefs)
 	calls = _host_calls()
 	_check(calls == ([false, false, false, false, false] as Array[bool]), "Off silences every Host call: " + str(calls))
@@ -124,7 +124,7 @@ func _ducks() -> Array[bool]:
 	return asked
 
 func _test_match_menu() -> void:
-	var prefs: FragrSettings = FragrSettings.new(_settings_path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(_settings_path)
 	prefs.reset_all()
 	_check(prefs.save_to_disk() == OK, "defaults save")
 	var menu: PauseMenu = PauseMenu.new()
@@ -142,15 +142,15 @@ func _test_match_menu() -> void:
 	_check(mode.selected == 0 and mode.item_count == 3 and not mode.disabled, "it shows the saved mode")
 	mode.select(1)
 	mode.item_selected.emit(1)
-	_check(prefs.announcer() == FragrSettings.ANNOUNCER_BIG_MOMENTS, "choosing a mode saves it at once")
-	var saved: FragrSettings = FragrSettings.new(_settings_path)
+	_check(prefs.announcer() == LocalExceptionSettings.ANNOUNCER_BIG_MOMENTS, "choosing a mode saves it at once")
+	var saved: LocalExceptionSettings = LocalExceptionSettings.new(_settings_path)
 	saved.load_from_disk()
-	_check(saved.announcer() == FragrSettings.ANNOUNCER_BIG_MOMENTS, "the mode reached the settings file")
+	_check(saved.announcer() == LocalExceptionSettings.ANNOUNCER_BIG_MOMENTS, "the mode reached the settings file")
 	volume.value = 0.0
 	_check(AudioServer.is_bus_mute(AudioServer.get_bus_index(&"Announcer")), "the volume is heard at once")
 	_check(is_equal_approx(float(prefs.get_value("audio", "announcer_volume")), 0.9), "the volume is a draft until the menu closes")
 	menu.close()
-	_check(is_equal_approx(float(prefs.get_value("audio", "announcer_volume")), 0.0) and prefs.announcer() == FragrSettings.ANNOUNCER_BIG_MOMENTS, "closing saves the volume and keeps the mode")
+	_check(is_equal_approx(float(prefs.get_value("audio", "announcer_volume")), 0.0) and prefs.announcer() == LocalExceptionSettings.ANNOUNCER_BIG_MOMENTS, "closing saves the volume and keeps the mode")
 	menu.open()
 	await process_frame
 	await process_frame
@@ -163,7 +163,7 @@ func _test_match_menu() -> void:
 	await process_frame
 
 func _test_audio_page() -> void:
-	var prefs: FragrSettings = FragrSettings.new(_settings_path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(_settings_path)
 	prefs.reset_all()
 	var panel: SettingsPanel = SettingsPanel.new()
 	panel.preferences = prefs
@@ -179,6 +179,6 @@ func _test_audio_page() -> void:
 		mode.select(2)
 		mode.item_selected.emit(2)
 		panel.save()
-		_check(prefs.announcer() == FragrSettings.ANNOUNCER_OFF, "the Audio page saves the announcer mode")
+		_check(prefs.announcer() == LocalExceptionSettings.ANNOUNCER_OFF, "the Audio page saves the announcer mode")
 	panel.queue_free()
 	await process_frame

@@ -6,9 +6,9 @@ var failures: int = 0
 var settings_path: String = ""
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	settings_path = "user://campaign-audio-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", settings_path)
+	set_meta("localexception_settings_path", settings_path)
 	_run.call_deferred()
 
 func _finalize() -> void:
@@ -126,7 +126,7 @@ func _start(scene: Dictionary) -> ScenePlayer:
 	return player
 
 func _playback() -> void:
-	var preferences: FragrSettings = FragrSettings.for_tree(self)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.for_tree(self)
 	preferences.set_value("gameplay", "story_captions", true)
 	_check(preferences.save_to_disk() == OK, "isolated caption preferences saved")
 	for scene_id: String in SCENES:
@@ -198,7 +198,7 @@ func _fallback_scene(id: String) -> void:
 			shot["image"] = "res://assets/story/images/unavailable.png"
 	if scene.has("ambience"):
 		scene["ambience"]["path"] = "res://assets/story/ambience/unavailable.wav"
-	var preferences: FragrSettings = FragrSettings.for_tree(self)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.for_tree(self)
 	preferences.set_value("gameplay", "story_captions", false)
 	_check(preferences.save_to_disk() == OK, "isolated captions-off preference saved")
 	var player: ScenePlayer = await _start(scene)

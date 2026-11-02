@@ -25,7 +25,7 @@ var _failures: int = 0
 var _ack_tick: int = 100
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	call_deferred("_run")
 
 func _check(condition: bool, message: String) -> void:

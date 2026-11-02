@@ -35,7 +35,7 @@ pub(crate) fn bound_send_buffer(stream: &TcpStream) {
 
 /// Tracing target for the host's audit trail: joins, rejects, kicks and bans.
 /// Never log a ticket, resume token or secret under it.
-pub const AUDIT_TARGET: &str = "fragr_server::audit";
+pub const AUDIT_TARGET: &str = "localexception_server::audit";
 
 /// What a session writer counts into: its traffic and, only when a harness
 /// measures, the shared writer probe.

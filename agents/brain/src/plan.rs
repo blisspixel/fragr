@@ -4,9 +4,9 @@
 //! so aim, spacing, and fire never wait on the network.
 
 use crate::telemetry::{Telemetry, NEAR_PAD_UNITS};
-use fragr_server::navigation::Navigation;
-use fragr_server::protocol::{Action, LookAt, Snapshot, WeaponType};
-use fragr_server::sim::PLAYER_FLOOR_Y;
+use localexception_server::navigation::Navigation;
+use localexception_server::protocol::{Action, LookAt, Snapshot, WeaponType};
+use localexception_server::sim::PLAYER_FLOOR_Y;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -243,7 +243,7 @@ pub fn ctf_micro_action_in_world_with_defense(
     me: Uuid,
     snapshot: &Snapshot,
     world: &Navigation,
-    defense: Option<&mut fragr_server::sim::ctf::CarrierContactDefense>,
+    defense: Option<&mut localexception_server::sim::ctf::CarrierContactDefense>,
 ) -> Action {
     ctf_micro_action_with_visibility_and_defense(
         plan,
@@ -258,7 +258,10 @@ pub fn ctf_micro_action_with_visibility(
     plan: &Plan,
     me: Uuid,
     snapshot: &Snapshot,
-    visible: impl Fn(&fragr_server::protocol::PlayerState, &fragr_server::protocol::PlayerState) -> bool,
+    visible: impl Fn(
+        &localexception_server::protocol::PlayerState,
+        &localexception_server::protocol::PlayerState,
+    ) -> bool,
 ) -> Action {
     ctf_micro_action_with_visibility_and_defense(plan, me, snapshot, visible, None)
 }
@@ -267,8 +270,11 @@ fn ctf_micro_action_with_visibility_and_defense(
     plan: &Plan,
     me: Uuid,
     snapshot: &Snapshot,
-    visible: impl Fn(&fragr_server::protocol::PlayerState, &fragr_server::protocol::PlayerState) -> bool,
-    defense: Option<&mut fragr_server::sim::ctf::CarrierContactDefense>,
+    visible: impl Fn(
+        &localexception_server::protocol::PlayerState,
+        &localexception_server::protocol::PlayerState,
+    ) -> bool,
+    defense: Option<&mut localexception_server::sim::ctf::CarrierContactDefense>,
 ) -> Action {
     let Some(flags) = snapshot.flags.as_ref() else {
         return micro_action(plan, me, snapshot);
@@ -287,7 +293,7 @@ fn ctf_micro_action_with_visibility_and_defense(
     // have separate chips and humans cannot publish one. They advertise this
     // controller's coordination contract without assuming every teammate
     // follows it. Our own identity is known even before its first chip echo.
-    let compatible = |p: &fragr_server::protocol::PlayerState| {
+    let compatible = |p: &localexception_server::protocol::PlayerState| {
         p.id == me || p.behavior.as_deref().and_then(Stance::parse).is_some()
     };
     let coordinated = snapshot
@@ -313,7 +319,7 @@ fn ctf_micro_action_with_visibility_and_defense(
             .find(|p| p.id == id && p.team == Some(team) && p.hp > 0)
     });
     let escorting = coordinated && carrier.is_some() && eligible.get(1) == Some(&me);
-    let recovering = own.status == fragr_server::protocol::FlagStatus::Dropped;
+    let recovering = own.status == localexception_server::protocol::FlagStatus::Dropped;
     if carrying && (!coordinated || eligible.is_empty()) {
         if let Some(thief) = own.carrier.and_then(|id| {
             snapshot
@@ -338,20 +344,21 @@ fn ctf_micro_action_with_visibility_and_defense(
             };
         }
     }
-    let nearby_threat = |from: &fragr_server::protocol::PlayerState,
-                         other: &fragr_server::protocol::PlayerState| {
-        !carrying
-            && from.is_hostile_to(other)
-            && (other.x - from.x).hypot(other.z - from.z) < 12.0
-            && visible(from, other)
-            && (!defending || !recovering)
-            && (!defending || own.carrier.is_none_or(|id| other.id == id))
-            && (!escorting
-                || carrier.is_some_and(|ally| {
-                    (ally.x - from.x).hypot(ally.z - from.z) <= 6.0
-                        && (other.x - ally.x).hypot(other.z - ally.z) < 12.0
-                }))
-    };
+    let nearby_threat =
+        |from: &localexception_server::protocol::PlayerState,
+         other: &localexception_server::protocol::PlayerState| {
+            !carrying
+                && from.is_hostile_to(other)
+                && (other.x - from.x).hypot(other.z - from.z) < 12.0
+                && visible(from, other)
+                && (!defending || !recovering)
+                && (!defending || own.carrier.is_none_or(|id| other.id == id))
+                && (!escorting
+                    || carrier.is_some_and(|ally| {
+                        (ally.x - from.x).hypot(ally.z - from.z) <= 6.0
+                            && (other.x - ally.x).hypot(other.z - ally.z) < 12.0
+                    }))
+        };
     if snapshot
         .players
         .iter()
@@ -390,7 +397,7 @@ fn ctf_micro_action_with_visibility_and_defense(
     } else if defending || (!coordinated && own.carrier.is_some()) {
         own.carrier
             .and_then(|id| snapshot.players.iter().find(|p| p.id == id && p.hp > 0))
-            .map(|p| [p.x, p.y - fragr_server::sim::PLAYER_FLOOR_Y, p.z])
+            .map(|p| [p.x, p.y - localexception_server::sim::PLAYER_FLOOR_Y, p.z])
             .unwrap_or(own.stand)
     } else if escorting {
         let ally = carrier.expect("escort requires a living teammate carrier");
@@ -426,7 +433,7 @@ fn ctf_micro_action_with_visibility_and_defense(
         own.stand
     };
     if carrying {
-        let mut fallback = fragr_server::sim::ctf::CarrierContactDefense::default();
+        let mut fallback = localexception_server::sim::ctf::CarrierContactDefense::default();
         let contact = defense.unwrap_or(&mut fallback);
         if let Some(blocker_id) = contact.update(mine, goal, &snapshot.players, &visible) {
             let weapon = plan
@@ -479,7 +486,7 @@ pub fn campaign_micro_action_with_solids(
     me: Uuid,
     snapshot: &Snapshot,
     world: &Navigation,
-    solids: Option<&[fragr_server::movement::Solid]>,
+    solids: Option<&[localexception_server::movement::Solid]>,
 ) -> Action {
     let mut action = campaign_micro_action_unheld(plan, me, snapshot, world, solids);
     // A guard already in view and within reach is shot from here. Pushing on
@@ -511,7 +518,7 @@ fn campaign_micro_action_unheld(
     me: Uuid,
     snapshot: &Snapshot,
     world: &Navigation,
-    solids: Option<&[fragr_server::movement::Solid]>,
+    solids: Option<&[localexception_server::movement::Solid]>,
 ) -> Action {
     micro_action_with_visibility(
         plan,
@@ -538,7 +545,7 @@ pub fn campaign_target<'a>(
     me: Uuid,
     snapshot: &'a Snapshot,
     world: &Navigation,
-) -> Option<&'a fragr_server::protocol::PlayerState> {
+) -> Option<&'a localexception_server::protocol::PlayerState> {
     campaign_target_with_solids(me, snapshot, world, None)
 }
 
@@ -546,8 +553,8 @@ pub fn campaign_target_with_solids<'a>(
     me: Uuid,
     snapshot: &'a Snapshot,
     world: &Navigation,
-    solids: Option<&[fragr_server::movement::Solid]>,
-) -> Option<&'a fragr_server::protocol::PlayerState> {
+    solids: Option<&[localexception_server::movement::Solid]>,
+) -> Option<&'a localexception_server::protocol::PlayerState> {
     let mine = snapshot.players.iter().find(|player| player.id == me)?;
     snapshot
         .players
@@ -565,17 +572,17 @@ pub fn campaign_target_with_solids<'a>(
 
 pub fn campaign_enemy_engageable(
     world: &Navigation,
-    mine: &fragr_server::protocol::PlayerState,
-    other: &fragr_server::protocol::PlayerState,
+    mine: &localexception_server::protocol::PlayerState,
+    other: &localexception_server::protocol::PlayerState,
 ) -> bool {
     campaign_enemy_engageable_with_solids(world, mine, other, None)
 }
 
 pub fn campaign_enemy_engageable_with_solids(
     world: &Navigation,
-    mine: &fragr_server::protocol::PlayerState,
-    other: &fragr_server::protocol::PlayerState,
-    solids: Option<&[fragr_server::movement::Solid]>,
+    mine: &localexception_server::protocol::PlayerState,
+    other: &localexception_server::protocol::PlayerState,
+    solids: Option<&[localexception_server::movement::Solid]>,
 ) -> bool {
     let distance = (other.x - mine.x).hypot(other.z - mine.z);
     let reach = if campaign_enemy_awake(other) {
@@ -591,8 +598,8 @@ pub fn campaign_enemy_engageable_with_solids(
 
 /// A Union body that has started its own fight: walking, aiming, shooting,
 /// recovering or stunned. A quiet idle guard is not yet a threat.
-fn campaign_enemy_awake(other: &fragr_server::protocol::PlayerState) -> bool {
-    use fragr_server::protocol::{CampaignActor, EnemyPhase};
+fn campaign_enemy_awake(other: &localexception_server::protocol::PlayerState) -> bool {
+    use localexception_server::protocol::{CampaignActor, EnemyPhase};
     matches!(
         other.campaign,
         Some(CampaignActor::Hostile { phase, .. })
@@ -687,31 +694,31 @@ impl StallWatch {
 /// Actor geometry visibility without a mode's separate engagement radius.
 pub fn target_visible(
     world: &Navigation,
-    mine: &fragr_server::protocol::PlayerState,
-    other: &fragr_server::protocol::PlayerState,
+    mine: &localexception_server::protocol::PlayerState,
+    other: &localexception_server::protocol::PlayerState,
 ) -> bool {
     target_visible_with_solids(world, mine, other, None)
 }
 
 fn target_visible_with_solids(
     world: &Navigation,
-    mine: &fragr_server::protocol::PlayerState,
-    other: &fragr_server::protocol::PlayerState,
-    solids: Option<&[fragr_server::movement::Solid]>,
+    mine: &localexception_server::protocol::PlayerState,
+    other: &localexception_server::protocol::PlayerState,
+    solids: Option<&[localexception_server::movement::Solid]>,
 ) -> bool {
     let eye = [
         mine.x,
-        mine.y - PLAYER_FLOOR_Y + fragr_server::movement::EYE_HEIGHT,
+        mine.y - PLAYER_FLOOR_Y + localexception_server::movement::EYE_HEIGHT,
         mine.z,
     ];
     let center = [
         other.x,
-        other.y - PLAYER_FLOOR_Y + fragr_server::combat::aim_height(other.campaign),
+        other.y - PLAYER_FLOOR_Y + localexception_server::combat::aim_height(other.campaign),
         other.z,
     ];
     solids.map_or_else(
         || world.line_of_sight(eye, center),
-        |solids| fragr_server::combat::line_of_sight(eye, center, solids),
+        |solids| localexception_server::combat::line_of_sight(eye, center, solids),
     )
 }
 
@@ -719,10 +726,13 @@ fn micro_action_with_visibility(
     plan: &Plan,
     me: Uuid,
     snapshot: &Snapshot,
-    visible: impl Fn(&fragr_server::protocol::PlayerState, &fragr_server::protocol::PlayerState) -> bool,
+    visible: impl Fn(
+        &localexception_server::protocol::PlayerState,
+        &localexception_server::protocol::PlayerState,
+    ) -> bool,
     heal_pad: impl Fn(
-        &fragr_server::protocol::PlayerState,
-        &fragr_server::protocol::PickupState,
+        &localexception_server::protocol::PlayerState,
+        &localexception_server::protocol::PickupState,
     ) -> bool,
 ) -> Action {
     let Some(mine) = snapshot.players.iter().find(|p| p.id == me) else {
@@ -739,8 +749,8 @@ fn micro_action_with_visibility(
         }
         let dist = ((other.x - mine.x).powi(2) + (other.z - mine.z).powi(2)).sqrt();
         // A channeling Auditor comes first: break the repair before it lands.
-        let key = fragr_server::combat::engagement_key(other.campaign, dist);
-        if nearest.is_none() || fragr_server::combat::engagement_before(key, nearest_key) {
+        let key = localexception_server::combat::engagement_key(other.campaign, dist);
+        if nearest.is_none() || localexception_server::combat::engagement_before(key, nearest_key) {
             nearest = Some((dist, other.id, other.x, other.z));
             nearest_key = key;
         }
@@ -804,7 +814,7 @@ mod tests {
     use super::*;
     use crate::telemetry::fixtures::{pad, player, snapshot};
     use crate::telemetry::{observe, RecentHits};
-    use fragr_server::movement::{Arena, Solid};
+    use localexception_server::movement::{Arena, Solid};
 
     fn telemetry_for(snapshot: &Snapshot, me: Uuid) -> Telemetry {
         let mut hits = RecentHits::default();
@@ -813,7 +823,7 @@ mod tests {
 
     #[test]
     fn campaign_plans_and_micro_control_ignore_allies_and_dead_guards() {
-        use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
+        use localexception_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
         let me = Uuid::from_u128(1);
         let ally = Uuid::from_u128(2);
         let foe = Uuid::from_u128(3);
@@ -847,7 +857,7 @@ mod tests {
 
     #[test]
     fn hidden_guard_does_not_block_mission_but_visible_guard_does() {
-        use fragr_server::protocol::{
+        use localexception_server::protocol::{
             AmmoCount, AmmoPool, CampaignActor, EnemyKind, EnemyPhase, LoadoutState,
         };
         let me = Uuid::from_u128(1);
@@ -916,7 +926,7 @@ mod tests {
             article_blade_uses: None,
         };
         let through_inventory = |snap: &Snapshot| {
-            fragr_server::inventory::control_action_with_target_filter(
+            localexception_server::inventory::control_action_with_target_filter(
                 me,
                 snap,
                 Some(&loadout),
@@ -949,7 +959,7 @@ mod tests {
 
     #[test]
     fn campaign_answers_an_awake_guard_out_to_its_sight_and_holds_to_shoot() {
-        use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
+        use localexception_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
         let me = Uuid::from_u128(1);
         let foe = Uuid::from_u128(2);
         let mut mine = player("me", me, 0.0, 0.0, 100, "flechette");
@@ -1017,7 +1027,7 @@ mod tests {
 
     #[test]
     fn stalled_campaign_agent_goes_looking_for_the_nearest_hidden_guard() {
-        use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
+        use localexception_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
         let me = Uuid::from_u128(1);
         let near = Uuid::from_u128(2);
         let far = Uuid::from_u128(3);
@@ -1091,7 +1101,7 @@ mod tests {
 
     #[test]
     fn campaign_visibility_uses_the_crawlers_low_hit_volume() {
-        use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
+        use localexception_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
         let me = Uuid::from_u128(1);
         let foe = Uuid::from_u128(2);
         let mut mine = player("me", me, 0.0, 0.0, 100, "tack");
@@ -1179,11 +1189,11 @@ mod tests {
 
     #[test]
     fn healthy_campaign_heal_reply_still_walks_toward_the_record() {
-        use fragr_server::maps::AuthoredMap;
-        use fragr_server::mission::MissionClient;
-        use fragr_server::navigation::Navigator;
-        use fragr_server::protocol::{MissionReady, Role};
-        use fragr_server::session::GameSession;
+        use localexception_server::maps::AuthoredMap;
+        use localexception_server::mission::MissionClient;
+        use localexception_server::navigation::Navigator;
+        use localexception_server::protocol::{MissionReady, Role};
+        use localexception_server::session::GameSession;
         let map = AuthoredMap::read(
             include_bytes!("../../../server/maps/m01-recall-notice.json").as_slice(),
         )
@@ -1345,7 +1355,7 @@ mod tests {
         hits.ingest(
             me,
             99,
-            &fragr_server::protocol::GameEvent::Hit {
+            &localexception_server::protocol::GameEvent::Hit {
                 shooter: "foe".into(),
                 shooter_id: foe,
                 target: "me".into(),
@@ -1496,7 +1506,7 @@ mod tests {
 
     #[test]
     fn ctf_controller_pursues_flag_then_own_stand() {
-        use fragr_server::protocol::{FlagState, FlagStatus, Team};
+        use localexception_server::protocol::{FlagState, FlagStatus, Team};
         let me = Uuid::from_u128(1);
         let mut mine = player("me", me, 0.0, 0.0, 90, "rail");
         mine.team = Some(Team::Coalition);
@@ -1536,7 +1546,7 @@ mod tests {
     }
 
     fn ctf_team_scene() -> Snapshot {
-        use fragr_server::protocol::{FlagState, FlagStatus, Team};
+        use localexception_server::protocol::{FlagState, FlagStatus, Team};
         let mut players = Vec::new();
         for id in 1..=8 {
             let team = if id <= 4 {
@@ -1625,7 +1635,7 @@ mod tests {
 
     #[test]
     fn ctf_carrier_returns_while_defender_recovers_and_escort_trails() {
-        use fragr_server::protocol::{FlagStatus, Team};
+        use localexception_server::protocol::{FlagStatus, Team};
         let mut scene = ctf_team_scene();
         let ally = scene
             .players
@@ -1693,7 +1703,7 @@ mod tests {
 
     #[test]
     fn ctf_two_member_recovery_remains_and_enemy_cannot_be_an_escort() {
-        use fragr_server::protocol::{FlagStatus, Team};
+        use localexception_server::protocol::{FlagStatus, Team};
         let mut scene = ctf_team_scene();
         scene.players.retain(|p| {
             p.id == Uuid::from_u128(1)
@@ -1717,7 +1727,7 @@ mod tests {
 
     #[test]
     fn ctf_humans_and_rule_bots_do_not_consume_coordination_roles() {
-        use fragr_server::protocol::{FlagStatus, Team};
+        use localexception_server::protocol::{FlagStatus, Team};
         let mut scene = ctf_team_scene();
         scene.players[0].behavior = None; // Human.
         scene.players[1].behavior = Some("Balanced".into()); // Server rule bot.
@@ -1748,7 +1758,7 @@ mod tests {
 
     #[test]
     fn ctf_lone_carrier_recovers_its_home_flag_without_a_compatible_defender() {
-        use fragr_server::protocol::{FlagStatus, Team};
+        use localexception_server::protocol::{FlagStatus, Team};
         let mut scene = ctf_team_scene();
         scene
             .players
@@ -1802,7 +1812,7 @@ mod tests {
 
     #[test]
     fn ctf_lone_carrier_shoots_visible_thief_within_weapon_range_while_intercepting() {
-        use fragr_server::protocol::{FlagStatus, Team};
+        use localexception_server::protocol::{FlagStatus, Team};
         let id = Uuid::from_u128(4);
         let thief = Uuid::from_u128(5);
         let mut scene = ctf_team_scene();
@@ -1825,7 +1835,7 @@ mod tests {
         .unwrap();
         let plan = Plan::default();
         let intercept = ctf_micro_action_in_world(&plan, id, &scene, &open);
-        let mut navigator = fragr_server::navigation::Navigator::default();
+        let mut navigator = localexception_server::navigation::Navigator::default();
         let routed = navigator.steer_snapshot(&open, id, &scene, intercept);
         assert_eq!(routed.look_at.unwrap().player_id, Some(thief));
         assert!(
@@ -1877,7 +1887,7 @@ mod tests {
 
     #[test]
     fn ctf_combat_uses_visible_hostiles_and_escort_does_not_chase() {
-        use fragr_server::protocol::{FlagStatus, Team};
+        use localexception_server::protocol::{FlagStatus, Team};
         let mut scene = ctf_team_scene();
         let mine = scene
             .players
@@ -1953,8 +1963,10 @@ mod tests {
 
     #[test]
     fn ctf_carrier_defends_against_close_contact_blocker_on_return() {
-        use fragr_server::protocol::{FlagStatus, Team};
-        use fragr_server::sim::ctf::{CarrierContactDefense, CARRIER_DEFENSIVE_OPPORTUNITY_TICKS};
+        use localexception_server::protocol::{FlagStatus, Team};
+        use localexception_server::sim::ctf::{
+            CarrierContactDefense, CARRIER_DEFENSIVE_OPPORTUNITY_TICKS,
+        };
         let mut scene = ctf_team_scene();
         let mine_id = Uuid::from_u128(2);
         let foe_id = Uuid::from_u128(5);

@@ -26,11 +26,11 @@ class MarkControl extends Control:
 
 static func mark_color(team: String, relation: String, on_bone: bool = false, choice: int = -1) -> Color:
 	var palette: int = FactionPalette.chosen(choice)
-	if palette != FragrSettings.TEAM_STANDARD:
+	if palette != LocalExceptionSettings.TEAM_STANDARD:
 		if team == "union":
 			return MenuTheme.DANGER
 		if team == "coalition":
-			return FactionPalette.FREE_BLUE_LABEL if palette == FragrSettings.TEAM_COLOUR_BLIND else MenuTheme.BONE
+			return FactionPalette.FREE_BLUE_LABEL if palette == LocalExceptionSettings.TEAM_COLOUR_BLIND else MenuTheme.BONE
 	if on_bone:
 		return MenuTheme.INK
 	if relation == "mate":

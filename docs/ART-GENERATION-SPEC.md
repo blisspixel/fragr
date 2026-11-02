@@ -5,7 +5,7 @@ The machine-facing half of the art pipeline. [`ART-ASSET-LIST.md`](./ART-ASSET-L
 It is written to be run by a program with an API key, not typed into a web interface.
 
 Status, 2026-09-19: this is the target art contract. The implemented local reducer
-is `fragr-spritegen reduce`: alpha trim, premultiplied area reduction, optional
+is `localexception-spritegen reduce`: alpha trim, premultiplied area reduction, optional
 exact edge-matte removal or a painted chroma key, CIE Lab palette reduction, and
 hard alpha. `tools/pixelforge`, automatic
 seam/animation checks, and normal generation below are proposed, not implemented.

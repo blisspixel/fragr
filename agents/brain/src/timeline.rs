@@ -1,6 +1,6 @@
 //! Bounded, opt-in diagnostic trace for one campaign participant.
 use crate::plan::Plan;
-use fragr_server::protocol::{
+use localexception_server::protocol::{
     Action, CampaignRunStatus, GameEvent, LoadoutState, MissionGeometry, MissionPhase,
     MissionState, Snapshot, WeaponType,
 };
@@ -153,9 +153,15 @@ impl Timeline {
             .and_then(|m02| m02.current.as_ref())
             .or_else(|| state.m03.as_ref().and_then(|m03| m03.current.as_ref()))
             .map(|step| match &step.action {
-                fragr_server::protocol::MissionObjectiveAction::Arrival { feet, .. } => *feet,
-                fragr_server::protocol::MissionObjectiveAction::Use { target } => target.approach,
-                fragr_server::protocol::MissionObjectiveAction::Shoot { approach, .. } => *approach,
+                localexception_server::protocol::MissionObjectiveAction::Arrival {
+                    feet, ..
+                } => *feet,
+                localexception_server::protocol::MissionObjectiveAction::Use { target } => {
+                    target.approach
+                }
+                localexception_server::protocol::MissionObjectiveAction::Shoot {
+                    approach, ..
+                } => *approach,
             })
             .or_else(|| {
                 geometry.map(|map| match state.phase {
@@ -167,7 +173,7 @@ impl Timeline {
             });
         let objective_distance = goal.map(|goal| {
             ((me.x - goal[0]).powi(2)
-                + (me.y - fragr_server::sim::PLAYER_FLOOR_Y - goal[1]).powi(2)
+                + (me.y - localexception_server::sim::PLAYER_FLOOR_Y - goal[1]).powi(2)
                 + (me.z - goal[2]).powi(2))
             .sqrt()
         });
@@ -242,7 +248,7 @@ fn encode_trace(
 mod tests {
     use super::*;
     use crate::telemetry::fixtures::{player, snapshot};
-    use fragr_server::protocol::{CampaignDifficulty, CampaignRules, MissionId};
+    use localexception_server::protocol::{CampaignDifficulty, CampaignRules, MissionId};
 
     fn state(attempt: u32) -> MissionState {
         MissionState {

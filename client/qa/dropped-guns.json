@@ -1,5 +1,5 @@
 {
-  "comment": "Guns dropped on death on Larak Lot's free-for-all (gameplay 59): rule bots frag each other and the newest dropped gun is framed where it fell, then again in its last seconds as it blinks. Run with FRAGR_QA_BOTS=6 and FRAGR_QA_MANIFEST=res://qa/dropped-guns.json.",
+  "comment": "Guns dropped on death on Larak Lot's free-for-all (gameplay 59): rule bots frag each other and the newest dropped gun is framed where it fell, then again in its last seconds as it blinks. Run with LOCALEXCEPTION_QA_BOTS=6 and LOCALEXCEPTION_QA_MANIFEST=res://qa/dropped-guns.json.",
   "width": 1280,
   "height": 720,
   "states": [

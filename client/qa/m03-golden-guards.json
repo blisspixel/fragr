@@ -1,5 +1,5 @@
 {
-  "comment": "M03 golden-slice faction read. FRAGR_QA_BOTS=0, FRAGR_QA_DIFFICULTY=assisted, FRAGR_QA_MAP_FILE=server/maps/m03-scheduled-service.json, FRAGR_QA_MANIFEST=res://qa/m03-golden-guards.json. A joined player steps onto platform one, which wakes the loading crew, then posed views frame the two Clerks and two Sweepers against the dressed cars, slab and complex in the afternoon sun. Check black armour, red visors, armbands and optics at room distance; art review, not combat evidence.",
+  "comment": "M03 golden-slice faction read. LOCALEXCEPTION_QA_BOTS=0, LOCALEXCEPTION_QA_DIFFICULTY=assisted, LOCALEXCEPTION_QA_MAP_FILE=server/maps/m03-scheduled-service.json, LOCALEXCEPTION_QA_MANIFEST=res://qa/m03-golden-guards.json. A joined player steps onto platform one, which wakes the loading crew, then posed views frame the two Clerks and two Sweepers against the dressed cars, slab and complex in the afternoon sun. Check black armour, red visors, armbands and optics at room distance; art review, not combat evidence.",
   "width": 1280,
   "height": 720,
   "states": [

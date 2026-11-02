@@ -5,8 +5,8 @@ var _output: String
 var _failed: bool = false
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
-	set_meta("fragr_settings_path", "")
+	set_meta("localexception_automated", true)
+	set_meta("localexception_settings_path", "")
 	_run.call_deferred()
 
 func _check(value: bool, message: String) -> void:
@@ -15,23 +15,23 @@ func _check(value: bool, message: String) -> void:
 		push_error("rewards_review: " + message)
 
 func _run() -> void:
-	_output = OS.get_environment("FRAGR_QA_DIR")
-	var profile_path: String = OS.get_environment("FRAGR_REWARDS_PROFILE")
+	_output = OS.get_environment("LOCALEXCEPTION_QA_DIR")
+	var profile_path: String = OS.get_environment("LOCALEXCEPTION_REWARDS_PROFILE")
 	if not _output.is_absolute_path() or not profile_path.is_absolute_path():
 		push_error("rewards_review: isolated absolute output/profile paths required")
 		quit(1)
 		return
 	DirAccess.make_dir_recursive_absolute(_output)
-	OS.set_environment("FRAGR_RUN_DIR", _output.path_join("run"))
+	OS.set_environment("LOCALEXCEPTION_RUN_DIR", _output.path_join("run"))
 	# Boot applies preferences after the initial window setup. Use an isolated
 	# windowed document so the real menu cannot restore the fullscreen default.
 	var settings_path: String = _output.path_join("settings.cfg")
-	var settings: FragrSettings = FragrSettings.new(settings_path)
+	var settings: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	settings.set_value("video", "display_mode", 0)
 	settings.set_value("video", "resolution_height", 720)
 	_check(settings.save_to_disk() == OK, "isolated capture preferences save")
-	set_meta("fragr_settings_path", settings_path)
-	set_meta("fragr_records_path", profile_path)
+	set_meta("localexception_settings_path", settings_path)
+	set_meta("localexception_records_path", profile_path)
 	var store: PlayerRecords = PlayerRecords.for_tree(self)
 	_check(store.error == OK and store.unlocks.size() == 2, "profile retains both real awards")
 	if _failed:
@@ -51,7 +51,7 @@ func _run() -> void:
 	panel.draft["finish"] = "margin_teal"
 	panel._refresh()
 	# Rebuild for accurate locked criteria, keeping the preview uncommitted.
-	set_meta("fragr_records_path", "")
+	set_meta("localexception_records_path", "")
 	await current_scene._show("rewards")
 	panel = current_scene._root.get_node("RewardsPanel")
 	panel._selectors["finish"].select(2)

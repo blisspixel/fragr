@@ -1,4 +1,4 @@
-# Contributing to fragr
+# Contributing to Local Exception
 
 Start with [README.md](README.md), [AGENTS.md](AGENTS.md) and the Full build
 order in [docs/ROADMAP.md](docs/ROADMAP.md). Local play and checks require no

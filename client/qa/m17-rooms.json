@@ -1,5 +1,5 @@
 {
-  "comment": "M17 Forever Office rooms outside the galleries: the civic approach, the occupied assembly hall, the administration ring with Kessel's committee desk, the frontal lane to the security core and the assembly chamber behind it. Run with FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m17-peace-without-interruption.json FRAGR_QA_MANIFEST=res://qa/m17-rooms.json. Spectator composition and light review in the sealed world, not combat or fresh-player evidence.",
+  "comment": "M17 Forever Office rooms outside the galleries: the civic approach, the occupied assembly hall, the administration ring with Kessel's committee desk, the frontal lane to the security core and the assembly chamber behind it. Run with LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MAP_FILE=server/maps/m17-peace-without-interruption.json LOCALEXCEPTION_QA_MANIFEST=res://qa/m17-rooms.json. Spectator composition and light review in the sealed world, not combat or fresh-player evidence.",
   "width": 1280,
   "height": 720,
   "states": [

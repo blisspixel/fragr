@@ -1,4 +1,4 @@
-# Hosting fragr
+# Hosting Local Exception
 
 [Back to the README](../README.md) | [Home LAN](../infra/docs/HOME-LAN.md) |
 [Cheap VPS](../infra/docs/CHEAP-VPS.md) | [Transport](TRANSPORT.md)
@@ -40,11 +40,11 @@ process is preferable when the match must continue after the host closes
 the game.
 
 ```bash
-cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 4
+cargo run -p localexception-server --locked -- --bind 0.0.0.0:6767 --bots 4
 ```
 
 Open the client and choose **Multiplayer**. On another machine, set
-`FRAGR_SERVER` to `your-host:6767` before launching. For a LAN match, keep
+`LOCALEXCEPTION_SERVER` to `your-host:6767` before launching. For a LAN match, keep
 TCP 6767 inside the network. Trusted friends can use a forwarded TCP 6767
 port with the access policy below. The direct `ws://` connection is not
 encrypted, and today's ticket flow gives each fighter the shared secret.
@@ -56,40 +56,40 @@ Other examples:
 
 ```bash
 # Quiet local arena practice without timed round events.
-cargo run -p fragr-server --locked -- --bind 127.0.0.1:6767 --bots 0 --no-round-events
+cargo run -p localexception-server --locked -- --bind 127.0.0.1:6767 --bots 0 --no-round-events
 
 # Development island Conquest, ten-minute rounds and eight bots.
-cargo run -p fragr-server --locked -- --bind 127.0.0.1:6767 --map 7 --mode conquest --bots 8
+cargo run -p localexception-server --locked -- --bind 127.0.0.1:6767 --map 7 --mode conquest --bots 8
 
 # Team deathmatch, Rail Only, first side to 25.
-cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 6 --mode tdm --mutator rail-only
+cargo run -p localexception-server --locked -- --bind 0.0.0.0:6767 --bots 6 --mode tdm --mutator rail-only
 
 # Golden Rail with two lives.
-cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 4 --mutator golden-rail --mutator two-lives
+cargo run -p localexception-server --locked -- --bind 0.0.0.0:6767 --bots 4 --mutator golden-rail --mutator two-lives
 
 # Development CTF match on Sector 9, first side to three captures.
 # Directive 17 is `--map 3`. The other arenas have no stands.
-cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode ctf --capture-limit 3 --bots 6
+cargo run -p localexception-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode ctf --capture-limit 3 --bots 6
 
 # Optional ten-seat Sabotage, five per side; four bots leave six seats.
-cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode sabotage --sabotage-five-v-five --bots 4
+cargo run -p localexception-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode sabotage --sabotage-five-v-five --bots 4
 
 # Duel on Larak Lot: two seats, a rule bot in each until people take them.
 # Both fighters press fire on the podium for an instant rematch.
-cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --map 1 --mode duel --bots 0 --bot-policy auto --fill-target 2
+cargo run -p localexception-server --locked -- --bind 0.0.0.0:6767 --map 1 --mode duel --bots 0 --bot-policy auto --fill-target 2
 
 # TDM with automatic fill toward eight total fighters.
-cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --mode tdm --bots 0 --bot-policy auto --fill-target 8
+cargo run -p localexception-server --locked -- --bind 0.0.0.0:6767 --mode tdm --bots 0 --bot-policy auto --fill-target 8
 
 # Bot-filled 5v5, with equal human and external-agent admission priority.
-cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode sabotage --sabotage-five-v-five --bots 0 --bot-policy auto --fill-target 10
+cargo run -p localexception-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode sabotage --sabotage-five-v-five --bots 0 --bot-policy auto --fill-target 10
 
 # Keep the mode, rotate the map: the podium votes on the next one. Holdfast
 # Atoll and Low Water stay out of this rotation.
-cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 4 --mode ffa --map-rotate --map-off holdfast --map-off low-water
+cargo run -p localexception-server --locked -- --bind 0.0.0.0:6767 --bots 4 --mode ffa --map-rotate --map-off holdfast --map-off low-water
 
 # Stay up and rotate maps and modes. Sabotage plays its short match first.
-cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 4 --playlist
+cargo run -p localexception-server --locked -- --bind 0.0.0.0:6767 --bots 4 --playlist
 ```
 
 Automatic fill is available for plain TDM, Sabotage and Duel (a target of one or two), without mutators. Its target is a desired
@@ -121,21 +121,21 @@ The night list itself is [night playlist](plans/night-playlist.md).
 ## Windows package: which program does what
 
 The Windows zip holds three programs in one folder. Keep them together:
-the game looks for `fragr-server.exe` beside itself.
+the game looks for `localexception-server.exe` beside itself.
 
 | Program | What it starts | What you see | What ends it |
 |---|---|---|---|
-| `fragr.exe` | The game: menus, campaign, and Multiplayer (watch, join, **Run a match**). | The game window. | Quitting the game. A match started with **Run a match** ends with the game or with **Stop server**. |
-| `fragr-server.exe` | A dedicated server. With no options: Arena Duel free-for-all, four fixed rule bots, TCP 6767 on every network address. | A console window with the operator overview. There is no game view. | Ctrl-C in that window, or closing the window. |
-| `fragr-agent-adapter.exe` | The MCP bridge an agent host starts over stdio. | Nothing useful on its own. | Its agent host. Do not double-click it. |
+| `localexception.exe` | The game: menus, campaign, and Multiplayer (watch, join, **Run a match**). | The game window. | Quitting the game. A match started with **Run a match** ends with the game or with **Stop server**. |
+| `localexception-server.exe` | A dedicated server. With no options: Arena Duel free-for-all, four fixed rule bots, TCP 6767 on every network address. | A console window with the operator overview. There is no game view. | Ctrl-C in that window, or closing the window. |
+| `localexception-agent-adapter.exe` | The MCP bridge an agent host starts over stdio. | Nothing useful on its own. | Its agent host. Do not double-click it. |
 
-Double-clicking `fragr-server.exe` serves at once. The bots fight inside the
+Double-clicking `localexception-server.exe` serves at once. The bots fight inside the
 server process even though nothing is drawn; that is the dedicated server
 working, not a hidden game. Watching is a separate, optional step: start
-`fragr.exe`, choose **Multiplayer**, enter one of the addresses the server
+`localexception.exe`, choose **Multiplayer**, enter one of the addresses the server
 printed, then **Watch** or **Join**. Leaving a fighter seat, returning to the
 menu, or closing the game leaves a dedicated server running for everyone
-else. Windows may ask whether `fragr-server.exe` may use the network the
+else. Windows may ask whether `localexception-server.exe` may use the network the
 first time it binds every address; allow private networks for a LAN night.
 
 If the window closes as soon as it opens, the server stopped at startup,
@@ -145,9 +145,9 @@ terminal to read the one-line reason.
 Options need a terminal or a shortcut. In PowerShell, from the unzipped folder:
 
 ```powershell
-.\fragr-server.exe --console
-.\fragr-server.exe --bind 0.0.0.0:6767 --mode tdm --bots 6 --console
-.\fragr-server.exe --bind 127.0.0.1:6767 --bots 0 --no-round-events
+.\localexception-server.exe --console
+.\localexception-server.exe --bind 0.0.0.0:6767 --mode tdm --bots 6 --console
+.\localexception-server.exe --bind 127.0.0.1:6767 --bots 0 --no-round-events
 ```
 
 For a shortcut, open its Properties and append options after the quoted
@@ -157,15 +157,15 @@ What each way of leaving does:
 
 | You do this | Effect |
 |---|---|
-| Ctrl-C, or close the `fragr-server.exe` window | Stops the dedicated server. Everyone connected is disconnected. |
+| Ctrl-C, or close the `localexception-server.exe` window | Stops the dedicated server. Everyone connected is disconnected. |
 | End the desk's input (Ctrl-Z then Enter on Windows, Ctrl-D elsewhere) | Closes the venue desk only. The match keeps running. |
 | L while fighting | Gives up the fighter seat. You keep watching; the server keeps running. |
-| Leave in the pause menu, return to the menu, or quit `fragr.exe` | Stops watching. A dedicated server keeps running. A **Run a match** server keeps running until **Stop server** or until the game quits. |
+| Leave in the pause menu, return to the menu, or quit `localexception.exe` | Stops watching. A dedicated server keeps running. A **Run a match** server keeps running until **Stop server** or until the game quits. |
 | **Stop server** on the Run a match page, or in the pause menu while watching it | Ends the match that page started. |
 
 ## The server terminal
 
-`fragr-server` picks its output with `--output auto|overview|log`. `auto`, the
+`localexception-server` picks its output with `--output auto|overview|log`. `auto`, the
 default, shows the **operator overview** when both its output streams are an
 interactive terminal (a double-clicked console window, Windows Terminal, a
 shell) and `TERM` is not `dumb`. Anything redirected, piped, run under a
@@ -176,7 +176,7 @@ card:
 
 ```text
 ready ws://192.168.1.20:6767 Arena Duel Free-for-all Ctrl-C stops
-fragr dedicated server v0.90.0. No game window: the match runs in this process, and bots fight whether or not anyone watches.
+localexception dedicated server v0.90.0. No game window: the match runs in this process, and bots fight whether or not anyone watches.
   Match   Arena Duel, Free-for-all. Bots: 4 fixed rule bots (--bots). People join beside them.
   Join    LAN     ws://192.168.1.20:6767 answered here; computers on the same network
           overlay ws://100.64.0.7:6767   answered here; only computers on that private overlay
@@ -184,7 +184,7 @@ fragr dedicated server v0.90.0. No game window: the match runs in this process, 
           The join page on this network lists this server (UDP 6768 beacon). The beacon is not a join.
           A check from this computer does not prove another computer can connect.
   Admit   Open: no join ticket. Anyone who can reach the port may watch or join. Up to 64 connections, 32 per address; watchers count, bots do not.
-  Watch   Start fragr, open Multiplayer and join an address above. Watching and joining are optional.
+  Watch   Start localexception, open Multiplayer and join an address above. Watching and joining are optional.
   Desk    Off. Restart with --console to type status, who, kick, ban, say, stats, shows, next and map here.
   Stop    Ctrl-C, or close this window. Either ends the match for everyone connected.
   Output  Overview. A status line follows every 60 s and when the room changes. Bot frags, pickups and spawns are hidden; --output log prints every event.
@@ -207,11 +207,11 @@ still print between status lines, stamped with uptime. Bot frags, pickups,
 bot spawns, Host reactions and the self-probe connection lines do not.
 
 `--output log` keeps every event, the module names and the STATUS JSON line,
-as before. Routine play-by-play is under the `fragr_server::feed` target and
-the startup narrative the card summarises under `fragr_server::startup`;
+as before. Routine play-by-play is under the `localexception_server::feed` target and
+the startup narrative the card summarises under `localexception_server::startup`;
 `RUST_LOG` replaces either default filter, for example
-`RUST_LOG=info,fragr_server::feed=info` to see frags in the overview. To keep
-a file from Command Prompt: `fragr-server.exe --output log > server.log 2>&1`.
+`RUST_LOG=info,localexception_server::feed=info` to see frags in the overview. To keep
+a file from Command Prompt: `localexception-server.exe --output log > server.log 2>&1`.
 The dedicated server writes no log file of its own.
 
 Colour follows `--color auto|always|never`, `NO_COLOR`, `FORCE_COLOR` and
@@ -248,7 +248,7 @@ quiet. People join beside those bots. Twenty-four connections fit, and
 connections remain for friends who only watch.
 
 ```bash
-fragr-server --bind 0.0.0.0:6767 --playlist --bots 8 --status-every-s 60 --ban-list bans.txt
+localexception-server --bind 0.0.0.0:6767 --playlist --bots 8 --status-every-s 60 --ban-list bans.txt
 ```
 
 On the three shorter floors that room is a full scrap once people join.
@@ -258,14 +258,14 @@ than half of the 50 ms budget, drop to `--bots 4` before inviting more
 fighters. One show, when the night is not the whole list:
 
 ```bash
-fragr-server --bind 0.0.0.0:6767 --map 1 --mode tdm --bots 8 --status-every-s 60
+localexception-server --bind 0.0.0.0:6767 --map 1 --mode tdm --bots 8 --status-every-s 60
 ```
 
 **About 64 people.** Use the same fight. Do not pass `--bots 64`.
 Sixty-four bots plus a crowd is not a measured match.
 
 ```bash
-fragr-server --bind 0.0.0.0:6767 --playlist --bots 8 --status-every-s 30 --ban-list bans.txt
+localexception-server --bind 0.0.0.0:6767 --playlist --bots 8 --status-every-s 30 --ban-list bans.txt
 ```
 
 Sixty-four people is the whole connection cap. A full house has no
@@ -280,7 +280,7 @@ That claim waits on the measurement soak in
 Open TCP 6767 on the firewall for this binary. UDP 6767 does not carry
 the match. UDP 6768 is only the LAN announcement. A detached night
 omits `--console`, because that desk reads the terminal. Add it when
-someone is at the keyboard. Set `FRAGR_JOIN_SECRET` when the door is
+someone is at the keyboard. Set `LOCALEXCEPTION_JOIN_SECRET` when the door is
 not open to the whole network. The secret is 16 to 256 bytes, in the
 environment, on the host and on each fighter. Watchers do not need it.
 
@@ -318,7 +318,7 @@ Watch, Join and Stop server stay separate choices on its page; starting a
 match never joins you to it.
 
 A bind that is not loopback also broadcasts a LAN presence packet on UDP
-6768 every two seconds. The packet is `FRAGR/1` and the game port. It is not
+6768 every two seconds. The packet is `LOCALEXCEPTION/1` and the game port. It is not
 a join. The game stays on TCP 6767. The join page lists those announcements
 after `GET /status` confirms them. Scan this network does not need that
 packet: it probes this computer and each adapter's /24 with `GET /status`,
@@ -332,7 +332,7 @@ the [server list](plans/server-list.md) records the book and the beacon.
 
 ## Join tickets and access lists
 
-Without `FRAGR_JOIN_SECRET`, the join-ticket requirement is disabled; bans,
+Without `LOCALEXCEPTION_JOIN_SECRET`, the join-ticket requirement is disabled; bans,
 allow lists and capacity checks still apply. Set a
 16 to 256 byte value on the host and on each trusted human or agent allowed
 to fight when you want ticketed admission. The clients mint short-lived
@@ -397,7 +397,7 @@ until the process ends. Nothing is written to disk, and a round change
 does not clear either board. Spectators can read both and post a notice.
 They still cannot speak, and a post to the floor is refused. Dial the
 board with
-`cargo run -p fragr-server --bin fragr-wire --locked -- --server 127.0.0.1:6767`.
+`cargo run -p localexception-server --bin localexception-wire --locked -- --server 127.0.0.1:6767`.
 The line commands are `list`, `read floor`, `read notices`,
 `post <line>`, and `quit`. The wire contract is in
 [protocol.md](protocol.md) under Wire board.
@@ -405,13 +405,13 @@ The line commands are `list`, `read floor`, `read notices`,
 The host pings idle sessions and closes one that sends nothing, including no
 automatic pong, for 45 seconds. Flooding or repeated unreadable frames can
 also close a connection. Audit logs for joins, refusals, kicks and bans use
-`RUST_LOG=fragr_server::audit=info` without logging tickets or resume tokens.
+`RUST_LOG=localexception_server::audit=info` without logging tickets or resume tokens.
 `GET /status` on the game port is a host probe, not a web client. Implemented
 modes still need fresh human matches to establish clarity and fun.
 
 ## Privacy and fun metrics
 
-A fragr server sends nothing to the project. Its console shows who joined by
+A Local Exception server sends nothing to the project. Its console shows who joined by
 callsign and the address of any connection it refused; it does not write that
 to disk. The [privacy policy](PRIVACY.md) is the whole promise.
 
@@ -426,7 +426,7 @@ dedicated arcade server, or **Fun tally** under the desktop host's more
 options. A campaign never records them.
 
 ```bash
-FRAGR_RUN_DIR=/srv/fragr cargo run -p fragr-server --release --locked -- --fun-metrics --map-rotate --bots 6
+LOCALEXCEPTION_RUN_DIR=/srv/localexception cargo run -p localexception-server --release --locked -- --fun-metrics --map-rotate --bots 6
 ```
 
 - **Players are told.** Every Welcome carries `fun_metrics: true`, the match
@@ -435,12 +435,12 @@ FRAGR_RUN_DIR=/srv/fragr cargo run -p fragr-server --release --locked -- --fun-m
   The ready card's `Tally` row and the desk's `status` say it too.
 - **Where the files go.** One file per match, `match-YYYY-MM-DD-NNNN.json`
   (the day, never the time), in `fun-metrics/` under the run directory:
-  `FRAGR_RUN_DIR` when set (it must be absolute), else the platform's user
-  data folder (`~/.local/share/fragr/runs` on Linux,
-  `~/Library/Application Support/fragr/runs` on macOS,
-  `%LOCALAPPDATA%\fragr\runs` on Windows). The server refuses to start with
+  `LOCALEXCEPTION_RUN_DIR` when set (it must be absolute), else the platform's user
+  data folder (`~/.local/share/localexception/runs` on Linux,
+  `~/Library/Application Support/localexception/runs` on macOS,
+  `%LOCALAPPDATA%\localexception\runs` on Windows). The server refuses to start with
   `--fun-metrics` if it cannot name or create that folder. In a container,
-  set `FRAGR_RUN_DIR` to a mounted volume. A match the server stops mid-way
+  set `LOCALEXCEPTION_RUN_DIR` to a mounted volume. A match the server stops mid-way
   is filed with `finished: false`: a dedicated server stops cleanly on
   Ctrl+C or SIGTERM (a service manager, `docker stop`), and a desktop host
   when the game asks it to stop. One nobody played is not filed, and a server
@@ -459,12 +459,12 @@ FRAGR_RUN_DIR=/srv/fragr cargo run -p fragr-server --release --locked -- --fun-m
   run directory; then it exits:
 
   ```bash
-  FRAGR_RUN_DIR=/srv/fragr fragr-server --fun-summary
-  fragr-server --fun-summary /srv/fragr/fun-metrics
+  LOCALEXCEPTION_RUN_DIR=/srv/localexception localexception-server --fun-summary
+  localexception-server --fun-summary /srv/localexception/fun-metrics
   ```
 
-  From a checkout, `cargo run -p fragr-playtest --release --locked --
-  --fun-summary /srv/fragr/fun-metrics --report .agents/fun-summary.json`
+  From a checkout, `cargo run -p localexception-playtest --release --locked --
+  --fun-summary /srv/localexception/fun-metrics --report .agents/fun-summary.json`
   prints the same table from the same code and also writes it as JSON.
   Either reads only. Sharing a file with the project is your call, made by hand.
 - **Cost.** The recorder reads the tick the server already computed. The
@@ -505,13 +505,13 @@ FRAGR_RUN_DIR=/srv/fragr cargo run -p fragr-server --release --locked -- --fun-m
 | `--ban-list <PATH>` / `--allow-list <PATH>` | Address lists described above. |
 | `--console` | Local venue desk on a dedicated arcade match, including `status`. End of input does not stop the process. |
 | `--head-to-head <PATH>` | Keep the head-to-head book (frags between callsigns, which rule bots hold grudges from and the Host reads before a Duel) in this file across restarts, saved at each round end. A desktop host keeps it as `head-to-head.json` beside its campaign runs; a dedicated server keeps it in memory unless this is set. One file version: any other is refused with a warning, the book starts fresh and the next save replaces the file. |
-| `--fun-metrics` | Keep fun metrics: match-level tallies, one file per match in `fun-metrics/` under the run directory (`FRAGR_RUN_DIR`), shredded after 67 days. Announced in every Welcome and `/status`. Arcade only; off by default. See [fun metrics](#fun-metrics). |
+| `--fun-metrics` | Keep fun metrics: match-level tallies, one file per match in `fun-metrics/` under the run directory (`LOCALEXCEPTION_RUN_DIR`), shredded after 67 days. Announced in every Welcome and `/status`. Arcade only; off by default. See [fun metrics](#fun-metrics). |
 | `--fun-summary [FOLDER]` | Print the fun metrics summary of FOLDER, default this host's own `fun-metrics/` folder, and exit. Reads only. |
 | `--bench <N>` / `--bench-ticks <N>` | Offline scripted CPU benchmark, not a serving mode. |
 | `--bench-check` / `--bench-assert` | Determinism repeat and threshold gate. |
 | `--bench-trace <PATH>` / `--bench-verify-trace <PATH>` | Record or verify an offline trace. |
 
-Run `cargo run -p fragr-server --locked -- --help` for the exact CLI of your
+Run `cargo run -p localexception-server --locked -- --help` for the exact CLI of your
 checkout. The benchmark reports CPU and byte measurements, not public-network
 capacity or client rendering. Record commit and hardware alongside results;
 the [benchmark contract](BENCHMARK.md) defines the limits.

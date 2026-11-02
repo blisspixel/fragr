@@ -12,7 +12,7 @@
 //!   sent in raw mode so Ollama's own renderer cannot open a thinking block.
 //! - `openjev` posts the TypeSafe `systemone` body to a server the user runs
 //!   themselves. The openjev/openjev weights are CC BY-NC 4.0, non-commercial
-//!   only, so fragr never bundles, downloads, or defaults to them.
+//!   only, so localexception never bundles, downloads, or defaults to them.
 //!
 //! Both are reached on loopback only unless the caller explicitly allows a
 //! remote host. Every reply is untrusted: bounded, parsed strictly, checked
@@ -137,7 +137,7 @@ fn nonempty(text: &str) -> bool {
     !text.trim().is_empty()
 }
 
-/// Map one of fragr's typed questions onto the candidate contract. A score is
+/// Map one of localexception's typed questions onto the candidate contract. A score is
 /// asked as a choice over its levels (the model's own `score_level` judges a
 /// single proposition and is not an ordinal scale). A question with fewer than
 /// two or more than sixteen candidates, or an empty text, cannot be asked and
@@ -696,7 +696,7 @@ mod tests {
     use super::*;
     use crate::decision::{campaign_questions, tactical_questions, NoulCriteria, Q_DANGER};
     use crate::provider::fakes::FakeTransport;
-    use fragr_server::protocol::WeaponType;
+    use localexception_server::protocol::WeaponType;
 
     fn reply(response: &str, alternatives: &[(&str, f64)]) -> HttpResponse {
         let top: Vec<Value> = alternatives
@@ -837,7 +837,7 @@ mod tests {
     }
 
     #[test]
-    fn fragr_questions_map_to_candidates() {
+    fn localexception_questions_map_to_candidates() {
         let questions = tactical_questions();
         let stance = scoring_for(&questions["stance"]).unwrap();
         assert_eq!(stance.primitive, "choice");

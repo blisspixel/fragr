@@ -1,8 +1,8 @@
-use fragr_server::maps::{AuthoredMap, RuntimeMap};
-use fragr_server::movement::{BODY_HEIGHT, CONTACT_EPSILON};
-use fragr_server::navigation::{NavigationGoal, Navigator, RouteStatus, SEARCH_LIMIT};
-use fragr_server::protocol::{Action, EquipmentPolicy, Role};
-use fragr_server::sim::{GameState, PLAYER_FLOOR_Y};
+use localexception_server::maps::{AuthoredMap, RuntimeMap};
+use localexception_server::movement::{BODY_HEIGHT, CONTACT_EPSILON};
+use localexception_server::navigation::{NavigationGoal, Navigator, RouteStatus, SEARCH_LIMIT};
+use localexception_server::protocol::{Action, EquipmentPolicy, Role};
+use localexception_server::sim::{GameState, PLAYER_FLOOR_Y};
 use serde_json::{json, Value};
 use std::sync::Arc;
 use uuid::Uuid;

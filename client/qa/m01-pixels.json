@@ -1,5 +1,5 @@
 {
-  "comment": "World pixel and palette dither comparison in Recall Notice at 1920x1080 (Fine 2x, Medium 3x): the street with its signs and the hall with its counters, then the Tack in hand in the bay. Run with FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json FRAGR_QA_BOTS=0 FRAGR_QA_MANIFEST=res://qa/m01-pixels.json on each renderer.",
+  "comment": "World pixel and palette dither comparison in Recall Notice at 1920x1080 (Fine 2x, Medium 3x): the street with its signs and the hall with its counters, then the Tack in hand in the bay. Run with LOCALEXCEPTION_QA_MAP_FILE=server/maps/m01-recall-notice.json LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MANIFEST=res://qa/m01-pixels.json on each renderer.",
   "width": 1920,
   "height": 1080,
   "states": [

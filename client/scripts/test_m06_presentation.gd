@@ -5,7 +5,7 @@ const RIG = preload("res://art/characters/machines.gd")
 var failures: int = 0
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	_run.call_deferred()
 
 func _check(ok: bool, message: String) -> void:
@@ -192,7 +192,7 @@ func _check_surface_tiles() -> void:
 
 func _check_environment_replacement() -> void:
 	var manager: Node = load("res://scripts/game_manager.gd").new()
-	manager.settings = FragrSettings.new()
+	manager.settings = LocalExceptionSettings.new()
 	var world: WorldEnvironment = WorldEnvironment.new()
 	manager.add_child(world)
 	manager._apply_arena_sky("Port of Entry")

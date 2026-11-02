@@ -2,14 +2,16 @@
 //! for a fixed time, sampled through `GET /status?clients=1` and the server
 //! process's resident set, written as NDJSON and checked at the end.
 //!
-//! The server is normally the `fragr-server` binary as a child process, so a
+//! The server is normally the `localexception-server` binary as a child process, so a
 //! crash is a real exit and memory is the server's own. It is stopped through
 //! its own process handle, never by name or port.
 
 use super::{agent_task, transport, Error, Policy};
-use fragr_server::protocol::{ClientMessage, HealthState, LiveStatus, Role, ServerMessage};
-use fragr_server::sim::MapKind;
 use futures_util::{SinkExt, StreamExt};
+use localexception_server::protocol::{
+    ClientMessage, HealthState, LiveStatus, Role, ServerMessage,
+};
+use localexception_server::sim::MapKind;
 use serde::Serialize;
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -221,7 +223,7 @@ pub struct Verdict {
     pub summary: SoakSummary,
 }
 
-fn tick_row(summary: &fragr_server::protocol::TickSummary) -> TickRow {
+fn tick_row(summary: &localexception_server::protocol::TickSummary) -> TickRow {
     TickRow {
         p50_ms: summary.p50_ms,
         p95_ms: summary.p95_ms,
@@ -414,8 +416,8 @@ async fn spectator_task(
             body: None,
             dress: None,
             seat: None,
-            gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
-            geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
+            gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
+            geometry_version: localexception_server::protocol::GEOMETRY_VERSION,
             role: Role::Spectator,
             name,
             ticket: None,
@@ -427,7 +429,7 @@ async fn spectator_task(
     .map_err(transport)?;
     let mut ready = Some(ready);
     let mut outcome = WatchOutcome::default();
-    let mut world = fragr_server::protocol::WorldReader::new();
+    let mut world = localexception_server::protocol::WorldReader::new();
     loop {
         let message = tokio::select! {
             _ = stop.changed() => break,
@@ -554,7 +556,7 @@ pub(crate) async fn start_server(
                 // The server takes only an absolute run directory.
                 command
                     .arg("--fun-metrics")
-                    .env("FRAGR_RUN_DIR", std::path::absolute(run_dir)?);
+                    .env("LOCALEXCEPTION_RUN_DIR", std::path::absolute(run_dir)?);
             }
             let child = command.spawn().map_err(|error| {
                 Error::Server(format!("cannot start {}: {error}", binary.display()))
@@ -581,7 +583,7 @@ pub(crate) async fn start_server(
         Launch::InProcess => {
             let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
             let (stop_tx, stop_rx) = tokio::sync::oneshot::channel::<()>();
-            let options = fragr_server::run::ServerOptions {
+            let options = localexception_server::run::ServerOptions {
                 bind: "127.0.0.1:0".into(),
                 bots: spec.bots,
                 map: spec.map,
@@ -589,14 +591,13 @@ pub(crate) async fn start_server(
                 seed: spec.seed,
                 status_every_s: 0,
                 tick_trace: spec.tick_trace.clone(),
-                fun_metrics: spec
-                    .fun_metrics
-                    .as_ref()
-                    .map(|run_dir| run_dir.join(fragr_server::fun_metrics::store::DIRECTORY)),
-                ..fragr_server::run::ServerOptions::default()
+                fun_metrics: spec.fun_metrics.as_ref().map(|run_dir| {
+                    run_dir.join(localexception_server::fun_metrics::store::DIRECTORY)
+                }),
+                ..localexception_server::run::ServerOptions::default()
             };
             let handle = tokio::spawn(async move {
-                fragr_server::run::run_server(
+                localexception_server::run::run_server(
                     options,
                     async move {
                         let _ = stop_rx.await;
@@ -836,11 +837,11 @@ pub async fn run_soak(config: SoakConfig) -> Result<Verdict, Error> {
     Ok(verdict)
 }
 
-/// The sibling `fragr-server` next to this executable, as cargo lays out a
+/// The sibling `localexception-server` next to this executable, as cargo lays out a
 /// workspace's `target/<profile>/` directory.
 pub fn default_server_binary() -> Option<PathBuf> {
     let exe = std::env::current_exe().ok()?;
-    let name = format!("fragr-server{}", std::env::consts::EXE_SUFFIX);
+    let name = format!("localexception-server{}", std::env::consts::EXE_SUFFIX);
     let candidate = exe.parent()?.join(name);
     candidate.is_file().then_some(candidate)
 }

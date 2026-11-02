@@ -41,14 +41,14 @@ Local code and tests only, $0 external spend. Use the draft PR workflow for inte
 ## Evidence and handoff
 
 - `cargo fmt --all -- --check`: passed.
-- `cargo clippy -p fragr-server --all-targets --locked -- -D warnings`: passed.
-- `cargo test -p fragr-server --locked`: passed before the final two behavior assertions, with 524 library tests passed and 3 ignored, plus binary and integration suites. The new focused assertions passed after that run.
-- `cargo test -p fragr-server --locked live_golden_vectors_match_this_model`: passed.
-- `cargo test -p fragr-server --locked live_golden_cases_exercise_the_claimed_behaviors`: passed. The initial assertion guessed the blocked axis in the wall-slide case incorrectly; inspection showed the actual slide blocks Z, and the corrected assertion passed.
-- `cargo test -p fragr-server --locked live_step_preserves_the_previous_inline_velocity_formula`: passed for flat movement, collision, compliance speed and jump.
-- `cargo test -p fragr-server --locked live_step_matches_one_authoritative_tick_with_jump_and_compliance`: passed, including a jump tap latched before the selected continuous Action.
+- `cargo clippy -p localexception-server --all-targets --locked -- -D warnings`: passed.
+- `cargo test -p localexception-server --locked`: passed before the final two behavior assertions, with 524 library tests passed and 3 ignored, plus binary and integration suites. The new focused assertions passed after that run.
+- `cargo test -p localexception-server --locked live_golden_vectors_match_this_model`: passed.
+- `cargo test -p localexception-server --locked live_golden_cases_exercise_the_claimed_behaviors`: passed. The initial assertion guessed the blocked axis in the wall-slide case incorrectly; inspection showed the actual slide blocks Z, and the corrected assertion passed.
+- `cargo test -p localexception-server --locked live_step_preserves_the_previous_inline_velocity_formula`: passed for flat movement, collision, compliance speed and jump.
+- `cargo test -p localexception-server --locked live_step_matches_one_authoritative_tick_with_jump_and_compliance`: passed, including a jump tap latched before the selected continuous Action.
 - Godot 4.7.2-stable `--headless --path client --import`: exited 0. The direct `test_move_golden.gd` harness passed, 37 cases and 1,330 recorded states across both models.
 - `git diff --check`: passed. External spend was $0; no deploy or merge.
-- Independent review found no material change to the prior tick behavior. The live vectors can be regenerated deliberately with `cargo test -p fragr-server --locked regenerate_live_golden_vectors -- --ignored`, then reviewed alongside both language implementations.
+- Independent review found no material change to the prior tick behavior. The live vectors can be regenerated deliberately with `cargo test -p localexception-server --locked regenerate_live_golden_vectors -- --ignored`, then reviewed alongside both language implementations.
 
 The remaining integration gate is parent review and the full repository CI set. This rung does not define a client input-to-server-tick contract, add authoritative `y`/`vy` to Ack, or place the local pawn from the mirror. These are required before live prediction can be claimed.

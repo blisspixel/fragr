@@ -3,7 +3,7 @@ extends SceneTree
 ## Offline stills of Larak Lot for visual review: every quarter, both
 ## landmarks, first-person views from the spawn slots and spectator overviews.
 ## Geometry comes from the server's own MapInfo, written by
-##   FRAGR_LARAK_MAP_INFO=/abs/map.json cargo test -p fragr-server --lib \
+##   LOCALEXCEPTION_LARAK_MAP_INFO=/abs/map.json cargo test -p localexception-server --lib \
 ##     larak_write_map_info -- --ignored
 ## and the scene is lit exactly as a match lights it (arena scene lights, the
 ## venue sky, quality settings, practicals). Every pad has its item seated on
@@ -11,14 +11,14 @@ extends SceneTree
 ## its clock, frame by frame (`walk_stands_*` a run across the Stands); a live
 ## match through tools/qa_tour.sh shows the fights. The committed
 ## client/golden/larak_lot_map_info.json is a current MapInfo to point
-## FRAGR_LARAK_MAP_INFO at. The readability stagings stand a NODS
+## LOCALEXCEPTION_LARAK_MAP_INFO at. The readability stagings stand a NODS
 ## rule bot beside a free fighter in the Pit, a booth lane and on the Roof, in
 ## colour and grayscale, for the faction readability check.
 ##
-##   FRAGR_LARAK_MAP_INFO=/abs/map.json FRAGR_QA_DIR=/abs/out \
+##   LOCALEXCEPTION_LARAK_MAP_INFO=/abs/map.json LOCALEXCEPTION_QA_DIR=/abs/out \
 ##     "$GODOT_BIN" --path client --audio-driver Dummy --windowed \
 ##     --resolution 1280x720 --script ../tools/preview_larak_lot.gd
-## Set FRAGR_LARAK_VIEWS=prop_ (view-name prefixes, comma separated) for just those views.
+## Set LOCALEXCEPTION_LARAK_VIEWS=prop_ (view-name prefixes, comma separated) for just those views.
 const ARENA_SCENE: PackedScene = preload("res://scenes/arena.tscn")
 const EYE: float = 1.6
 
@@ -114,7 +114,7 @@ const SPAWNS: Array = [
 ]
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	MouseCapture.release()
 	call_deferred("_run")
 
@@ -126,25 +126,25 @@ func _run() -> void:
 	if DisplayServer.get_name() == "headless":
 		_fail("the preview needs a real renderer")
 		return
-	var source: FileAccess = FileAccess.open(OS.get_environment("FRAGR_LARAK_MAP_INFO"), FileAccess.READ)
+	var source: FileAccess = FileAccess.open(OS.get_environment("LOCALEXCEPTION_LARAK_MAP_INFO"), FileAccess.READ)
 	if source == null:
-		_fail("set FRAGR_LARAK_MAP_INFO to the written MapInfo")
+		_fail("set LOCALEXCEPTION_LARAK_MAP_INFO to the written MapInfo")
 		return
 	var parsed: Variant = JSON.parse_string(source.get_as_text())
 	if not parsed is Dictionary:
 		_fail("MapInfo is not an object")
 		return
 	var info: Dictionary = parsed
-	var out: String = OS.get_environment("FRAGR_QA_DIR")
+	var out: String = OS.get_environment("LOCALEXCEPTION_QA_DIR")
 	if out.is_empty() or DirAccess.make_dir_recursive_absolute(out) != OK:
-		_fail("set FRAGR_QA_DIR to a writable directory")
+		_fail("set LOCALEXCEPTION_QA_DIR to a writable directory")
 		return
 	# Equal size limits keep a tiling window manager from reshaping the
 	# window, so every round's stills share one frame.
 	root.min_size = Vector2i(1280, 720)
 	root.max_size = Vector2i(1280, 720)
 	root.size = Vector2i(1280, 720)
-	var settings: FragrSettings = FragrSettings.new("user://preview_larak_settings.cfg")
+	var settings: LocalExceptionSettings = LocalExceptionSettings.new("user://preview_larak_settings.cfg")
 	var arena: Node3D = Node3D.new()
 	arena.name = "Arena"
 	root.add_child(arena)
@@ -179,9 +179,9 @@ func _run() -> void:
 		pickups[str(pad[0])] = pickup
 	for i: int in range(8):
 		await process_frame
-	# FRAGR_LARAK_VIEWS narrows the run to the views whose names start with
+	# LOCALEXCEPTION_LARAK_VIEWS narrows the run to the views whose names start with
 	# that prefix, without the spawn and readability sets.
-	var only: String = OS.get_environment("FRAGR_LARAK_VIEWS")
+	var only: String = OS.get_environment("LOCALEXCEPTION_LARAK_VIEWS")
 	var prefixes: PackedStringArray = only.split(",", false)
 	var shot_count: int = 0
 	for view: Array in VIEWS:

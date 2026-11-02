@@ -457,7 +457,7 @@ the next wave walks in once the last wave's walking machines are down and an
 eight-second breath has passed, or twenty seconds after the break regardless,
 so the hold keeps its clock and its climax while every stretch has a safe
 moment to save. The per-level gap survey
-(`cargo test -p fragr-server --release --lib checkpoint_gap_survey -- --ignored
+(`cargo test -p localexception-server --release --lib checkpoint_gap_survey -- --ignored
 --nocapture`) measures the longest stretch between saves on the route
 controller; on 2026-11-01 every level stayed at or under 86 s, Level 20's
 whole hold included (367 s before), with Levels 2, 7, 8, 9, 13, 14, 15 and 19

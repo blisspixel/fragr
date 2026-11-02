@@ -1,5 +1,5 @@
 {
-  "comment": "Opt-in Master-bus mix capture on the bundled M02 map. A spectator turns off the radio, then compares the active ward machine from the antechamber and inside the ward before any fight. Run with FRAGR_QA_MAP_FILE=server/maps/m02-persons-unknown.json FRAGR_QA_BOTS=0.",
+  "comment": "Opt-in Master-bus mix capture on the bundled M02 map. A spectator turns off the radio, then compares the active ward machine from the antechamber and inside the ward before any fight. Run with LOCALEXCEPTION_QA_MAP_FILE=server/maps/m02-persons-unknown.json LOCALEXCEPTION_QA_BOTS=0.",
   "width": 1280,
   "height": 720,
   "states": [

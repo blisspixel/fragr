@@ -232,8 +232,8 @@ pub(crate) const MAX_CHECKPOINT_BYTES: usize = 768 * 1024;
 pub(crate) fn checkpoint_build() -> String {
     format!(
         "{}+{}",
-        env!("FRAGR_BUILD_VERSION"),
-        option_env!("FRAGR_BUILD_COMMIT").unwrap_or("uncommitted")
+        env!("LOCALEXCEPTION_BUILD_VERSION"),
+        option_env!("LOCALEXCEPTION_BUILD_COMMIT").unwrap_or("uncommitted")
     )
 }
 
@@ -1960,7 +1960,7 @@ mod tests {
             _ => panic!("completed run did not retain its live exit"),
         }
         let directory =
-            std::env::temp_dir().join(format!("fragr-completed-run-{}", Uuid::new_v4()));
+            std::env::temp_dir().join(format!("localexception-completed-run-{}", Uuid::new_v4()));
         let store = store::RunStore::open(&directory, hash).unwrap();
         store.save(&completed).unwrap();
         assert!(matches!(

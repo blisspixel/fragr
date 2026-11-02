@@ -487,7 +487,7 @@ static func _phases(trace: Dictionary, start: int, end: int) -> Array[Dictionary
 ## Validates the saved shape and narrows JSON numbers to packed arrays.
 static func _read_client(client: Dictionary) -> Dictionary:
 	if not _whole(client.get("version")) or int(client["version"]) != CLIENT_VERSION \
-			or client.get("kind") != "fragr_client_stutter_trace":
+			or client.get("kind") != "localexception_client_stutter_trace":
 		return {"error": "not a version 1 client stutter trace"}
 	for field: String in ["started_usec", "started_unix_us", "stopped_usec"]:
 		if not _whole(client.get(field)):

@@ -2,7 +2,7 @@ extends SceneTree
 
 ## The radio's two faces: the brief now-playing toast in the HUD and the
 ## Music / Radio area of the match menu. Both read the radio's own state, so
-## no label claims a song after playback stops. With FRAGR_RADIO_CAPTURE set
+## no label claims a song after playback stops. With LOCALEXCEPTION_RADIO_CAPTURE set
 ## and a window, the toast, the match menu and the Controls page are saved as
 ## PNGs for inspection (run with --audio-driver Dummy).
 
@@ -13,9 +13,9 @@ var _settings_path: String = ""
 var hud: CanvasLayer
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	_settings_path = "user://radio-controls-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", _settings_path)
+	set_meta("localexception_settings_path", _settings_path)
 	_run.call_deferred()
 
 func _check(condition: bool, message: String) -> void:
@@ -53,7 +53,7 @@ func _run() -> void:
 	quit(0 if _failures == 0 else 1)
 
 func _capturing() -> bool:
-	return not OS.get_environment("FRAGR_RADIO_CAPTURE").is_empty() and DisplayServer.get_name() != "headless"
+	return not OS.get_environment("LOCALEXCEPTION_RADIO_CAPTURE").is_empty() and DisplayServer.get_name() != "headless"
 
 func _capture(name: String) -> void:
 	if not _capturing():
@@ -61,7 +61,7 @@ func _capture(name: String) -> void:
 	for i: int in range(3):
 		await process_frame
 	await RenderingServer.frame_post_draw
-	var directory: String = OS.get_environment("FRAGR_RADIO_CAPTURE")
+	var directory: String = OS.get_environment("LOCALEXCEPTION_RADIO_CAPTURE")
 	_check(DirAccess.make_dir_recursive_absolute(directory) == OK, "capture directory")
 	_check(root.get_texture().get_image().save_png(directory.path_join(name + ".png")) == OK, "save capture " + name)
 
@@ -149,7 +149,7 @@ func _fade() -> float:
 	return float(hud.RADIO_TOAST_FADE)
 
 func _test_pause_menu() -> void:
-	var prefs: FragrSettings = FragrSettings.new(_settings_path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(_settings_path)
 	prefs.reset_all()
 	var menu: PauseMenu = PauseMenu.new()
 	menu.preferences = prefs
@@ -240,7 +240,7 @@ func _test_pause_menu() -> void:
 	var closed_index: int = radio.station_index
 	_check(not radio.shortcuts_blocked and radio.handle_input(shortcut) and radio.station_index != closed_index, "with the menu closed the station key turns the dial again")
 	radio.prev_station()
-	var saved: FragrSettings = FragrSettings.new(_settings_path)
+	var saved: LocalExceptionSettings = LocalExceptionSettings.new(_settings_path)
 	saved.load_from_disk()
 	_check(is_equal_approx(float(saved.get_value("audio", "music")), 0.0), "the volume reached the settings file")
 	menu.open()
@@ -251,7 +251,7 @@ func _test_pause_menu() -> void:
 	menu._music_volume.value = 0.3
 	menu.show_settings()
 	_check(is_equal_approx(float(prefs.get_value("audio", "music")), 0.3), "opening Settings saves the pending slider value first")
-	var audio_page: FragrSettings = prefs.draft()
+	var audio_page: LocalExceptionSettings = prefs.draft()
 	audio_page.set_value("audio", "music", 0.5)
 	_check(prefs.commit(audio_page) == OK, "the Audio page saves")
 	menu._hide_settings()
@@ -264,11 +264,11 @@ func _test_pause_menu() -> void:
 	menu.bind_radio(null)
 	_check(menu._music_station.text == tr("RADIO_STATE_NONE"), "leaving the scene drops the radio")
 	menu.queue_free()
-	FragrSettings.new(_settings_path + ".defaults").apply_audio()
+	LocalExceptionSettings.new(_settings_path + ".defaults").apply_audio()
 	await process_frame
 
 func _test_controls_page() -> void:
-	var prefs: FragrSettings = FragrSettings.new(_settings_path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(_settings_path)
 	prefs.reset_all()
 	var panel: SettingsPanel = SettingsPanel.new()
 	panel.preferences = prefs

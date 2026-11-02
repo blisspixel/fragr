@@ -29,9 +29,9 @@ var _tick: int = 100
 
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
-	set_meta("fragr_settings_path", "")
-	set_meta("fragr_records_path", "")
+	set_meta("localexception_automated", true)
+	set_meta("localexception_settings_path", "")
+	set_meta("localexception_records_path", "")
 	call_deferred("_run")
 
 

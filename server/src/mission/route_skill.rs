@@ -350,8 +350,8 @@ pub(crate) fn survey(
 ) {
     let mut failed = Vec::new();
     let mut total = 0;
-    // FRAGR_SURVEY_SEED narrows a survey to one seed while reading its log.
-    let only: Option<u64> = std::env::var("FRAGR_SURVEY_SEED")
+    // LOCALEXCEPTION_SURVEY_SEED narrows a survey to one seed while reading its log.
+    let only: Option<u64> = std::env::var("LOCALEXCEPTION_SURVEY_SEED")
         .ok()
         .and_then(|seed| seed.parse().ok());
     for seed in seeds

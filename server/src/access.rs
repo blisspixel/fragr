@@ -720,7 +720,7 @@ mod tests {
 
     fn scratch(name: &str) -> PathBuf {
         let dir = std::env::temp_dir().join(format!(
-            "fragr-access-{}-{}",
+            "localexception-access-{}-{}",
             std::process::id(),
             uuid::Uuid::new_v4()
         ));

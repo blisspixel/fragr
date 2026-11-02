@@ -67,16 +67,16 @@ fn process_info(now: Instant) -> ProcessInfo {
     }
 }
 
-/// Build identity. `FRAGR_BUILD_COMMIT` and `FRAGR_BUILD_VERSION` are read at
-/// compile time. The build script sets the version to `FRAGR_BUILD_VERSION`
+/// Build identity. `LOCALEXCEPTION_BUILD_COMMIT` and `LOCALEXCEPTION_BUILD_VERSION` are read at
+/// compile time. The build script sets the version to `LOCALEXCEPTION_BUILD_VERSION`
 /// when a release build provides it, otherwise `git describe`, and that string
-/// is also `--version`. The commit is `FRAGR_BUILD_COMMIT` or `git rev-parse`
+/// is also `--version`. The commit is `LOCALEXCEPTION_BUILD_COMMIT` or `git rev-parse`
 /// when it is 7 to 40 hex digits. Absent values still report `unknown` and no
 /// release.
 pub fn build_info() -> BuildInfo {
     build_info_from(
-        option_env!("FRAGR_BUILD_COMMIT"),
-        option_env!("FRAGR_BUILD_VERSION"),
+        option_env!("LOCALEXCEPTION_BUILD_COMMIT"),
+        option_env!("LOCALEXCEPTION_BUILD_VERSION"),
     )
 }
 

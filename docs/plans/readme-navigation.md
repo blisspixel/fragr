@@ -5,7 +5,7 @@
 
 ## Goal
 
-Give a new player or host a clear first page: what fragr is, what the current
+Give a new player or host a clear first page: what Local Exception is, what the current
 release can do, how to start the game, four inspected screenshots, and where to
 find deeper instructions. Keep planned campaign and draft branch work visibly
 separate from shipped features.

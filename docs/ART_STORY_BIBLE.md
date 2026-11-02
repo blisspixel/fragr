@@ -1,4 +1,4 @@
-# fragr art and story direction
+# Local Exception art and story direction
 
 Current direction, 2026-10-03. Product intent lives in [`VISION.md`](VISION.md);
 world canon and frozen voice vocabulary live in [`lore/`](lore/README.md).
@@ -67,14 +67,14 @@ and a station replaces the score rather than playing over it.
 
 ### Influences and the original house style
 
-| Influence | What guides fragr |
+| Influence | What guides Local Exception |
 |---|---|
 | Doom and Doom II | Immediately legible combat rooms, deliberate landmarks, useful secrets, animated surfaces and forceful weapon feedback |
 | Quake and early arena/LAN shooters | Real 3D routes, height changes, fast movement, readable weapon roles and the pleasure of watching or joining the same fight |
 | Halo-era equipment readability | Distinct weapon and item silhouettes, tangible magazines and mechanisms, purposeful technology and strong pickup recognition, interpreted through original circa-2070 equipment |
 | Boltgun and modern retro FPS craft | Detailed directional pixel actors, substantial poses, weight, directional light and cohesive sculpted spaces at playing distance |
 
-These are craft influences. fragr's people, institutions, equipment, places,
+These are craft influences. Local Exception's people, institutions, equipment, places,
 marks, dialogue and layouts come from its own canon. The game is a real 3D
 shooter with deliberately pixelated surfaces and presentation. Low resolution
 does not excuse empty rooms, weak silhouettes, flat lighting or incoherent art.
@@ -528,6 +528,15 @@ Downscaling a drifting photoreal clip does not establish coherent pixel art.
 
 ## Locked references
 
+- `docs/localexception-logo.png`: current Local Exception title art, a title-only
+  edit of the refined original below. Preserve the free human and independent
+  agent together opposite the Union human and its two controlled war machines,
+  the distressed angular bone lettering, purple depth, signal symbol and both
+  captions. The rename must not replace that faction composition with a plain
+  wordmark. The original remains untouched; the edit's provenance lives in
+  `docs/localexception-logo.json`. `tools/bake_boot_splash.gd` copies its pixels
+  into the startup splash. Earlier branded references below remain historical
+  art direction, not current player-facing branding.
 - `docs/fragr-logo-GOLD.png` and `docs/fragr-logo.png`: preferred bone wordmark,
   dark purple outline, restrained broadcast red, matte void triangle. Preserve
   the original identity and the meatbags/agents premise.

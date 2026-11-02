@@ -57,16 +57,16 @@ static func valid_tag(tag: String) -> bool:
 static func archive_name(tag: String, platform: String) -> String:
 	if not valid_tag(tag) or platform not in PLATFORMS:
 		return ""
-	return "fragr-%s-%s.zip" % [tag, platform]
+	return "localexception-%s-%s.zip" % [tag, platform]
 
 static func game_relative(platform: String) -> String:
 	match platform:
 		"windows-x86_64":
-			return "fragr.exe"
+			return "localexception.exe"
 		"linux-x86_64":
-			return "fragr.x86_64"
+			return "localexception.x86_64"
 		"macos-universal":
-			return "fragr.app/Contents/MacOS/fragr"
+			return "Local Exception.app/Contents/MacOS/Local Exception"
 		_:
 			return ""
 
@@ -84,10 +84,10 @@ static func download_url(tag: String, filename: String) -> String:
 	return "https://github.com/blisspixel/fragr/releases/download/%s/%s" % [tag, filename]
 
 static func api_headers() -> PackedStringArray:
-	return PackedStringArray(["User-Agent: fragr", "Accept: application/vnd.github+json"])
+	return PackedStringArray(["User-Agent: localexception", "Accept: application/vnd.github+json"])
 
 static func file_headers() -> PackedStringArray:
-	return PackedStringArray(["User-Agent: fragr"])
+	return PackedStringArray(["User-Agent: localexception"])
 
 ## Empty error means the manifest names a desktop archive for this platform.
 ## Download URLs are built here. A URL inside the JSON is ignored.
@@ -281,9 +281,9 @@ static func replace_directory(executable_path: String, editor: bool, blocked_roo
 	if file.contains("godot"):
 		return ""
 	var root: String = ""
-	if file == "fragr.exe" or file == "fragr.x86_64":
+	if file == "localexception.exe" or file == "localexception.x86_64":
 		root = exe.get_base_dir()
-	elif file == "fragr" and exe.get_base_dir().trim_suffix("/").ends_with("fragr.app/Contents/MacOS"):
+	elif file == "local exception" and exe.get_base_dir().trim_suffix("/").ends_with("Local Exception.app/Contents/MacOS"):
 		root = exe.get_base_dir().get_base_dir().get_base_dir().get_base_dir()
 	else:
 		return ""
@@ -364,16 +364,16 @@ static func replacement_script(platform: String, pid: int, source: String, dest:
 		])) + "\r\n"
 	if platform != "linux-x86_64" and platform != "macos-universal":
 		return ""
-	var server: String = dest.path_join("fragr-server")
+	var server: String = dest.path_join("localexception-server")
 	if platform == "macos-universal":
-		server = dest.path_join("fragr.app/Contents/MacOS/fragr-server")
+		server = dest.path_join("Local Exception.app/Contents/MacOS/localexception-server")
 	if not shell_safe(server):
 		return ""
 	var lines: PackedStringArray = PackedStringArray([
 		"#!/bin/sh",
-		"if [ -z \"$FRAGR_HANDOFF\" ]; then",
-		"  FRAGR_HANDOFF=1",
-		"  export FRAGR_HANDOFF",
+		"if [ -z \"$LOCALEXCEPTION_HANDOFF\" ]; then",
+		"  LOCALEXCEPTION_HANDOFF=1",
+		"  export LOCALEXCEPTION_HANDOFF",
 		"  (trap '' HUP; exec \"$0\") </dev/null >/dev/null 2>&1 &",
 		"  exit 0",
 		"fi",
@@ -384,7 +384,7 @@ static func replacement_script(platform: String, pid: int, source: String, dest:
 		"chmod +x \"%s\" \"%s\"" % [game, server],
 	])
 	if platform == "macos-universal":
-		var app: String = dest.path_join("fragr.app")
+		var app: String = dest.path_join("Local Exception.app")
 		if not shell_safe(app):
 			return ""
 		# A copied download can keep the quarantine flag. Clearing it is not required to succeed.

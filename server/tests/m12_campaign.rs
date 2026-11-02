@@ -1,14 +1,14 @@
 //! A complete canonical M12 attempt driven only by ordinary finite human input.
-use fragr_server::combat::{line_of_sight, target_height};
-use fragr_server::maps::AuthoredSource;
-use fragr_server::movement::{BODY_HEIGHT, CONTACT_EPSILON, EYE_HEIGHT};
-use fragr_server::navigation::{NavigationGoal, Navigator};
-use fragr_server::protocol::{
+use localexception_server::combat::{line_of_sight, target_height};
+use localexception_server::maps::AuthoredSource;
+use localexception_server::movement::{BODY_HEIGHT, CONTACT_EPSILON, EYE_HEIGHT};
+use localexception_server::navigation::{NavigationGoal, Navigator};
+use localexception_server::protocol::{
     Action, AmmoPool, CampaignActor, GameEvent, LookAt, MissionId, MissionPhase, MissionReady,
     PlayerState, RecordStatus, Role, ServerMessage, WeaponType,
 };
-use fragr_server::session::GameSession;
-use fragr_server::sim::PLAYER_FLOOR_Y;
+use localexception_server::session::GameSession;
+use localexception_server::sim::PLAYER_FLOOR_Y;
 use serde_json::Value;
 use std::collections::HashSet;
 use uuid::Uuid;
@@ -31,7 +31,7 @@ fn names(value: &Value) -> Vec<String> {
         .unwrap_or_default()
 }
 fn aim(target: &PlayerState) -> [f32; 3] {
-    let height = if fragr_server::combat::is_assessor(target.campaign) {
+    let height = if localexception_server::combat::is_assessor(target.campaign) {
         0.5
     } else {
         0.9

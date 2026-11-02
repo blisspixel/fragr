@@ -5,7 +5,7 @@ extends SceneTree
 ## wall, at a grazing and at a quarter angle. A camera-facing quad wider than
 ## the body cuts into the wall unless its depth keeps the body's clearance.
 ## Controlled fixture, not ordinary play. Run through tools/qa_tour.sh with
-## FRAGR_QA_SCRIPT=res://qa/sprite_wall_review.gd (it writes FRAGR_QA_DIR).
+## LOCALEXCEPTION_QA_SCRIPT=res://qa/sprite_wall_review.gd (it writes LOCALEXCEPTION_QA_DIR).
 const KINDS: Array[String] = ["clerk", "sweeper", "heavy_sweeper", "auditor"]
 const VIEWS: Dictionary[String, Vector3] = {
 	"grazing": Vector3(1.0, 1.6, 7.0),
@@ -13,7 +13,7 @@ const VIEWS: Dictionary[String, Vector3] = {
 }
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	call_deferred("_run")
 
 func _frame(viewport: SubViewport) -> Image:
@@ -32,9 +32,9 @@ static func _differing(a: Image, b: Image) -> int:
 	return count
 
 func _run() -> void:
-	var output: String = OS.get_environment("FRAGR_QA_DIR")
+	var output: String = OS.get_environment("LOCALEXCEPTION_QA_DIR")
 	if output.is_empty():
-		push_error("sprite_wall_review: FRAGR_QA_DIR is required")
+		push_error("sprite_wall_review: LOCALEXCEPTION_QA_DIR is required")
 		quit(1)
 		return
 	var viewport: SubViewport = SubViewport.new()

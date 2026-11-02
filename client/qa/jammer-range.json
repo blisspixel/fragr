@@ -1,5 +1,5 @@
 {
-  "comment": "Original Jammer development range. Real human input and server phases, no granted equipment or teleports. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/test/jammer-range.json, FRAGR_QA_MANIFEST=res://qa/jammer-range.json. Not a completed M03.",
+  "comment": "Original Jammer development range. Real human input and server phases, no granted equipment or teleports. LOCALEXCEPTION_QA_BOTS=0, LOCALEXCEPTION_QA_MAP_FILE=server/maps/test/jammer-range.json, LOCALEXCEPTION_QA_MANIFEST=res://qa/jammer-range.json. Not a completed M03.",
   "width": 1280,
   "height": 720,
   "states": [

@@ -1,4 +1,4 @@
-//! Line board for a fragr server. Dial in, read the floor, leave a notice.
+//! Line board for a localexception server. Dial in, read the floor, leave a notice.
 //! The process that is serving owns the lines. This program only renders them.
 
 use std::io::{self, Write};
@@ -9,10 +9,12 @@ use futures_util::{SinkExt, StreamExt};
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio_tungstenite::{connect_async, tungstenite::Message};
 
-use fragr_server::protocol::{BoardPage, ServerMessage, GAMEPLAY_VERSION, GEOMETRY_VERSION};
+use localexception_server::protocol::{
+    BoardPage, ServerMessage, GAMEPLAY_VERSION, GEOMETRY_VERSION,
+};
 
 #[derive(Parser, Debug)]
-#[command(name = "fragr-wire", about = "Dial the fragr wire", version = env!("FRAGR_CLI_VERSION"))]
+#[command(name = "localexception-wire", about = "Dial the Local Exception wire", version = env!("LOCALEXCEPTION_CLI_VERSION"))]
 struct Args {
     /// Host that is already serving. The board is that process.
     #[arg(long, default_value = "127.0.0.1:6767")]
@@ -62,7 +64,7 @@ fn render_page(page: &BoardPage) -> String {
             _ => "That line did not go up.".into(),
         };
     }
-    if page.op == fragr_server::protocol::BoardOp::List {
+    if page.op == localexception_server::protocol::BoardOp::List {
         let mut out = String::from("BOARDS\n");
         for card in &page.boards {
             out.push_str(&format!("  {:<8} {}\n", card.id, card.count));
@@ -114,7 +116,7 @@ async fn main() -> ExitCode {
         }
     };
     let (mut write, mut read) = socket.split();
-    let mut frames = fragr_server::protocol::WorldReader::new();
+    let mut frames = localexception_server::protocol::WorldReader::new();
     let hello = serde_json::json!({
         "type": "hello",
         "role": "spectator",
@@ -154,11 +156,11 @@ async fn main() -> ExitCode {
                         println!("\r{}", render_page(&page));
                         print_prompt();
                     }
-                    Some(ServerMessage::Event(fragr_server::protocol::GameEvent::Speak { player, text, .. })) => {
+                    Some(ServerMessage::Event(localexception_server::protocol::GameEvent::Speak { player, text, .. })) => {
                         println!("\r{}", render_speak(&player, &text));
                         print_prompt();
                     }
-                    Some(ServerMessage::Event(fragr_server::protocol::GameEvent::VenueNotice { text })) => {
+                    Some(ServerMessage::Event(localexception_server::protocol::GameEvent::VenueNotice { text })) => {
                         println!("\r{text}");
                         print_prompt();
                     }
@@ -217,7 +219,7 @@ async fn send_ask(write: &mut (impl SinkExt<Message> + Unpin), ask: &Ask) -> Res
 
 async fn next_message(
     read: &mut (impl StreamExt<Item = Result<Message, tokio_tungstenite::tungstenite::Error>> + Unpin),
-    frames: &mut fragr_server::protocol::WorldReader,
+    frames: &mut localexception_server::protocol::WorldReader,
 ) -> Option<ServerMessage> {
     loop {
         match read.next().await? {
@@ -235,7 +237,7 @@ async fn next_message(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use fragr_server::protocol::BoardLine;
+    use localexception_server::protocol::BoardLine;
 
     #[test]
     fn commands_are_the_board_and_a_blank_line_lists_again() {
@@ -250,7 +252,7 @@ mod tests {
     #[test]
     fn a_page_names_the_line_and_a_closed_floor_says_why() {
         let posted = BoardPage {
-            op: fragr_server::protocol::BoardOp::Post,
+            op: localexception_server::protocol::BoardOp::Post,
             board: Some("notices".into()),
             boards: Vec::new(),
             lines: vec![BoardLine {
@@ -262,7 +264,7 @@ mod tests {
         };
         assert!(render_page(&posted).contains("Wire: still here"));
         let closed = BoardPage {
-            op: fragr_server::protocol::BoardOp::Post,
+            op: localexception_server::protocol::BoardOp::Post,
             board: Some("floor".into()),
             boards: Vec::new(),
             lines: Vec::new(),

@@ -32,7 +32,7 @@ Shipped (#80 / `e8f79b5`). Tip NOW: Ended linger + MVP rehydrate. See [`ended-li
 | CLI | `--bind`, `--bots` only | No `--map` / rotate |
 | Snapshot | mode/playlist/host/pickups | No map id for client switch |
 | Godot | One `arena.tscn` | No Compliance Yard face |
-| Solo Scrap | `solo_scrap.sh` + boot menu | No map pick / FRAGR_MAP |
+| Solo Scrap | `solo_scrap.sh` + boot menu | No map pick / LOCALEXCEPTION_MAP |
 | Pads / drone | Fixed coords; hub (0,0) clear | Map 2 must keep claim + hub |
 
 ## Architecture impact
@@ -44,7 +44,7 @@ Shipped (#80 / `e8f79b5`). Tip NOW: Ended linger + MVP rehydrate. See [`ended-li
 | `server` protocol | Snapshot `map_id` + `map_name` (serde defaults = map 1) |
 | `agent-adapter` | Mirror Snapshot map fields |
 | `client` | `arena_compliance_yard.tscn`; switch layout from Snapshot; boot / Solo hint |
-| `tools/solo_scrap.sh` | `FRAGR_MAP` / `--map` to server |
+| `tools/solo_scrap.sh` | `LOCALEXCEPTION_MAP` / `--map` to server |
 | `docs` | This plan; tip priorities; protocol note; README load path |
 
 ## Map 2: Compliance Yard
@@ -88,7 +88,7 @@ Spawn ring radius: `ARENA_SIZE * 0.25` (tighter than map 1's 0.3).
 2. `MapKind` + solids/pads/spawn; wire into move/hitscan/spawn/pickups.
 3. CLI `--map` / `--map-rotate`; session init.
 4. Snapshot map fields; adapter mirror; protocol note.
-5. Godot Compliance Yard scene + snapshot-driven switch; boot/solo hint; `solo_scrap.sh` FRAGR_MAP.
+5. Godot Compliance Yard scene + snapshot-driven switch; boot/solo hint; `solo_scrap.sh` LOCALEXCEPTION_MAP.
 6. Tests: map 2 choke, pad claim, drone hub clear, rotate, CLI parse; coverage fail-under 80.
 7. PR via gh api.
 
@@ -114,7 +114,7 @@ cargo test --workspace
 cargo llvm-cov --workspace --locked --summary-only --fail-under-lines 80
 ```
 
-Play: `cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 4 --map 2` then Solo Scrap / Godot; or `FRAGR_MAP=2 ./tools/solo_scrap.sh`. Confirm pads claim, drone at hub, weapon roles, MVP / killstreak still fire.
+Play: `cargo run -p localexception-server -- --bind 127.0.0.1:6767 --bots 4 --map 2` then Solo Scrap / Godot; or `LOCALEXCEPTION_MAP=2 ./tools/solo_scrap.sh`. Confirm pads claim, drone at hub, weapon roles, MVP / killstreak still fire.
 
 ## Spend / safety
 

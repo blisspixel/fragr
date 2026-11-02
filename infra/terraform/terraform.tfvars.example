@@ -2,21 +2,21 @@
 project_id          = "your-gcp-project-id"
 region              = "us-west1"
 zone                = "us-west1-a"
-artifact_repository = "fragr-images"
+artifact_repository = "localexception-images"
 image_sha256        = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-join_secret_id      = "fragr-join-secret"
+join_secret_id      = "localexception-join-secret"
 join_secret_version = "1"
 
 # No external IPv4 or game ingress in the default configuration.
 enable_external_ipv4   = false
 game_source_ranges     = []
 
-instance_name     = "fragr-game-server"
+instance_name     = "localexception-game-server"
 machine_type      = "e2-micro"
 boot_disk_size_gb = 20
 network_cidr      = "10.0.0.0/24"
 
 labels = {
-  project    = "fragr"
+  project    = "localexception"
   managed_by = "terraform"
 }

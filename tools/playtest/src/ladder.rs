@@ -6,10 +6,10 @@
 //! walk back and forth undecided for more than one moving window in twenty.
 //! Behaviour evidence for rule bots, never a human "felt fair" verdict.
 use crate::sight::{spread, DitherTracker, Spread};
-use fragr_server::protocol::GameMode;
-use fragr_server::rules::RuleSet;
-use fragr_server::session::GameSession;
-use fragr_server::sim::{BotSkill, MapKind, MatchConfig};
+use localexception_server::protocol::GameMode;
+use localexception_server::rules::RuleSet;
+use localexception_server::session::GameSession;
+use localexception_server::sim::{BotSkill, MapKind, MatchConfig};
 use serde::{Deserialize, Serialize};
 
 /// Each rung beats the one below this often, as a share of decided Duels.
@@ -131,7 +131,7 @@ fn duel(
     while session.state.tick < limit {
         let mut ended = false;
         for message in session.tick_messages(0.05) {
-            use fragr_server::protocol::{GameEvent, ServerMessage};
+            use localexception_server::protocol::{GameEvent, ServerMessage};
             match message {
                 ServerMessage::Event(GameEvent::RoundStart { .. }) => live = true,
                 ServerMessage::Event(GameEvent::RoundEnd { .. }) if live => ended = true,

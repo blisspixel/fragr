@@ -4,7 +4,7 @@ const SOURCE_SHA256: String = "002749ba040d15703605693563b6e1b1f1ceebe554ebb2a5e
 var _failures: PackedStringArray = []
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	_run.call_deferred()
 
 func _run() -> void:

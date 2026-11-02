@@ -23,8 +23,8 @@ var _award_notices: Array[String] = []
 var started_fresh: bool = false
 
 static func for_tree(tree: SceneTree) -> PlayerRecords:
-	var fallback: String = "" if tree.get_meta("fragr_automated", false) else PATH
-	return PlayerRecords.new(str(tree.get_meta("fragr_records_path", fallback)))
+	var fallback: String = "" if tree.get_meta("localexception_automated", false) else PATH
+	return PlayerRecords.new(str(tree.get_meta("localexception_records_path", fallback)))
 
 func _init(path: String = PATH) -> void:
 	storage_path = path

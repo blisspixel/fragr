@@ -1,5 +1,5 @@
-//! `cargo run -p fragr-licenses -- --target <triple> --out THIRD_PARTY_LICENSES.txt`
-//! lists the crates fragr-server links for those targets with their license
+//! `cargo run -p localexception-licenses -- --target <triple> --out THIRD_PARTY_LICENSES.txt`
+//! lists the crates localexception-server links for those targets with their license
 //! texts, and fails when any crate cannot be resolved against deny.toml.
 
 use std::collections::BTreeMap;
@@ -7,16 +7,16 @@ use std::path::PathBuf;
 use std::process::{Command, ExitCode};
 
 use clap::Parser;
-use fragr_licenses::{distributed_crates, parse_allowlist, render, Crate};
+use localexception_licenses::{distributed_crates, parse_allowlist, render, Crate};
 
 #[derive(Parser)]
 #[command(
     about = "Write third-party license notices for packaged workspace binaries",
-    version = env!("FRAGR_CLI_VERSION")
+    version = env!("LOCALEXCEPTION_CLI_VERSION")
 )]
 struct Args {
     /// Workspace packages whose linked dependencies are listed; repeat to union them.
-    #[arg(long, default_value = "fragr-server")]
+    #[arg(long, default_value = "localexception-server")]
     package: Vec<String>,
     /// Target triple to resolve for; repeat to union several (a universal macOS build).
     #[arg(long, required = true)]
@@ -77,7 +77,7 @@ fn main() -> ExitCode {
     match run(&args) {
         Ok(count) => {
             println!(
-                "fragr-licenses: {count} crates for {} written to {}",
+                "localexception-licenses: {count} crates for {} written to {}",
                 args.target.join(", "),
                 args.out.display()
             );
@@ -85,7 +85,7 @@ fn main() -> ExitCode {
         }
         Err(problems) => {
             for problem in problems {
-                eprintln!("fragr-licenses: {problem}");
+                eprintln!("localexception-licenses: {problem}");
             }
             ExitCode::FAILURE
         }

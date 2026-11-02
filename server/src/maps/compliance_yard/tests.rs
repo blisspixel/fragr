@@ -233,8 +233,8 @@ fn navigation_builds_within_its_budget() {
 
 /// The client's presenter is held to the server's solids through
 /// `client/golden/compliance_yard_map_info.json` (`client/scripts/test_yard_water_dressing.gd`).
-/// Regenerate with `FRAGR_MAP_INFO_OUT=$PWD/client/golden/compliance_yard_map_info.json cargo test
-/// -p fragr-server --lib compliance_yard_write_map_info -- --ignored`.
+/// Regenerate with `LOCALEXCEPTION_MAP_INFO_OUT=$PWD/client/golden/compliance_yard_map_info.json cargo test
+/// -p localexception-server --lib compliance_yard_write_map_info -- --ignored`.
 #[test]
 fn compliance_yard_client_golden_is_the_server_map_info() {
     let state = crate::sim::GameState::with_map(MapKind::ComplianceYard, false);
@@ -253,7 +253,7 @@ fn compliance_yard_client_golden_is_the_server_map_info() {
 #[test]
 #[ignore = "writes the client golden MapInfo"]
 fn compliance_yard_write_map_info() {
-    let Ok(path) = std::env::var("FRAGR_MAP_INFO_OUT") else {
+    let Ok(path) = std::env::var("LOCALEXCEPTION_MAP_INFO_OUT") else {
         return;
     };
     let state = crate::sim::GameState::with_map(MapKind::ComplianceYard, false);

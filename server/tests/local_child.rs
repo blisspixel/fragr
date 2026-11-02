@@ -1,7 +1,7 @@
 //! Real executable ownership checks, including launch outside the checkout.
-use fragr_server::local::Ready;
-use fragr_server::protocol::{BodyKind, ClientMessage, MissionId, Role, ServerMessage};
 use futures_util::{SinkExt, StreamExt};
+use localexception_server::local::Ready;
+use localexception_server::protocol::{BodyKind, ClientMessage, MissionId, Role, ServerMessage};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::Path;
 use std::process::{Child, Command, Stdio};
@@ -19,7 +19,7 @@ impl Drop for OwnedChild {
 
 fn spawn() -> (OwnedChild, Ready) {
     let mut child = OwnedChild(
-        Command::new(env!("CARGO_BIN_EXE_fragr-server"))
+        Command::new(env!("CARGO_BIN_EXE_localexception-server"))
             .args(["--local-mission", "recall_notice", "--seed", "67"])
             .current_dir(std::env::temp_dir())
             .env("RUST_LOG", "warn")
@@ -45,7 +45,7 @@ fn spawn() -> (OwnedChild, Ready) {
     assert_eq!(ready.mission, MissionId::RecallNotice);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
+        localexception_server::protocol::ASSESSOR_GAMEPLAY_VERSION
     );
     assert!(ready.url.starts_with("ws://127.0.0.1:"));
     (child, ready)
@@ -61,11 +61,11 @@ fn spawn_persistent_mission(
     mode: &str,
     difficulty: Option<&str>,
 ) -> (OwnedChild, Ready) {
-    let mut command = Command::new(env!("CARGO_BIN_EXE_fragr-server"));
+    let mut command = Command::new(env!("CARGO_BIN_EXE_localexception-server"));
     command
         .args(["--local-mission", mission, "--run-mode", mode])
         .current_dir(std::env::temp_dir())
-        .env("FRAGR_RUN_DIR", directory)
+        .env("LOCALEXCEPTION_RUN_DIR", directory)
         .env("RUST_LOG", "warn")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -90,9 +90,9 @@ fn spawn_persistent_mission(
 }
 
 fn preview(directory: &Path) -> serde_json::Value {
-    let output = Command::new(env!("CARGO_BIN_EXE_fragr-server"))
+    let output = Command::new(env!("CARGO_BIN_EXE_localexception-server"))
         .arg("--local-run-preview")
-        .env("FRAGR_RUN_DIR", directory)
+        .env("LOCALEXCEPTION_RUN_DIR", directory)
         .output()
         .unwrap();
     assert!(output.status.success());
@@ -114,9 +114,9 @@ fn assert_only_live_run(directory: &Path) {
 
 /// A resume the child must refuse before advertising readiness.
 fn refused_resume(directory: &Path, mission: &str) {
-    let mut refused = Command::new(env!("CARGO_BIN_EXE_fragr-server"))
+    let mut refused = Command::new(env!("CARGO_BIN_EXE_localexception-server"))
         .args(["--local-mission", mission, "--run-mode", "resume"])
-        .env("FRAGR_RUN_DIR", directory)
+        .env("LOCALEXCEPTION_RUN_DIR", directory)
         .env("RUST_LOG", "warn")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -142,13 +142,18 @@ fn refused_resume(directory: &Path, mission: &str) {
     assert!(output.is_empty(), "refused resume advertised readiness");
 }
 
-/// Set FRAGR_TEST_RUN_FIXTURE_DIR to an unused absolute directory to retain
+/// Set LOCALEXCEPTION_TEST_RUN_FIXTURE_DIR to an unused absolute directory to retain
 /// this validated file for the client integration harness.
 #[tokio::test]
 async fn isolated_m01_departure_fixture_for_m02_client_smoke() {
-    let retained = std::env::var_os("FRAGR_TEST_RUN_FIXTURE_DIR");
+    let retained = std::env::var_os("LOCALEXCEPTION_TEST_RUN_FIXTURE_DIR");
     let directory = retained.as_ref().map_or_else(
-        || std::env::temp_dir().join(format!("fragr-carry-fixture-{}", uuid::Uuid::new_v4())),
+        || {
+            std::env::temp_dir().join(format!(
+                "localexception-carry-fixture-{}",
+                uuid::Uuid::new_v4()
+            ))
+        },
         std::path::PathBuf::from,
     );
     assert!(
@@ -156,8 +161,8 @@ async fn isolated_m01_departure_fixture_for_m02_client_smoke() {
         "fixture directory must be absolute"
     );
     std::fs::create_dir_all(&directory).unwrap();
-    let m01 = fragr_server::maps::RuntimeMap::Authored(
-        fragr_server::maps::AuthoredSource::Mission(MissionId::RecallNotice)
+    let m01 = localexception_server::maps::RuntimeMap::Authored(
+        localexception_server::maps::AuthoredSource::Mission(MissionId::RecallNotice)
             .load()
             .unwrap(),
     );
@@ -215,11 +220,11 @@ async fn isolated_m01_departure_fixture_for_m02_client_smoke() {
         assert_eq!(ready.mission, MissionId::PersonsUnknown);
         assert_eq!(
             ready.difficulty,
-            fragr_server::protocol::CampaignDifficulty::Severe
+            localexception_server::protocol::CampaignDifficulty::Severe
         );
         assert_eq!(
             ready.gameplay_version,
-            fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
+            localexception_server::protocol::ASSESSOR_GAMEPLAY_VERSION
         );
         let (mut socket, _) = connect_async(&ready.url).await.unwrap();
         socket
@@ -231,7 +236,7 @@ async fn isolated_m01_departure_fixture_for_m02_client_smoke() {
                     role: Role::Human,
                     name: "Saved owner".into(),
                     geometry_version: 2,
-                    gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+                    gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
                     ticket: None,
                     resume: None,
                 })
@@ -295,8 +300,10 @@ async fn isolated_m01_departure_fixture_for_m02_client_smoke() {
 
 #[test]
 fn wrong_mission_resume_leaves_a_saved_departure_untouched() {
-    let directory =
-        std::env::temp_dir().join(format!("fragr-wrong-mission-{}", uuid::Uuid::new_v4()));
+    let directory = std::env::temp_dir().join(format!(
+        "localexception-wrong-mission-{}",
+        uuid::Uuid::new_v4()
+    ));
     let (mut first, ready) = spawn_persistent(&directory, "new", None);
     first
         .0
@@ -325,7 +332,7 @@ fn wrong_mission_resume_leaves_a_saved_departure_untouched() {
     let (child, ready) = spawn_persistent_mission(&directory, "persons_unknown", "resume", None);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
+        localexception_server::protocol::ASSESSOR_GAMEPLAY_VERSION
     );
     drop(child);
     assert_eq!(preview(&directory)["mission"], "persons_unknown");
@@ -334,10 +341,11 @@ fn wrong_mission_resume_leaves_a_saved_departure_untouched() {
 
 #[tokio::test]
 async fn released_m02_run_promotes_once_and_restarts_at_m03_entry() {
-    let directory = std::env::temp_dir().join(format!("fragr-m03-carry-{}", uuid::Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-m03-carry-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir_all(&directory).unwrap();
-    let source_hash = fragr_server::maps::RuntimeMap::Authored(
-        fragr_server::maps::AuthoredSource::Mission(MissionId::PersonsUnknown)
+    let source_hash = localexception_server::maps::RuntimeMap::Authored(
+        localexception_server::maps::AuthoredSource::Mission(MissionId::PersonsUnknown)
             .load()
             .unwrap(),
     )
@@ -362,11 +370,11 @@ async fn released_m02_run_promotes_once_and_restarts_at_m03_entry() {
         assert_eq!(ready.mission, MissionId::ScheduledService);
         assert_eq!(
             ready.gameplay_version,
-            fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
+            localexception_server::protocol::ASSESSOR_GAMEPLAY_VERSION
         );
         assert_eq!(
             ready.difficulty,
-            fragr_server::protocol::CampaignDifficulty::Severe
+            localexception_server::protocol::CampaignDifficulty::Severe
         );
         let (mut socket, _) = connect_async(&ready.url).await.unwrap();
         socket
@@ -378,7 +386,7 @@ async fn released_m02_run_promotes_once_and_restarts_at_m03_entry() {
                     dress: None,
                     seat: None,
                     geometry_version: 2,
-                    gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+                    gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
                     ticket: None,
                     resume: None,
                 })
@@ -466,10 +474,11 @@ async fn released_m02_run_promotes_once_and_restarts_at_m03_entry() {
 
 #[tokio::test]
 async fn completed_m03_run_promotes_once_and_retains_choices_at_m04_entry() {
-    let directory = std::env::temp_dir().join(format!("fragr-m04-carry-{}", uuid::Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-m04-carry-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir_all(&directory).unwrap();
-    let source_hash = fragr_server::maps::RuntimeMap::Authored(
-        fragr_server::maps::AuthoredSource::Mission(MissionId::ScheduledService)
+    let source_hash = localexception_server::maps::RuntimeMap::Authored(
+        localexception_server::maps::AuthoredSource::Mission(MissionId::ScheduledService)
             .load()
             .unwrap(),
     )
@@ -495,11 +504,11 @@ async fn completed_m03_run_promotes_once_and_retains_choices_at_m04_entry() {
         assert_eq!(ready.mission, MissionId::NoticeToVacate);
         assert_eq!(
             ready.gameplay_version,
-            fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
+            localexception_server::protocol::ASSESSOR_GAMEPLAY_VERSION
         );
         assert_eq!(
             ready.difficulty,
-            fragr_server::protocol::CampaignDifficulty::Severe
+            localexception_server::protocol::CampaignDifficulty::Severe
         );
         let (mut socket, _) = connect_async(&ready.url).await.unwrap();
         socket
@@ -511,7 +520,7 @@ async fn completed_m03_run_promotes_once_and_retains_choices_at_m04_entry() {
                     dress: None,
                     seat: None,
                     geometry_version: 2,
-                    gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+                    gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
                     ticket: None,
                     resume: None,
                 })
@@ -603,10 +612,11 @@ async fn completed_m03_run_promotes_once_and_retains_choices_at_m04_entry() {
 
 #[tokio::test]
 async fn completed_m05_run_refills_once_and_retains_actual_counts_at_m06_entry() {
-    let directory = std::env::temp_dir().join(format!("fragr-m06-carry-{}", uuid::Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-m06-carry-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir_all(&directory).unwrap();
-    let source_hash = fragr_server::maps::RuntimeMap::Authored(
-        fragr_server::maps::AuthoredSource::Mission(MissionId::NoForwardingAddress)
+    let source_hash = localexception_server::maps::RuntimeMap::Authored(
+        localexception_server::maps::AuthoredSource::Mission(MissionId::NoForwardingAddress)
             .load()
             .unwrap(),
     )
@@ -637,11 +647,11 @@ async fn completed_m05_run_refills_once_and_retains_actual_counts_at_m06_entry()
         assert_eq!(ready.mission, MissionId::PortOfEntry);
         assert_eq!(
             ready.gameplay_version,
-            fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
+            localexception_server::protocol::ASSESSOR_GAMEPLAY_VERSION
         );
         assert_eq!(
             ready.difficulty,
-            fragr_server::protocol::CampaignDifficulty::Severe
+            localexception_server::protocol::CampaignDifficulty::Severe
         );
         let (mut socket, _) = connect_async(&ready.url).await.unwrap();
         socket
@@ -653,7 +663,7 @@ async fn completed_m05_run_refills_once_and_retains_actual_counts_at_m06_entry()
                     dress: None,
                     seat: None,
                     geometry_version: 2,
-                    gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+                    gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
                     ticket: None,
                     resume: None,
                 })
@@ -715,7 +725,7 @@ async fn completed_m05_run_refills_once_and_retains_actual_counts_at_m06_entry()
                         assert_eq!(loadout.grenades, 2);
                         assert_eq!(
                             loadout.selected,
-                            fragr_server::protocol::WeaponType::Flechette
+                            localexception_server::protocol::WeaponType::Flechette
                         );
                         assert!(loadout.personal_claims.is_empty());
                         assert_eq!(
@@ -770,10 +780,11 @@ async fn completed_m05_run_refills_once_and_retains_actual_counts_at_m06_entry()
 
 #[tokio::test]
 async fn completed_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
-    let directory = std::env::temp_dir().join(format!("fragr-m05-carry-{}", uuid::Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-m05-carry-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir_all(&directory).unwrap();
-    let source_hash = fragr_server::maps::RuntimeMap::Authored(
-        fragr_server::maps::AuthoredSource::Mission(MissionId::NoticeToVacate)
+    let source_hash = localexception_server::maps::RuntimeMap::Authored(
+        localexception_server::maps::AuthoredSource::Mission(MissionId::NoticeToVacate)
             .load()
             .unwrap(),
     )
@@ -800,11 +811,11 @@ async fn completed_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
         assert_eq!(ready.mission, MissionId::NoForwardingAddress);
         assert_eq!(
             ready.gameplay_version,
-            fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
+            localexception_server::protocol::ASSESSOR_GAMEPLAY_VERSION
         );
         assert_eq!(
             ready.difficulty,
-            fragr_server::protocol::CampaignDifficulty::Severe
+            localexception_server::protocol::CampaignDifficulty::Severe
         );
         let (mut socket, _) = connect_async(&ready.url).await.unwrap();
         socket
@@ -816,7 +827,7 @@ async fn completed_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
                     dress: None,
                     seat: None,
                     geometry_version: 2,
-                    gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+                    gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
                     ticket: None,
                     resume: None,
                 })
@@ -924,7 +935,7 @@ async fn campaign_run_id(ready: &Ready) -> uuid::Uuid {
                 role: Role::Spectator,
                 name: "Run witness".into(),
                 geometry_version: 2,
-                gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+                gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
                 ticket: None,
                 resume: None,
             })
@@ -976,7 +987,7 @@ async fn bundled_mission_serves_the_normal_wire_and_stops_on_explicit_shutdown()
                 role: Role::Spectator,
                 name: "Local observer".into(),
                 geometry_version: 2,
-                gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+                gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
 
                 ticket: None,
                 resume: None,
@@ -1056,7 +1067,7 @@ fn local_child_options_cannot_override_its_hosting_contract() {
         vec!["--bench-verify-trace", "missing.json"],
         vec!["--status-every-s", "1"],
     ] {
-        let result = Command::new(env!("CARGO_BIN_EXE_fragr-server"))
+        let result = Command::new(env!("CARGO_BIN_EXE_localexception-server"))
             .args(["--local-mission", "recall_notice"])
             .args(extra)
             .output()
@@ -1068,13 +1079,15 @@ fn local_child_options_cannot_override_its_hosting_contract() {
 
 #[tokio::test]
 async fn persistent_local_child_restarts_same_run_and_keeps_saved_difficulty() {
-    let directory =
-        std::env::temp_dir().join(format!("fragr-run-restart-{}", uuid::Uuid::new_v4()));
+    let directory = std::env::temp_dir().join(format!(
+        "localexception-run-restart-{}",
+        uuid::Uuid::new_v4()
+    ));
     assert_eq!(preview(&directory)["status"], "missing");
     let (mut first, ready) = spawn_persistent(&directory, "new", Some("severe"));
     assert_eq!(
         ready.difficulty,
-        fragr_server::protocol::CampaignDifficulty::Severe
+        localexception_server::protocol::CampaignDifficulty::Severe
     );
     let run_id = campaign_run_id(&ready).await;
     first
@@ -1096,7 +1109,7 @@ async fn persistent_local_child_restarts_same_run_and_keeps_saved_difficulty() {
     let (mut resumed, second_ready) = spawn_persistent(&directory, "resume", None);
     assert_eq!(
         second_ready.difficulty,
-        fragr_server::protocol::CampaignDifficulty::Severe
+        localexception_server::protocol::CampaignDifficulty::Severe
     );
     assert_eq!(campaign_run_id(&second_ready).await, run_id);
     resumed
@@ -1112,8 +1125,10 @@ async fn persistent_local_child_restarts_same_run_and_keeps_saved_difficulty() {
 
 #[tokio::test]
 async fn explicit_leave_durably_abandons_a_local_run() {
-    let directory =
-        std::env::temp_dir().join(format!("fragr-run-abandon-{}", uuid::Uuid::new_v4()));
+    let directory = std::env::temp_dir().join(format!(
+        "localexception-run-abandon-{}",
+        uuid::Uuid::new_v4()
+    ));
     let (mut child, ready) = spawn_persistent(&directory, "new", None);
     let (mut socket, _) = connect_async(&ready.url).await.unwrap();
     socket
@@ -1125,7 +1140,7 @@ async fn explicit_leave_durably_abandons_a_local_run() {
                 role: Role::Human,
                 name: "Run owner".into(),
                 geometry_version: 2,
-                gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+                gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
                 ticket: None,
                 resume: None,
             })
@@ -1177,12 +1192,13 @@ async fn explicit_leave_durably_abandons_a_local_run() {
 
 #[tokio::test]
 async fn second_local_child_cannot_take_an_active_run() {
-    let directory = std::env::temp_dir().join(format!("fragr-run-lock-{}", uuid::Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-run-lock-{}", uuid::Uuid::new_v4()));
     let (mut first, ready) = spawn_persistent(&directory, "new", None);
     let original = campaign_run_id(&ready).await;
-    let mut second = Command::new(env!("CARGO_BIN_EXE_fragr-server"))
+    let mut second = Command::new(env!("CARGO_BIN_EXE_localexception-server"))
         .args(["--local-mission", "recall_notice", "--run-mode", "resume"])
-        .env("FRAGR_RUN_DIR", &directory)
+        .env("LOCALEXCEPTION_RUN_DIR", &directory)
         .env("RUST_LOG", "warn")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -1220,8 +1236,10 @@ async fn second_local_child_cannot_take_an_active_run() {
 
 #[test]
 fn unreadable_runs_are_refused_kept_until_new_run_and_then_replaced() {
-    let directory =
-        std::env::temp_dir().join(format!("fragr-run-preview-{}", uuid::Uuid::new_v4()));
+    let directory = std::env::temp_dir().join(format!(
+        "localexception-run-preview-{}",
+        uuid::Uuid::new_v4()
+    ));
     let (mut child, ready) = spawn_persistent(&directory, "new", None);
     child
         .0
@@ -1273,12 +1291,12 @@ fn unreadable_runs_are_refused_kept_until_new_run_and_then_replaced() {
 
 #[tokio::test]
 async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
-    let refused = Command::new(env!("CARGO_BIN_EXE_fragr-server"))
+    let refused = Command::new(env!("CARGO_BIN_EXE_localexception-server"))
         .args(["--local-mission", "persons_unknown", "--run-mode", "new"])
         .current_dir(std::env::temp_dir())
         .env(
-            "FRAGR_RUN_DIR",
-            std::env::temp_dir().join("fragr-m02-no-run"),
+            "LOCALEXCEPTION_RUN_DIR",
+            std::env::temp_dir().join("localexception-m02-no-run"),
         )
         .env("RUST_LOG", "warn")
         .stdin(Stdio::null())
@@ -1287,7 +1305,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
     assert!(!refused.status.success());
     assert!(refused.stdout.is_empty(), "no readiness for a refused run");
     let mut child = OwnedChild(
-        Command::new(env!("CARGO_BIN_EXE_fragr-server"))
+        Command::new(env!("CARGO_BIN_EXE_localexception-server"))
             .args(["--local-mission", "persons_unknown", "--seed", "67"])
             .current_dir(std::env::temp_dir())
             .env("RUST_LOG", "warn")
@@ -1312,7 +1330,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
     assert_eq!(ready.mission, MissionId::PersonsUnknown);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
+        localexception_server::protocol::ASSESSOR_GAMEPLAY_VERSION
     );
     let (mut old, _) = connect_async(&ready.url).await.unwrap();
     old.send(Message::Text(
@@ -1323,7 +1341,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
             role: Role::Spectator,
             name: "Old side ward reader".into(),
             geometry_version: 2,
-            gameplay_version: fragr_server::protocol::COMPANION_GAMEPLAY_VERSION,
+            gameplay_version: localexception_server::protocol::COMPANION_GAMEPLAY_VERSION,
             ticket: None,
             resume: None,
         })
@@ -1352,7 +1370,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
                 role: Role::Human,
                 name: "Ward walker".into(),
                 geometry_version: 2,
-                gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+                gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
                 ticket: None,
                 resume: None,
             })
@@ -1404,7 +1422,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
 #[tokio::test]
 async fn m08_development_child_serves_the_archive_to_current_readers_only() {
     let mut child = OwnedChild(
-        Command::new(env!("CARGO_BIN_EXE_fragr-server"))
+        Command::new(env!("CARGO_BIN_EXE_localexception-server"))
             .args(["--local-mission", "custodian_of_record", "--seed", "8"])
             .current_dir(std::env::temp_dir())
             .env("RUST_LOG", "warn")
@@ -1429,11 +1447,14 @@ async fn m08_development_child_serves_the_archive_to_current_readers_only() {
     assert_eq!(ready.mission, MissionId::CustodianOfRecord);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
+        localexception_server::protocol::ASSESSOR_GAMEPLAY_VERSION
     );
     for (version, admitted) in [
-        (fragr_server::protocol::CUSTODY_GAMEPLAY_VERSION, false),
-        (fragr_server::protocol::GAMEPLAY_VERSION, true),
+        (
+            localexception_server::protocol::CUSTODY_GAMEPLAY_VERSION,
+            false,
+        ),
+        (localexception_server::protocol::GAMEPLAY_VERSION, true),
     ] {
         let (mut socket, _) = connect_async(&ready.url).await.unwrap();
         socket
@@ -1481,7 +1502,7 @@ async fn m08_development_child_serves_the_archive_to_current_readers_only() {
 #[tokio::test]
 async fn m09_development_child_guards_every_role_before_welcome_and_serves_berth_first() {
     let mut child = OwnedChild(
-        Command::new(env!("CARGO_BIN_EXE_fragr-server"))
+        Command::new(env!("CARGO_BIN_EXE_localexception-server"))
             .args(["--local-mission", "passenger_manifest", "--seed", "42"])
             .current_dir(std::env::temp_dir())
             .env("RUST_LOG", "warn")
@@ -1506,7 +1527,7 @@ async fn m09_development_child_guards_every_role_before_welcome_and_serves_berth
     assert_eq!(ready.mission, MissionId::PassengerManifest);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::RECEIPT_GAMEPLAY_VERSION
+        localexception_server::protocol::RECEIPT_GAMEPLAY_VERSION
     );
     for role in [Role::Human, Role::Agent, Role::Spectator] {
         let (mut socket, _) = connect_async(&ready.url).await.unwrap();
@@ -1520,7 +1541,7 @@ async fn m09_development_child_guards_every_role_before_welcome_and_serves_berth
                     name: "Berth reader".into(),
                     geometry_version: 2,
                     // The previous contract predates the untagged receipts.
-                    gameplay_version: fragr_server::protocol::RECEIPT_GAMEPLAY_VERSION - 1,
+                    gameplay_version: localexception_server::protocol::RECEIPT_GAMEPLAY_VERSION - 1,
                     ticket: None,
                     resume: None,
                 })
@@ -1550,7 +1571,7 @@ async fn m09_development_child_guards_every_role_before_welcome_and_serves_berth
                 role: Role::Spectator,
                 name: "Current berth reader".into(),
                 geometry_version: 2,
-                gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+                gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
                 ticket: None,
                 resume: None,
             })
@@ -1599,7 +1620,7 @@ async fn m09_development_child_guards_every_role_before_welcome_and_serves_berth
 #[tokio::test]
 async fn m10_development_child_guards_every_role_before_welcome_and_serves_ship_first() {
     let mut child = OwnedChild(
-        Command::new(env!("CARGO_BIN_EXE_fragr-server"))
+        Command::new(env!("CARGO_BIN_EXE_localexception-server"))
             .args(["--local-mission", "common_carrier", "--seed", "42"])
             .current_dir(std::env::temp_dir())
             .env("RUST_LOG", "warn")
@@ -1624,7 +1645,7 @@ async fn m10_development_child_guards_every_role_before_welcome_and_serves_ship_
     assert_eq!(ready.mission, MissionId::CommonCarrier);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::RECEIPT_GAMEPLAY_VERSION
+        localexception_server::protocol::RECEIPT_GAMEPLAY_VERSION
     );
     for role in [Role::Human, Role::Agent, Role::Spectator] {
         let (mut socket, _) = connect_async(&ready.url).await.unwrap();
@@ -1638,7 +1659,7 @@ async fn m10_development_child_guards_every_role_before_welcome_and_serves_ship_
                     name: "Ship reader".into(),
                     geometry_version: 2,
                     // The previous contract predates the untagged receipts.
-                    gameplay_version: fragr_server::protocol::RECEIPT_GAMEPLAY_VERSION - 1,
+                    gameplay_version: localexception_server::protocol::RECEIPT_GAMEPLAY_VERSION - 1,
                     ticket: None,
                     resume: None,
                 })
@@ -1668,7 +1689,7 @@ async fn m10_development_child_guards_every_role_before_welcome_and_serves_ship_
                 role: Role::Spectator,
                 name: "Current ship reader".into(),
                 geometry_version: 2,
-                gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+                gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
                 ticket: None,
                 resume: None,
             })

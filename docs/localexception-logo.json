@@ -1,0 +1,10 @@
+{
+  "file": "docs/localexception-logo.png",
+  "format": "png",
+  "sha256": "b508d57beaf638a8e0fc3d5ce5e18349fd2ae72a8909b67e676757609b5a1180",
+  "source": "docs/fragr-logo-refined.png",
+  "source_sha256": "884156ad3f956f50b68088702ee8adf1838cf86bd6bac006853ad998ec088dc5",
+  "operation": "title-only edit",
+  "model": "not exposed by the built-in image editor",
+  "prompt": "Edit target: the supplied game title artwork. Change ONLY the giant central title FRAGR to the exact words LOCAL EXCEPTION. This is a brand rename, not a redesign. Preserve the original black textured background, small purple ring and inverted triangle symbol at the top, muted grey horizontal waveform, and especially the EXACT small pixel-art faction characters along the bottom: the free human in hat and bandolier with friendly independent square-headed robot on left, and the authoritarian Union human with rifle and two enslaved uniform war robots with red visor slits on right. Do not replace, restyle, enlarge, remove or add any characters. Preserve the existing MEATBAGS + AGENTS caption and LAN 1993 > AGENTIC NOW bottom line verbatim. The new LOCAL EXCEPTION lettering must match the original striking angular rock-racing typography, very heavy distressed bone-white faces with chipped black speckling, deep muted purple extrusion and sharp pointed corners, matte not shiny. Fit the longer title elegantly in two centered stacked rows LOCAL over EXCEPTION in the central area, maintaining clear space for the symbol and the characters; no text overlap. Keep the wide aspect ratio, black negative space, gritty illustrated treatment and pixel cluster size. No extra logos, captions, signatures, or marks. Prioritize faithfully retaining the source composition and figures over inventing anything new."
+}

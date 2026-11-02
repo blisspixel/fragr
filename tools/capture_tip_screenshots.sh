@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Capture tip-of-tree Godot stills via Xvfb + opengl3 (not bare --headless).
 # Requires: Godot 4.7.2-stable on PATH as `godot` (or Godot_v4.7.2-stable_linux.x86_64),
-# Xvfb, and a running fragr-server. See docs/plans/tip-screenshots.md.
+# Xvfb, and a running localexception-server. See docs/plans/tip-screenshots.md.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-# Prefer FRAGR_TIP_CAPTURE_DIR; else this repo. Ignore ambient OUT_DIR from other clones.
-OUT_DIR="${FRAGR_TIP_CAPTURE_DIR:-$ROOT/docs/screenshots}"
+# Prefer LOCALEXCEPTION_TIP_CAPTURE_DIR; else this repo. Ignore ambient OUT_DIR from other clones.
+OUT_DIR="${LOCALEXCEPTION_TIP_CAPTURE_DIR:-$ROOT/docs/screenshots}"
 DISPLAY_NUM="${DISPLAY_NUM:-99}"
-SERVER_URL="${FRAGR_SERVER:-127.0.0.1:6767}"
+SERVER_URL="${LOCALEXCEPTION_SERVER:-127.0.0.1:6767}"
 
 GODOT_BIN=""
 if command -v godot >/dev/null 2>&1; then
@@ -26,9 +26,9 @@ fi
 
 mkdir -p "$OUT_DIR"
 export DISPLAY=":${DISPLAY_NUM}"
-export FRAGR_SERVER="$SERVER_URL"
-export FRAGR_TIP_CAPTURE=1
-export FRAGR_TIP_CAPTURE_DIR="$OUT_DIR"
+export LOCALEXCEPTION_SERVER="$SERVER_URL"
+export LOCALEXCEPTION_TIP_CAPTURE=1
+export LOCALEXCEPTION_TIP_CAPTURE_DIR="$OUT_DIR"
 # Software GL helps on headless boxes without a GPU.
 export LIBGL_ALWAYS_SOFTWARE="${LIBGL_ALWAYS_SOFTWARE:-1}"
 export GALLIUM_DRIVER="${GALLIUM_DRIVER:-llvmpipe}"
@@ -39,7 +39,7 @@ if [ -e "/tmp/.X${DISPLAY_NUM}-lock" ]; then
   rm -f "/tmp/.X${DISPLAY_NUM}-lock"
 fi
 
-Xvfb ":${DISPLAY_NUM}" -screen 0 1280x720x24 -ac >/tmp/fragr-xvfb.log 2>&1 &
+Xvfb ":${DISPLAY_NUM}" -screen 0 1280x720x24 -ac >/tmp/localexception-xvfb.log 2>&1 &
 XVFB_PID=$!
 cleanup() {
   kill "$XVFB_PID" >/dev/null 2>&1 || true
@@ -56,13 +56,13 @@ if [ ! -d "$ROOT/client/.godot/imported" ]; then
 fi
 
 # Timed stills: Calibration/Larak Lot, Host bumper / Contested Frequency, scoreboard+killfeed, mid-join Host flash.
-# Expect fragr-server with --solo-broadcast so episode chrome matches tip face.
+# Expect localexception-server with --solo-broadcast so episode chrome matches tip face.
 # --quit-after is frames; give headroom for ~20s of wall clock.
 # gl_compatibility / opengl3: Vulkan on Xvfb needs lavapipe; keep the simple path.
 "$GODOT_BIN" --path "$ROOT/client" --rendering-driver opengl3 --quit-after 30000 \
   --script res://scripts/tip_capture.gd
 
 # Orange footprint gate: refuse empty hangar jammer stills (Soft Prison orange≈0.01 miss).
-cargo run --manifest-path "$ROOT/Cargo.toml" -p fragr-tip-gate --release --locked --quiet -- "$OUT_DIR"
+cargo run --manifest-path "$ROOT/Cargo.toml" -p localexception-tip-gate --release --locked --quiet -- "$OUT_DIR"
 
 echo "Tip capture finished. Inspect PNGs under $OUT_DIR"

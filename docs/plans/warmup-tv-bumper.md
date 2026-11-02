@@ -78,7 +78,7 @@ Godot: Warmup overlay readable at tip still capture. No tool attribution, emoji,
 
 ## How to see unmissable Warmup
 
-1. `cargo run -p fragr-server -- --bots 4` (port 6767).
+1. `cargo run -p localexception-server -- --bots 4` (port 6767).
 2. Open Godot client, spectate or Join during Warmup (first ~2s after boot / after Ended linger).
 3. Full-frame Contested Frequency TV: huge map title, roster chips, giant GOES LIVE IN N, Host flash.
 4. Overlay lingers ~1s into Active / RoundStart so it is not blink-and-miss.

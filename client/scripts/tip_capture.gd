@@ -5,12 +5,12 @@ extends SceneTree
 # Timed stills: Calibration/Larak Lot chrome, Host bumper, killfeed/scoreboard, mid-join Host flash.
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	MouseCapture.release()
 	call_deferred("_run_capture")
 
 func _run_capture() -> void:
-	var out_dir: String = OS.get_environment("FRAGR_TIP_CAPTURE_DIR")
+	var out_dir: String = OS.get_environment("LOCALEXCEPTION_TIP_CAPTURE_DIR")
 	if out_dir.is_empty():
 		out_dir = ProjectSettings.globalize_path("res://../docs/screenshots")
 

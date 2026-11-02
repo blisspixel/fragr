@@ -25,7 +25,7 @@ server and the line above it says the server is still running. Watch, Join,
 and Stop stay on that page.
 
 **Join a server** is the address field, Check host, Watch, and Join. The
-field starts from `FRAGR_SERVER` when that is set, otherwise
+field starts from `LOCALEXCEPTION_SERVER` when that is set, otherwise
 `127.0.0.1:6767`. An owned server does not replace it. Text the player types
 is kept when the page is rebuilt, including a trip to the run page and back.
 Check host probes that field only. The local book and LAN announcement are

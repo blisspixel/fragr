@@ -67,7 +67,8 @@ fn open(directory: &Path) -> RunStore {
 
 #[test]
 fn completed_workshop_promotion_keeps_counts_and_refills_episode_ii_once() {
-    let directory = std::env::temp_dir().join(format!("fragr-m06-promotion-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-m06-promotion-{}", Uuid::new_v4()));
     let source = completed_workshop();
     let store = open(&directory);
     store.save(&source).unwrap();

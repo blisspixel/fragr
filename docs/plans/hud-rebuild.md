@@ -8,7 +8,7 @@
 
 ## The brutal version
 
-Held against DUSK, Amid Evil, Prodeus, Cultic, Ultrakill and Selaco, here is what a current fragr frame gets wrong.
+Held against DUSK, Amid Evil, Prodeus, Cultic, Ultrakill and Selaco, here is what a current Local Exception frame gets wrong.
 
 **1. The three numbers that matter are not on screen.** Health, armour, ammo. A player has no idea how close they are to dying. "Status: Connected to server" was on screen and health was not. Nothing else in this list matters as much as this one.
 
@@ -28,7 +28,7 @@ Held against DUSK, Amid Evil, Prodeus, Cultic, Ultrakill and Selaco, here is wha
 
 ## Who the HUD is for
 
-Spectator and free-fly are worth having and worth making fun to watch, and the broadcast conceit belongs to them. But a person playing fragr is playing a first-person boomer shooter, in the Doom sense: they are behind the gun, the world fills the screen, and the chrome lives at the edges. Every decision below is made for that player. If an element exists to serve the spectator view, it belongs in the spectator view and not over a firefight.
+Spectator and free-fly are worth having and worth making fun to watch, and the broadcast conceit belongs to them. But a person playing Local Exception is playing a first-person boomer shooter, in the Doom sense: they are behind the gun, the world fills the screen, and the chrome lives at the edges. Every decision below is made for that player. If an element exists to serve the spectator view, it belongs in the spectator view and not over a firefight.
 
 ## How loud the broadcast gets
 

@@ -358,7 +358,7 @@ fn native_foundry_fact_vectors_match_client_fixture() {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../client/golden/m13_fact_vectors.json");
     let bytes = serde_json::to_vec_pretty(&document).unwrap();
-    if std::env::var_os("FRAGR_UPDATE_M13_FACTS").is_some() {
+    if std::env::var_os("LOCALEXCEPTION_UPDATE_M13_FACTS").is_some() {
         std::fs::write(&path, &bytes).unwrap();
     }
     assert!(

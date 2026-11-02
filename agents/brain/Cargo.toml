@@ -1,23 +1,23 @@
 [package]
-name = "fragr-brain"
+name = "localexception-brain"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Example fragr agent: a decision brain (TypeSafe Jev natively or through OpenRouter, or a free open-weights model on loopback) sets intent a few times a second, a local controller plays every tick, and a hard spend cap sits in front of every paid call"
+description = "Example Local Exception agent: a decision brain (TypeSafe Jev natively or through OpenRouter, or a free open-weights model on loopback) sets intent a few times a second, a local controller plays every tick, and a hard spend cap sits in front of every paid call"
 publish = false
 
 [lib]
-name = "fragr_brain"
+name = "localexception_brain"
 path = "src/lib.rs"
 
 [[bin]]
-name = "fragr-brain"
+name = "localexception-brain"
 path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4.6", features = ["derive"] }
-fragr-server = { path = "../../server", version = "0.1.0" }
+localexception-server = { path = "../../server", version = "0.1.0" }
 futures-util = "0.3"
 reqwest = { version = "0.13", features = ["blocking", "json"] }
 serde = { version = "1.0", features = ["derive"] }
@@ -32,4 +32,4 @@ uuid = { version = "1.26", features = ["v4", "serde"] }
 workspace = true
 
 [build-dependencies]
-fragr-build-metadata = { version = "0.1.0", path = "../../tools/build-metadata" }
+localexception-build-metadata = { version = "0.1.0", path = "../../tools/build-metadata" }

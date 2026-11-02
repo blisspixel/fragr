@@ -1,5 +1,5 @@
 {
-  "comment": "M06 golden-slice faction read. A joined player waits in the dock while posed views frame the four freight guards, the only guards placed before activation (later groups and both Turrets spawn when their encounter wakes; client/qa/m06_port_of_entry.json reaches them through combat). Run with FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m06_port_of_entry.json. Check black armour, red visors, armbands and optics against freight paint, pressure shell and fixture pools at room distance; art review, not combat evidence.",
+  "comment": "M06 golden-slice faction read. A joined player waits in the dock while posed views frame the four freight guards, the only guards placed before activation (later groups and both Turrets spawn when their encounter wakes; client/qa/m06_port_of_entry.json reaches them through combat). Run with LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MAP_FILE=server/maps/m06_port_of_entry.json. Check black armour, red visors, armbands and optics against freight paint, pressure shell and fixture pools at room distance; art review, not combat evidence.",
   "width": 1280,
   "height": 720,
   "states": [

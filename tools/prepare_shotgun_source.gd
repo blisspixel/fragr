@@ -4,7 +4,7 @@ const Metadata = preload("res://art/models/glb_metadata.gd")
 const SOURCE_SHA256: String = "6f7078f594262c23de7d599868285ac7e62046a100dace5c934a53c0f1a96f22"
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

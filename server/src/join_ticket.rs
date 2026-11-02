@@ -15,7 +15,7 @@ impl std::fmt::Debug for JoinSecret {
 
 impl JoinSecret {
     pub fn from_process_env() -> Result<Option<Self>, &'static str> {
-        match std::env::var("FRAGR_JOIN_SECRET") {
+        match std::env::var("LOCALEXCEPTION_JOIN_SECRET") {
             Err(_) => Ok(None),
             Ok(raw) => Self::from_env_value(&raw),
         }
@@ -28,7 +28,7 @@ impl JoinSecret {
             return Ok(None);
         }
         if !(16..=256).contains(&trimmed.len()) {
-            return Err("FRAGR_JOIN_SECRET must be 16 to 256 bytes");
+            return Err("LOCALEXCEPTION_JOIN_SECRET must be 16 to 256 bytes");
         }
         Ok(Some(Self(trimmed.to_string())))
     }
@@ -103,7 +103,7 @@ pub fn admit(secret: Option<&JoinSecret>, role: Role, ticket: Option<&str>, now:
 }
 
 fn payload(exp: u64, role: &str) -> String {
-    format!("fragr-join-v1\n{exp}\n{role}")
+    format!("localexception-join-v1\n{exp}\n{role}")
 }
 
 const NONCE_CAP: usize = 4096;
@@ -161,7 +161,7 @@ pub fn mint_v2(
 }
 
 fn payload_v2(exp: u64, role: &str, nonce: &str, audience: &str) -> String {
-    format!("fragr-join-v2\n{exp}\n{role}\n{nonce}\n{audience}")
+    format!("localexception-join-v2\n{exp}\n{role}\n{nonce}\n{audience}")
 }
 
 fn ticket_role(role: Role) -> Result<&'static str, &'static str> {
@@ -489,9 +489,16 @@ mod tests {
         let ticket = mint(&secret, Role::Human, now + 60).unwrap();
         assert_eq!(
             mint(&secret, Role::Human, 1_700_000_060).unwrap(),
-            "v1.1700000060.human.5b6e18c7aef8a218ef64786317c23e472eb2b432bfa681e1c76e340b48d232ba"
+            "v1.1700000060.human.abc2b182719ae11c305e73cd152977f2b34f5fdb59fde7fef27a3acbe59a56b9"
         );
         assert!(admit(Some(&secret), Role::Human, Some(&ticket), now));
+        // A correctly signed ticket from the prior product has another domain.
+        assert!(!admit(
+            Some(&secret),
+            Role::Human,
+            Some("v1.1700000060.human.5b6e18c7aef8a218ef64786317c23e472eb2b432bfa681e1c76e340b48d232ba"),
+            now
+        ));
         assert!(admit(Some(&secret), Role::Human, Some(&ticket), now));
         assert!(!admit(Some(&secret), Role::Agent, Some(&ticket), now));
         assert!(admit(
@@ -565,7 +572,7 @@ mod tests {
         let ticket = mint_v2(&secret, Role::Human, 1_700_000_060, nonce, audience).unwrap();
         assert_eq!(
             ticket,
-            "v2.1700000060.human.00112233445566778899aabbccddeeff.d3NzOi8vcGxheS5leGFtcGxlOjY3Njc.0ec6964cd92cc8c6b91dea2c4491f9454ebc20e7aadce35b355e4d675df4b6d8"
+            "v2.1700000060.human.00112233445566778899aabbccddeeff.d3NzOi8vcGxheS5leGFtcGxlOjY3Njc.e3221c936ed32e831fe5e6428525c05478558131c22b9333da60d6fdef85c9c8"
         );
         let now = 1_700_000_000;
         let mut cache = NonceCache::default();

@@ -1,5 +1,5 @@
 //! Export the production island contract for offline renderer measurements.
-use fragr_server::sim::{GameState, MapKind};
+use localexception_server::sim::{GameState, MapKind};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = std::env::args().nth(1).ok_or("output path required")?;

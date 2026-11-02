@@ -5,8 +5,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p .agents
 workspace=$(pwd -P)
-cargo build -p fragr-playtest --bin fragr-check-process --locked
-runner="$workspace/target/debug/fragr-check-process"
+cargo build -p localexception-playtest --bin localexception-check-process --locked
+runner="$workspace/target/debug/localexception-check-process"
 if [ -f "$runner.exe" ]; then runner="$runner.exe"; fi
 fixture=$(mktemp -d "$workspace/.agents/godot-check-fixture-XXXXXX")
 fixture=$(cd "$fixture" && pwd -P)
@@ -83,8 +83,8 @@ for scenario in pass debug-socket import-exit import-error missing-pass error-an
   transcript="$fixture/scenario-$scenario.log"
   guard_diagnostic="$fixture/scenario-$scenario.guard.log"
   echo "BEGIN godot verifier scenario: $scenario ($transcript)"
-  CASE="$scenario" GODOT_BIN="$fake" FRAGR_CHECK_PROCESS_BIN="$runner" \
-    FRAGR_CHECK_ENGINE_SHELL="$BASH" FRAGR_CHECK_TIMEOUT_MS=3000 \
+  CASE="$scenario" GODOT_BIN="$fake" LOCALEXCEPTION_CHECK_PROCESS_BIN="$runner" \
+    LOCALEXCEPTION_CHECK_ENGINE_SHELL="$BASH" LOCALEXCEPTION_CHECK_TIMEOUT_MS=3000 \
     "$runner" --timeout-ms 30000 --output "$transcript" -- \
     "$BASH" "$fixture/tools/godot_check.sh" 2>"$guard_diagnostic" || status=$?
   echo "END  godot verifier scenario: $scenario (exit $status)"

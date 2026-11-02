@@ -1,5 +1,5 @@
 {
-  "comment": "M10 golden-slice faction read. A joined player walks from the passenger deck into the forward boarding region, which wakes the first boarders (Clerks and Sweepers on the cargo deck and one Sweeper on the crew deck); posed views then frame them against the lashed crates, gunmetal hull and bone trunk walls at 5 to 15 m. Run with FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m10_common_carrier.json. Check black armour, red visors, armbands and optics against the ship's warm work light; art review, not combat evidence. Later boarders are reached through combat in client/qa/m10_common_carrier.json.",
+  "comment": "M10 golden-slice faction read. A joined player walks from the passenger deck into the forward boarding region, which wakes the first boarders (Clerks and Sweepers on the cargo deck and one Sweeper on the crew deck); posed views then frame them against the lashed crates, gunmetal hull and bone trunk walls at 5 to 15 m. Run with LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MAP_FILE=server/maps/m10_common_carrier.json. Check black armour, red visors, armbands and optics against the ship's warm work light; art review, not combat evidence. Later boarders are reached through combat in client/qa/m10_common_carrier.json.",
   "width": 1280,
   "height": 720,
   "states": [

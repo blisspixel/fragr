@@ -1,4 +1,4 @@
-# Meshy: current practice vs fragr pipeline (checked 2026-10-24)
+# Meshy: current practice vs Local Exception pipeline (checked 2026-10-24)
 
 Read-only research. No paid calls. One free call: `GET /openapi/v1/animations/library`
 (saved beside this file as `meshy-animation-library-20261024.json`, 678 clips).

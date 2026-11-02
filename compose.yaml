@@ -2,10 +2,10 @@ services:
   server:
     build:
       context: .
-    image: fragr-server:local
-    command: ["--bind", "0.0.0.0:6767", "--bots", "${FRAGR_BOTS:-4}", "--map", "${FRAGR_MAP:-1}"]
+    image: localexception-server:local
+    command: ["--bind", "0.0.0.0:6767", "--bots", "${LOCALEXCEPTION_BOTS:-4}", "--map", "${LOCALEXCEPTION_MAP:-1}"]
     environment:
-      FRAGR_JOIN_SECRET: ${FRAGR_JOIN_SECRET:-}
+      LOCALEXCEPTION_JOIN_SECRET: ${LOCALEXCEPTION_JOIN_SECRET:-}
       RUST_LOG: ${RUST_LOG:-info}
     ports:
       - "6767:6767/tcp"

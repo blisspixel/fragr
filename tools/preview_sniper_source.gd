@@ -5,7 +5,7 @@ const Geometry = preload("res://scripts/model_geometry.gd")
 var _failures: int = 0
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

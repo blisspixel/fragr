@@ -646,8 +646,8 @@ fn an_eight_fighter_opening_puts_nobody_in_another_s_close_lane() {
 
 /// The client's presenter is held to the server's solids through
 /// `client/golden/low_water_map_info.json` (`client/scripts/test_yard_water_dressing.gd`).
-/// Regenerate with `FRAGR_MAP_INFO_OUT=$PWD/client/golden/low_water_map_info.json cargo test
-/// -p fragr-server --lib low_water_write_map_info -- --ignored`.
+/// Regenerate with `LOCALEXCEPTION_MAP_INFO_OUT=$PWD/client/golden/low_water_map_info.json cargo test
+/// -p localexception-server --lib low_water_write_map_info -- --ignored`.
 #[test]
 fn low_water_client_golden_is_the_server_map_info() {
     let state = crate::sim::GameState::with_map(MapKind::LowWater, false);
@@ -666,7 +666,7 @@ fn low_water_client_golden_is_the_server_map_info() {
 #[test]
 #[ignore = "writes the client golden MapInfo"]
 fn low_water_write_map_info() {
-    let Ok(path) = std::env::var("FRAGR_MAP_INFO_OUT") else {
+    let Ok(path) = std::env::var("LOCALEXCEPTION_MAP_INFO_OUT") else {
         return;
     };
     let state = crate::sim::GameState::with_map(MapKind::LowWater, false);

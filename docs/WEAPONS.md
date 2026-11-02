@@ -115,7 +115,7 @@ blocked controls clear zoom. Optics never alter server hit rules.
 The touchstones have distinct jobs: Doom II's movement and situational weapon
 choices, Counter-Strike 1.6's deliberate precision, Battlefield 1942's useful
 engagement distances and vehicle counterplay, and GoldenEye's readable tools
-and discoveries. Preserve those pleasures within fragr's own fiction. An
+and discoveries. Preserve those pleasures within Local Exception's own fiction. An
 issued rifle, a maintained civilian gun and a liberated accelerator can share
 a workshop without becoming interchangeable skins.
 
@@ -325,7 +325,7 @@ The fire sounds that exist already set the register: dry, punchy, no reverb, 199
 The spec is `tools/audiogen/specs/sfx-weapons.json` and it runs through the pipeline that already made the three fire sounds in the game.
 
 ```
-cargo run -p fragr-audiogen -- batch --spec tools/audiogen/specs/sfx-weapons.json --dry-run
+cargo run -p localexception-audiogen -- batch --spec tools/audiogen/specs/sfx-weapons.json --dry-run
 ```
 
 Dry run reports **92 to generate, about 2152 credits**. The three existing fire sounds are skipped rather than overwritten, so the flechette, scatter and rail keep the voices they already have and the new set is built around them.

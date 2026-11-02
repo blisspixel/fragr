@@ -24,7 +24,7 @@
    "placement": "Pit wreck nose-down in solid 2..6.4 x -4..-2 (top 1.4), and the Roof wrecks in 14..18.4 x -25..-23 and 30..34.4 x -26..-24; stretched to the 4.4 x 2 m footprint less 2 cm a side",
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -35,7 +35,7 @@
      "keyed_sha256": "dfb88a48327acf4e032e24c1edc579c5d80860e7d09d9b171726a7b0536e7448"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
@@ -69,7 +69,7 @@
    "placement": "Toll, level 2: three machines with their backs to the north wall (x -34, -31.5, -21) and Aunt Linda's pulpit (x -3, level 3); no collision, 0.49 m off the wall, under the 0.5 m body radius. WORLD_LARAK_SIGNATURE on the blank plate; -31.5 keeps WORLD_LARAK_PLEASE_PAY lit, the rest have dark screens",
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -80,7 +80,7 @@
      "keyed_sha256": "b81f1506882d5e49a8304ab4f77ffeae531dabf8fbb949dcf64787b9268a07cb"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
@@ -115,7 +115,7 @@
    "placement": "Impound, level 1: back to the league cabin's south face at (30.2, 23.0), beside the door; WORLD_LARAK_COFFEE on its blank approval plate, WORLD_LARAK_OUT_OF_ORDER over the smoked panel",
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -126,7 +126,7 @@
      "keyed_sha256": "8b6510ffa0ae7299888e7ede7f75c15603b83a470fb6cb3ae5fa73473f4593c3"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
@@ -161,7 +161,7 @@
    "placement": "Stands: wall plate on the viaduct wall at x -9.3, top 5.05, bracket 1.72 m out, rope ending 1.45 m over the deck; no collision",
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -172,7 +172,7 @@
      "keyed_sha256": "8445923916bd24839e656a8cbad50d608d6735ee7803263bcbfa9f89d896d598"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
@@ -210,7 +210,7 @@
    "placement": "Pit centre: the hook block in the Repossession's hung frame, top at 3.85 (world 16.1), lit work-lamp faces on its six housings; venue hazard yellow",
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -221,7 +221,7 @@
      "keyed_sha256": "1e34c09ebd44dda4f85739cd27974d93a61d9502622fa8bd291e337efa5d62e0"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
@@ -312,7 +312,7 @@
    "placement": "Toll, level 2: the three booths filling their Enamel solids (x -30, -24, -18; z -17..-13; top 5.8). Cleanup: the kerb-nose bollard dropped, the cabin remapped onto the 2 x 4 m kerb, the cap 0.08 to 0.12 m over it above head height; the baked cut seal on each lane end replaces the presenter's three",
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -323,7 +323,7 @@
      "keyed_sha256": "46ec4beefd72faadd2241d11646e8369353de5a580b6d732fc2240637e8dd7f8"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
@@ -363,7 +363,7 @@
    "placement": "Stands, level 1: the bookmaker's kiosk filling ServiceSteel solid -2..2 x 16..19 (top 4.3), hatch to the Pit; stretched x 1.23, z 1.33 (beyond the 15% default, a plain box hut); WORLD_LARAK_ODDS on both end slates, the podium pallets on its roof",
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -374,7 +374,7 @@
      "keyed_sha256": "ba8a2bb875a5a0fd8d5b988a44e072816038d690f61db30dd972a760091c4ac3"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
@@ -414,7 +414,7 @@
    "placement": "Pit: THE STACK, two piles side by side turned against each other (centres x 5.1 and 7.3, z 5.5) filling RecordsTile solid 4..8.4 x 3..8 (top 3.2); paint gain 1.6 before the lock keeps the rust, teal and olive bodies",
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -425,7 +425,7 @@
      "keyed_sha256": "b62e3a132579949d841ce05d0900d7db1c11d4fc7fa260b08554253b4dcd34ad"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",
@@ -486,7 +486,7 @@
    "placement": "Impound, level 1: the two caged cars (solids 16..20.4 and 23..27.4 x 19..21, top 2.9), inside the presenter's cages, turned against each other. Cleanup: one teal body ramp (greys and greens excluded), red and warm ramps excluded so the tail lamps lock to dark dead lenses, venue hazard yellow for the clamp",
    "provenance": {
     "reference": {
-     "tool": "fragr-spritegen gen",
+     "tool": "localexception-spritegen gen",
      "model": "marketing-studio/image",
      "quality": "medium",
      "resolution": "2k",
@@ -497,7 +497,7 @@
      "keyed_sha256": "b26423c3b9a244389aac55894ebf8ab9f0944ce2c712567edd443b93d5d92c5d"
     },
     "model": {
-     "tool": "fragr-spritegen meshy-gen",
+     "tool": "localexception-spritegen meshy-gen",
      "service": "meshy/image-to-3d",
      "ai_model": "meshy-7.1",
      "spec": "tools/spritegen/specs/ll-larak-props-meshy-20261024.json",

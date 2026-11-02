@@ -14,7 +14,7 @@ Checked against authoritative-server practice current in 2026 (session identity 
 - `Hello.resume` absent: close removes the pawn. Older clients and the playtest keep that.
 - `Hello.resume` empty: `Welcome.resume` carries a server-minted token. A later close without `leave` parks the pawn, clears input, and holds its party seat.
 - `Hello.resume` token: rebind that pawn if it is still parked. The token rotates. A live pawn cannot be stolen. A bad token is `resume_rejected` and does not create a second body.
-- The mac key is random per process. It is not `FRAGR_JOIN_SECRET`, so a player who can mint a join ticket cannot forge a resume.
+- The mac key is random per process. It is not `LOCALEXCEPTION_JOIN_SECRET`, so a player who can mint a join ticket cannot forge a resume.
 - Expiry removes the pawn the same way a leave does. A solo owner who does not return is abandoned. Nothing rewinds ticks, input sequence, or inventory.
 - The Godot client asks, retries one dropped socket, and sends `leave` for a menu leave or a role change. The adapter sends `leave` on its leave tool.
 

@@ -199,7 +199,7 @@ func _mark_executable(game: String, platform: String) -> void:
 	if OS.has_feature("windows"):
 		return
 	OS.execute("chmod", PackedStringArray(["+x", game]))
-	var server: String = game.get_base_dir().path_join("fragr-server")
+	var server: String = game.get_base_dir().path_join("localexception-server")
 	if FileAccess.file_exists(server):
 		OS.execute("chmod", PackedStringArray(["+x", server]))
 

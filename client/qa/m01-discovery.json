@@ -1,5 +1,5 @@
 {
-  "comment": "Live M01 discovery and finite-ammo proof. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json. Uses ordinary movement and trigger input; no granted equipment or teleports. One ammunition count per type, no reload.",
+  "comment": "Live M01 discovery and finite-ammo proof. LOCALEXCEPTION_QA_BOTS=0, LOCALEXCEPTION_QA_MAP_FILE=server/maps/m01-recall-notice.json. Uses ordinary movement and trigger input; no granted equipment or teleports. One ammunition count per type, no reload.",
   "width": 1280,
   "height": 720,
   "states": [

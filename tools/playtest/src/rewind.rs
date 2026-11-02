@@ -22,8 +22,8 @@
 //! backwards, and held at the newest tick when it starves. That is still a
 //! model of a link, not a measured network.
 
-use fragr_server::protocol::{Action, EquipmentPolicy, Role, WeaponType};
-use fragr_server::sim::{GameState, PLAYER_FLOOR_Y};
+use localexception_server::protocol::{Action, EquipmentPolicy, Role, WeaponType};
+use localexception_server::sim::{GameState, PLAYER_FLOOR_Y};
 use serde::Serialize;
 use uuid::Uuid;
 
@@ -193,7 +193,7 @@ fn run_trial(seed: u64, trial: u32, rtt_ms: u32, mode: RewindMode, link: JitterL
     state.spawn_shields.clear();
     {
         let p = state.players.iter_mut().find(|p| p.id == shooter).unwrap();
-        p.inventory = fragr_server::inventory::Inventory::new(EquipmentPolicy::Discovery);
+        p.inventory = localexception_server::inventory::Inventory::new(EquipmentPolicy::Discovery);
         p.inventory.grant_weapon(WeaponType::Rail);
         p.weapon = WeaponType::Rail;
         p.fire_cooldown = 0;
@@ -260,14 +260,17 @@ fn run_trial(seed: u64, trial: u32, rtt_ms: u32, mode: RewindMode, link: JitterL
                 let p = state.players.iter().find(|p| p.id == shooter).unwrap();
                 [
                     p.x,
-                    p.y - PLAYER_FLOOR_Y + fragr_server::combat::stance_eye(None, false),
+                    p.y - PLAYER_FLOOR_Y + localexception_server::combat::stance_eye(None, false),
                     p.z,
                 ]
             };
-            let chest = fragr_server::combat::aim_point_for(drawn, None, ducked);
-            trial.on_target =
-                fragr_server::combat::line_of_sight(eye, chest, &state.current_arena().solids);
-            let (yaw, pitch) = fragr_server::combat::aim_at(eye, chest).unwrap();
+            let chest = localexception_server::combat::aim_point_for(drawn, None, ducked);
+            trial.on_target = localexception_server::combat::line_of_sight(
+                eye,
+                chest,
+                &state.current_arena().solids,
+            );
+            let (yaw, pitch) = localexception_server::combat::aim_at(eye, chest).unwrap();
             let action = Action {
                 fire: true,
                 yaw: Some(yaw),
@@ -408,7 +411,7 @@ pub fn run_row_on(
             count as f64 / seen.len() as f64
         }
     };
-    let bound_ticks = fragr_server::sim::rewind::MAX_REWIND_TICKS as f64;
+    let bound_ticks = localexception_server::sim::rewind::MAX_REWIND_TICKS as f64;
     RewindRow {
         rtt_ms,
         mode,

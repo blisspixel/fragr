@@ -43,7 +43,7 @@ Server tests cover a hit, a wall, a miss that expires, a dead shooter, a shielde
 On 2026-09-29, in the `feat/traveling-shot` worktree:
 
 - `cargo fmt --all -- --check` passed.
-- `cargo clippy --workspace --all-targets --locked -- -D warnings` passed. `fragr-server` clippy passed again after the returned-body and departed-shooter tests.
+- `cargo clippy --workspace --all-targets --locked -- -D warnings` passed. `localexception-server` clippy passed again after the returned-body and departed-shooter tests.
 - `cargo test --workspace --locked` passed. The server library reported 624 passed and 3 ignored. The traveling-shot tests reported 13 passed.
 - `tools/godot_check.sh` passed on Godot 4.7.2.stable.official.ed1daf0bf, including `test_traveling_shot: PASS`.
 

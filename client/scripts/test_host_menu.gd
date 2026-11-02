@@ -30,7 +30,7 @@ class Owner extends LocalHost:
 var failures: int = 0
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	call_deferred("_run")
 
 func _check(condition: bool, message: String) -> void:
@@ -45,7 +45,7 @@ func _run() -> void:
 	owner.process = child
 	root.add_child(owner)
 	var menu: Control = load("res://scenes/boot_menu.tscn").instantiate()
-	menu.set("_settings", FragrSettings.new("user://test-host-menu-%d.cfg" % OS.get_process_id()))
+	menu.set("_settings", LocalExceptionSettings.new("user://test-host-menu-%d.cfg" % OS.get_process_id()))
 	root.add_child(menu)
 	await process_frame
 	await menu._show("host")
@@ -289,7 +289,7 @@ func _run() -> void:
 	owner._process(0)
 	_check(owner.state == LocalHost.State.IDLE and not child.alive and child.stops == 1, "only explicit owner stop closes the native lease")
 	var returned: Control = load("res://scenes/boot_menu.tscn").instantiate()
-	returned.set("_settings", FragrSettings.new("user://test-host-return-%d.cfg" % OS.get_process_id()))
+	returned.set("_settings", LocalExceptionSettings.new("user://test-host-return-%d.cfg" % OS.get_process_id()))
 	root.add_child(returned)
 	await process_frame
 	await returned._show("host")
@@ -307,7 +307,7 @@ func _run() -> void:
 	owner.stop()
 	owner._process(0)
 	var reopened: Control = load("res://scenes/boot_menu.tscn").instantiate()
-	reopened.set("_settings", FragrSettings.new("user://test-host-reopen-%d.cfg" % OS.get_process_id()))
+	reopened.set("_settings", LocalExceptionSettings.new("user://test-host-reopen-%d.cfg" % OS.get_process_id()))
 	root.add_child(reopened)
 	await process_frame
 	await reopened._show("host")

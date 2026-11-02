@@ -1,4 +1,4 @@
-# Higgsfield: current docs vs fragr usage (checked 2026-10-24)
+# Higgsfield: current docs vs Local Exception usage (checked 2026-10-24)
 
 Sources: docs.higgsfield.ai (sitemap lastmod 2026-10-24 for billing, errors,
 idempotency, rate-limits, data-retention, usage-and-billing; model pages
@@ -37,7 +37,7 @@ Free live calls only: `POST /estimate/*`, `GET /models/usage`,
 
 ## 2. API behaviour changes the tool and pipeline doc predate
 
-| Topic | Docs now | fragr today |
+| Topic | Docs now | Local Exception today |
 |---|---|---|
 | `Idempotency-Key` header | Supported on every generation POST; same key returns original request_id, no second charge; 422 on param mismatch | Not sent. Any ambiguous POST leaves `Reserved` and needs manual dashboard recovery |
 | Above concurrency | Accepted and `queued`, starts automatically | pipeline doc says "about four, exceeding returns HTTP 400" (stale) |
@@ -56,7 +56,7 @@ Free live calls only: `POST /estimate/*`, `GET /models/usage`,
 
 Live estimates 2026-10-24 for a short prop prompt, 1:1:
 
-| Endpoint | Key params | Est. USD | Fit for fragr |
+| Endpoint | Key params | Est. USD | Fit for Local Exception |
 |---|---|---|---|
 | `marketing-studio/image` (2.0 Alpha) | quality low/med/high; 1k/2k/4k; up to 16 `image_urls`; `moderation` auto/low | low 1k .017, 2k .023, 4k .031; med 1k .064, 2k .118, 4k .189; high 1k .222, 2k .439, 4k .723. Refs add: med 2k +1 ref .131, +3 refs .157; high 4:3 +1 ref .339. **med 2k 16:9 .070** | Current workhorse; proven edits/registration |
 | `marketing-studio/image/flare` (2.5 Flare) | adds xhigh/max; same 16 refs | **no usd: token-priced** ($30/1M image-output tokens, $8/1M image input), "initial charge is an estimate reconciled on completion" | OpenAI: "small model, quality comparable to GPT Image 2" |
@@ -96,7 +96,7 @@ surcharge are consistent with GPT Image 2, an inference):
 - `xhigh`/`max` only when they fix an unmet requirement.
 - gpt-image-1 retired 2026-10-23; gpt-image-1.5 shuts down 2026-12-01.
 
-fragr's specs already follow most of this (style/subject/view/technical
+Local Exception's specs already follow most of this (style/subject/view/technical
 sections, hex colours from palette.json, explicit avoid lists, magenta field,
 refs for every promoted frame). Gaps: refs are not role-labelled in the prompt
 ("Image 1 = style board, Image 2 = subject"), and invariants are not always
@@ -130,7 +130,7 @@ restated per frame.
    Sunburst, Qwen/Recraft/Grok/Z-Image rows, `api-capabilities.json` probes
    (Meshy/Tripo names via Higgsfield 404 and are not in the catalog).
 
-## 6. Asset-type guidance for fragr
+## 6. Asset-type guidance for Local Exception
 
 - **Meshy image-to-3D inputs:** 2k medium + refs is the proven sweet spot
   (H-1a/H-5/H-M7 all passed canon). 4k/high costs ~6x with no shown benefit

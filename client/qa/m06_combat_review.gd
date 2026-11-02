@@ -7,9 +7,9 @@ extends "res://scripts/qa_tour.gd"
 ## optic colour and plate value can be judged at pixel scale. Observations
 ## only: the route's inputs, geometry and gates are the tour's own.
 ##
-## Run with `FRAGR_QA_SCRIPT=res://qa/m06_combat_review.gd
-## FRAGR_QA_MANIFEST=res://qa/m06_port_of_entry.json FRAGR_QA_BOTS=0
-## FRAGR_QA_SEED=42 FRAGR_QA_MAP_FILE=server/maps/m06_port_of_entry.json
+## Run with `LOCALEXCEPTION_QA_SCRIPT=res://qa/m06_combat_review.gd
+## LOCALEXCEPTION_QA_MANIFEST=res://qa/m06_port_of_entry.json LOCALEXCEPTION_QA_BOTS=0
+## LOCALEXCEPTION_QA_SEED=42 LOCALEXCEPTION_QA_MAP_FILE=server/maps/m06_port_of_entry.json
 ## tools/qa_tour.sh <out>`. Stills and `m06-combat-review.json` land in <out>.
 const WATCH_KINDS: Array[String] = ["turret", "heavy_sweeper"]
 ## Windup progress that counts as the top of the tell.

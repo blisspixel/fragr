@@ -10,7 +10,7 @@ Make the controls offered by the retro menus real, persistent, and usable during
 a match. The current front menu changes display/audio state without saving it;
 the settings file contains unused keys, and sensitivity only works in the console.
 
-Use one shared settings panel and the existing `FragrSettings` store. Draft edits
+Use one shared settings panel and the existing `LocalExceptionSettings` store. Draft edits
 apply only after a successful save; Cancel and Escape discard them. Validate
 types, finite numbers, ranges, and enumerations before values reach the engine.
 Retain profile preferences. Retire unused keys instead of implying they work.
@@ -56,7 +56,7 @@ VSync availability depends on the renderer/platform; do not promise its support.
 
 ## Implementation and evidence
 
-`SettingsPanel` owns a draft, while `FragrSettings.commit` writes before notifying
+`SettingsPanel` owns a draft, while `LocalExceptionSettings.commit` writes before notifying
 runtime readers. Saves write beside the destination before replacement; a failed
 write leaves active values unchanged. Unknown keys and wrong types fall back
 safely. Numeric inputs require finite values and bounded ranges. Legacy exclusive

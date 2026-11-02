@@ -16,8 +16,8 @@ var _failures: PackedStringArray = []
 
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
-	set_meta("fragr_settings_path", "")
+	set_meta("localexception_automated", true)
+	set_meta("localexception_settings_path", "")
 	_run.call_deferred()
 
 
@@ -123,14 +123,14 @@ func _wire() -> void:
 
 func _settings() -> void:
 	var path: String = "user://test-looks-%d.cfg" % OS.get_process_id()
-	var settings: FragrSettings = FragrSettings.new(path)
+	var settings: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	_expect(settings.player_look() == FighterLooks.AUTO and settings.player_accent() == FighterLooks.AUTO
 		and settings.player_dress().is_empty(), "the default lets the server choose")
 	settings.set_value("profile", "body", PlayerBody.HUMAN)
 	settings.set_value("profile", "look", 7)
 	settings.set_value("profile", "accent", 5)
 	_expect(settings.save_to_disk() == OK, "settings save")
-	var loaded: FragrSettings = FragrSettings.new(path)
+	var loaded: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	loaded.load_from_disk()
 	_expect(loaded.player_dress() == {"look": 7, "accent": 5}, "look and accent round trip the one settings file")
 	loaded.set_value("profile", "body", PlayerBody.SYNTHETIC)

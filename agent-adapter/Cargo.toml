@@ -1,5 +1,5 @@
 [package]
-name = "fragr-agent-adapter"
+name = "localexception-agent-adapter"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
@@ -8,7 +8,7 @@ repository.workspace = true
 [dependencies]
 # The wire types live in the server crate; the adapter reads them there so a
 # protocol change is edited once. tools/playtest does the same.
-fragr-server = { path = "../server", version = "0.1.0" }
+localexception-server = { path = "../server", version = "0.1.0" }
 tokio = { version = "1.40", features = ["full"] }
 tokio-tungstenite = "0.24"
 futures-util = "0.3"
@@ -24,4 +24,4 @@ getrandom = "=0.2.15"
 workspace = true
 
 [build-dependencies]
-fragr-build-metadata = { version = "0.1.0", path = "../tools/build-metadata" }
+localexception-build-metadata = { version = "0.1.0", path = "../tools/build-metadata" }

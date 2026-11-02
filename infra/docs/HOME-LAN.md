@@ -17,7 +17,7 @@ docker compose ps
 ```
 
 The image compiles the locked Rust server, embeds the shipped maps and carries
-fragr's license and the linked crates' notices under `/usr/share/doc/fragr`.
+Local Exception's license and the linked crates' notices under `/usr/share/doc/localexception`.
 Compose
 starts four rule bots on Arena Duel, restarts the process if it exits, and
 checks that `GET /status` reports `health.status: ok` from inside the
@@ -30,7 +30,7 @@ docker compose logs --tail=100 server
 docker compose down
 ```
 
-Set `FRAGR_BOTS` or `FRAGR_MAP` in the shell or a repository-root `.env` before
+Set `LOCALEXCEPTION_BOTS` or `LOCALEXCEPTION_MAP` in the shell or a repository-root `.env` before
 starting Compose to change the roster or map. `.env` is ignored by Git. To
 select a rule set, use a local Compose override that replaces the `command`
 array with the server's documented CLI flags. Do not put join secrets in the
@@ -52,7 +52,7 @@ returning to the menu does not. Earlier desktop releases can join a dedicated
 host started with:
 
 ```bash
-fragr-server --mode sabotage --map 4 --bots 4 --sabotage-five-v-five
+localexception-server --mode sabotage --map 4 --bots 4 --sabotage-five-v-five
 ```
 
 All ten fighter seats are shared by humans, agents and rule bots, with at most
@@ -65,7 +65,7 @@ in your room description; no new discovery field is sent in this increment.
 For optional automatic fill, select it in Host or use:
 
 ```bash
-fragr-server --mode sabotage --map 4 --sabotage-five-v-five --bots 0 --bot-policy auto --fill-target 10
+localexception-server --mode sabotage --map 4 --sabotage-five-v-five --bots 0 --bot-policy auto --fill-target 10
 ```
 
 Humans and external agents replace eligible server-owned bots equally. A
@@ -110,13 +110,13 @@ planned. This flag adds no buy shop, reload system or mandatory full roster.
   double NAT, a small host with a public address is an alternative in
   [CHEAP-VPS.md](CHEAP-VPS.md).
 
-The app's Multiplayer page and `FRAGR_SERVER` accept the host address.
+The app's Multiplayer page and `LOCALEXCEPTION_SERVER` accept the host address.
 The adapter connects to the configured WebSocket endpoint. Tailscale can be
 used for a private test, but is not required for the public join path.
 
 ## Admission and access files
 
-An unset or empty `FRAGR_JOIN_SECRET` leaves player admission open. To require
+An unset or empty `LOCALEXCEPTION_JOIN_SECRET` leaves player admission open. To require
 join tickets, set one 16 to 256 byte value as an environment variable on the
 host and on each human or agent client. Compose passes it to the server.
 Spectators can still watch. The client and host clocks must agree within about
@@ -144,7 +144,7 @@ records the later TLS, measured transport and cloud gates.
 ## Without Docker
 
 ```bash
-cargo run -p fragr-server --locked -- --bind 127.0.0.1:6767 --bots 4
+cargo run -p localexception-server --locked -- --bind 127.0.0.1:6767 --bots 4
 ```
 
 For LAN peers, bind `0.0.0.0:6767` and apply the same firewall rule. The

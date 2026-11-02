@@ -49,8 +49,8 @@ var _list_queue: Array[String] = []
 var _list_current: String = ""
 var _list_started: int = 0
 var _list_generation: int = 0
-var _console: FragrConsole = null
-var _settings: FragrSettings
+var _console: LocalExceptionConsole = null
+var _settings: LocalExceptionSettings
 var _name_edit: LineEdit = null
 var _local_match: LocalMatch
 var _local_host: LocalHost
@@ -97,9 +97,9 @@ var _benchmark_tune: bool = false
 var _tune_offer: Control = null
 var _tune_countdown: float = 0.0
 ## Tree meta: the card was shown (or a tune ran) this session; never twice.
-const TUNE_OFFERED_META: StringName = &"fragr_tune_offered"
+const TUNE_OFFERED_META: StringName = &"localexception_tune_offered"
 ## Tree meta that shows the card even under automation (captures, checks).
-const TUNE_OFFER_FORCE_META: StringName = &"fragr_tune_offer_force"
+const TUNE_OFFER_FORCE_META: StringName = &"localexception_tune_offer_force"
 const TUNE_OFFER_SECONDS: float = 8.0
 const TUNE_CANCELLED: String = "Auto settings cancelled. Nothing changed. Run Auto settings here any time."
 ## How the last benchmark ended when it ended early; shown on the page until
@@ -153,7 +153,7 @@ func _ready() -> void:
 	theme = MenuTheme.build(MenuTheme.Context.FRONT_END)
 	MenuFocus.attach(self)
 	if _settings == null:
-		_settings = FragrSettings.for_tree(get_tree())
+		_settings = LocalExceptionSettings.for_tree(get_tree())
 	_settings.load_from_disk()
 	_book = ServerBook.for_tree(get_tree(), _settings.storage_path)
 	_settings.changed.connect(_apply_preferences)
@@ -185,8 +185,8 @@ func _ready() -> void:
 		_show("main")
 		if _should_offer_tune():
 			_open_tune_offer()
-	_console = FragrConsole.new()
-	_console.name = "FragrConsole"
+	_console = LocalExceptionConsole.new()
+	_console.name = "LocalExceptionConsole"
 	_console.preferences = _settings
 	add_child(_console)
 	var frame_counter: PerformanceOverlay = PerformanceOverlay.new()
@@ -226,10 +226,10 @@ func _build_chrome() -> void:
 
 	var title: Label = Label.new()
 	_title = title
-	title.text = "FRAGR"
+	title.text = "LOCAL EXCEPTION"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_override("font", MENU_FONT)
-	title.add_theme_font_size_override("font_size", MenuTheme.DISPLAY_LARGE)
+	title.add_theme_font_size_override("font_size", MenuTheme.DISPLAY_MEDIUM)
 	title.add_theme_color_override("font_color", _palette.text)
 	title.add_theme_color_override("font_shadow_color", _palette.rust)
 	title.add_theme_constant_override("shadow_offset_x", 6)
@@ -341,7 +341,7 @@ func _show(page: String) -> void:
 		_release_fetch.cancel()
 	_remember_focus()
 	_page = page
-	_title.add_theme_font_size_override("font_size", MenuTheme.DISPLAY_MEDIUM if page in ["records", "settings", "profile", "rewards", "multi", "join", "host", "benchmark"] else MenuTheme.DISPLAY_LARGE)
+	_title.add_theme_font_size_override("font_size", MenuTheme.DISPLAY_SMALL if page in ["records", "settings", "profile", "rewards", "multi", "join", "host", "benchmark"] else MenuTheme.DISPLAY_MEDIUM)
 	_column.custom_minimum_size.x = 1200.0 if page == "settings" else 1100.0 if page == "benchmark" else 960.0 if page in ["host", "records"] else 780.0
 	(get_node("MenuBackdrop") as MenuBackdrop).content_width = _column.custom_minimum_size.x
 	_clear()
@@ -1098,7 +1098,7 @@ func _should_offer_tune() -> bool:
 		return false
 	if tree.has_meta(TUNE_OFFER_FORCE_META):
 		return true
-	if DisplayServer.get_name() == "headless" or tree.has_meta("fragr_automated"):
+	if DisplayServer.get_name() == "headless" or tree.has_meta("localexception_automated"):
 		return false
 	var record: Dictionary = _settings.get_value("video", "tune")
 	if record.has("compat_trial"):
@@ -1222,7 +1222,7 @@ func _skip_tune_offer() -> void:
 		record.erase("compat_trial")
 	else:
 		record = AutoTune.lookup_record(HardwareProfile.read(), _settings.target_fps())
-	var draft: FragrSettings = _settings.draft()
+	var draft: LocalExceptionSettings = _settings.draft()
 	AutoTune.apply_record(draft, record)
 	draft.set_value("video", "tune", record)
 	_settings.commit(draft)
@@ -1351,10 +1351,10 @@ func _on_benchmark_ready(address: String) -> void:
 		return
 	_benchmark_pending = false
 	BenchmarkRun.present_uncapped()
-	get_tree().set_meta("fragr_boot", BenchmarkRun.boot_for(str(endpoint["game_url"]), _benchmark_compare, _benchmark_tune))
+	get_tree().set_meta("localexception_boot", BenchmarkRun.boot_for(str(endpoint["game_url"]), _benchmark_compare, _benchmark_tune))
 	var err: Error = get_tree().change_scene_to_file(ARENA_SCENE)
 	if err != OK:
-		get_tree().remove_meta("fragr_boot")
+		get_tree().remove_meta("localexception_boot")
 		BenchmarkRun.restore_presentation(_settings)
 		push_error("boot_menu: failed to load arena scene: " + str(err))
 		if _status != null:
@@ -1670,7 +1670,7 @@ func _host_rotation_choice() -> Dictionary:
 	return choice
 
 func _save_host_rotation() -> void:
-	var draft: FragrSettings = _settings.draft()
+	var draft: LocalExceptionSettings = _settings.draft()
 	if _host_bot_skill != null:
 		draft.set_value("host", "bot_skill", LocalHost.BOT_SKILLS[_host_bot_skill.selected])
 	if _host_rotate != null and _host_rotate.visible:
@@ -2174,7 +2174,7 @@ func _remember_join_draft(value: String) -> void:
 func _join_field_text() -> String:
 	if not _join_draft.strip_edges().is_empty():
 		return _join_draft
-	var env: String = OS.get_environment("FRAGR_SERVER").strip_edges()
+	var env: String = OS.get_environment("LOCALEXCEPTION_SERVER").strip_edges()
 	if not env.is_empty():
 		return env
 	return LOOPBACK
@@ -2549,10 +2549,10 @@ func _launch(mode: String, host: String, run_mode: String = "") -> void:
 	if mode == "campaign":
 		boot["run_mode"] = run_mode
 		boot["play_arrival"] = run_mode == "resume" and _campaign_play_arrival
-	get_tree().set_meta("fragr_boot", boot)
+	get_tree().set_meta("localexception_boot", boot)
 	var err: Error = get_tree().change_scene_to_file(ARENA_SCENE)
 	if err != OK:
-		get_tree().remove_meta("fragr_boot")
+		get_tree().remove_meta("localexception_boot")
 		if mode == "campaign":
 			_local_match.stop()
 		push_error("boot_menu: failed to load arena scene: " + str(err))

@@ -17,11 +17,11 @@ use crate::provider::{decide, decision_request, Provider, Transport};
 use crate::telemetry::{observe, EnemyView, RecentHits, Telemetry};
 use crate::timeline::Timeline;
 use crate::Error;
-use fragr_server::protocol::{
+use futures_util::{SinkExt, StreamExt};
+use localexception_server::protocol::{
     Action, CampaignDifficulty, CampaignRunStatus, ClientMessage, GameEvent, MissionId,
     MissionPhase, MissionState, Role, ServerMessage, SetDisplayBehavior, Snapshot,
 };
-use futures_util::{SinkExt, StreamExt};
 use serde::Serialize;
 use serde_json::Value;
 use std::collections::BTreeMap;
@@ -125,7 +125,7 @@ pub struct BotConfig {
     /// Optional local diagnostic file for bounded campaign observations.
     pub timeline_path: Option<PathBuf>,
     /// The pawn's body, sent in Hello. Presentation only.
-    pub body: fragr_server::protocol::BodyKind,
+    pub body: localexception_server::protocol::BodyKind,
 }
 
 /// What one run did, printed as JSON when it ends.
@@ -198,7 +198,10 @@ impl From<&MissionState> for MissionReceipt {
     }
 }
 
-fn set_record_counts(summary: &mut BotSummary, total: &fragr_server::protocol::CombatCounts) {
+fn set_record_counts(
+    summary: &mut BotSummary,
+    total: &localexception_server::protocol::CombatCounts,
+) {
     summary.kills = Some(total.kills());
     summary.deaths = total.deaths.min(u64::from(u32::MAX)) as u32;
 }
@@ -292,9 +295,9 @@ fn terminal_mission(state: &MissionState) -> bool {
 
 fn terminal_record_matches(
     state: &MissionState,
-    record: &fragr_server::protocol::PlayerRecord,
+    record: &localexception_server::protocol::PlayerRecord,
 ) -> bool {
-    use fragr_server::protocol::{RecordScope, RecordStatus};
+    use localexception_server::protocol::{RecordScope, RecordStatus};
     let expected = match state.run.map(|run| run.status) {
         Some(CampaignRunStatus::Complete) => RecordStatus::Complete,
         Some(CampaignRunStatus::Failed) => RecordStatus::Failed,
@@ -314,10 +317,10 @@ fn terminal_record_matches(
 
 async fn drain_terminal_record<S>(
     stream: &mut S,
-    frames: &mut fragr_server::protocol::WorldReader,
+    frames: &mut localexception_server::protocol::WorldReader,
     id: Option<Uuid>,
     state: &MissionState,
-    record: &mut Option<fragr_server::protocol::PlayerRecord>,
+    record: &mut Option<localexception_server::protocol::PlayerRecord>,
     summary: &mut BotSummary,
 ) -> Result<bool, Error>
 where
@@ -362,7 +365,7 @@ where
 fn decision_state(
     telemetry: &Telemetry,
     mission: Option<&MissionState>,
-    loadout: Option<&fragr_server::protocol::LoadoutState>,
+    loadout: Option<&localexception_server::protocol::LoadoutState>,
     enemy_visible: Option<bool>,
 ) -> Value {
     let mut state = telemetry.state_object();
@@ -447,8 +450,8 @@ impl DecisionEpoch {
                 facts.tram.feet = [0.0; 3];
                 facts.tram.tick = 0;
                 // Temporary physical obstruction does not obsolete intent.
-                if facts.tram.phase == fragr_server::protocol::M05TramPhase::Blocked {
-                    facts.tram.phase = fragr_server::protocol::M05TramPhase::Moving;
+                if facts.tram.phase == localexception_server::protocol::M05TramPhase::Blocked {
+                    facts.tram.phase = localexception_server::protocol::M05TramPhase::Moving;
                 }
             }
             state
@@ -702,7 +705,7 @@ fn spawn_decision(
 fn constrain_campaign_equipment(
     plan: &mut Plan,
     mission: bool,
-    loadout: Option<&fragr_server::protocol::LoadoutState>,
+    loadout: Option<&localexception_server::protocol::LoadoutState>,
 ) {
     if mission {
         plan.weapon = plan
@@ -715,8 +718,8 @@ fn align_campaign_enemy(
     telemetry: &mut Telemetry,
     id: Uuid,
     snapshot: &Snapshot,
-    world: &fragr_server::navigation::Navigation,
-    solids: Option<&[fragr_server::movement::Solid]>,
+    world: &localexception_server::navigation::Navigation,
+    solids: Option<&[localexception_server::movement::Solid]>,
 ) {
     let mine = snapshot.players.iter().find(|player| player.id == id);
     telemetry.enemy = mine.and_then(|mine| {
@@ -757,16 +760,16 @@ pub async fn run_bot(
         .map_err(transport_err)?;
     let (mut sink, mut stream) = ws.split();
     // The last world the server sent: snapshot deltas apply to it.
-    let mut frames = fragr_server::protocol::WorldReader::new();
+    let mut frames = localexception_server::protocol::WorldReader::new();
     let hello = ClientMessage::Hello {
         body: Some(config.body),
         dress: None,
         seat: None,
-        gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
-        geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
+        gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
+        geometry_version: localexception_server::protocol::GEOMETRY_VERSION,
         role: Role::Agent,
         name: config.name.clone(),
-        ticket: fragr_server::join_ticket::ticket_for(Role::Agent),
+        ticket: localexception_server::join_ticket::ticket_for(Role::Agent),
         resume: None,
     };
     if !send_text(
@@ -805,13 +808,13 @@ pub async fn run_bot(
     let mut me: Option<Uuid> = None;
     let mut frag_identity = FragSummaryIdentity::default();
     let mut last: Option<Snapshot> = None;
-    let mut loadout: Option<fragr_server::protocol::LoadoutState> = None;
-    let mut record: Option<fragr_server::protocol::PlayerRecord> = None;
+    let mut loadout: Option<localexception_server::protocol::LoadoutState> = None;
+    let mut record: Option<localexception_server::protocol::PlayerRecord> = None;
     let mut navigation = None;
-    let mut navigator = fragr_server::navigation::Navigator::default();
-    let mut carrier_defense = fragr_server::sim::ctf::CarrierContactDefense::default();
+    let mut navigator = localexception_server::navigation::Navigator::default();
+    let mut carrier_defense = localexception_server::sim::ctf::CarrierContactDefense::default();
     let mut stall = crate::plan::StallWatch::default();
-    let mut mission_client = fragr_server::mission::MissionClient::default();
+    let mut mission_client = localexception_server::mission::MissionClient::default();
     let mut mission_geometry = None;
     let mut timeline = config.timeline_path.as_ref().map(|_| Timeline::default());
     let mut hits = RecentHits::default();
@@ -931,7 +934,7 @@ pub async fn run_bot(
                     Ok(ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, m19, m20, epilogue, map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
                         decision_epoch.advance();
                         carrier_defense.clear();
-                        if let Err(error) = fragr_server::protocol::validate_map_presentation(presentation.as_ref(), &solids) {
+                        if let Err(error) = localexception_server::protocol::validate_map_presentation(presentation.as_ref(), &solids) {
                             session_error = Some(Error::Transport(format!("invalid map presentation: {error}")));
                             break;
                         }
@@ -949,7 +952,7 @@ pub async fn run_bot(
                             session_error = Some(Error::Transport(format!("invalid M04 mission map: {error}")));
                             break;
                         }
-                        if let Err(error) = fragr_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version) {
+                        if let Err(error) = localexception_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version) {
                             session_error = Some(Error::Transport(format!("invalid navigation map: {error}")));
                             break;
                         }
@@ -988,9 +991,9 @@ pub async fn run_bot(
                             session_error = Some(Error::Transport(format!("invalid Still Here mission map: {error}")));
                             break;
                         }
-                        let arena = fragr_server::movement::Arena { half: half_extent, solids };
+                        let arena = localexception_server::movement::Arena { half: half_extent, solids };
                         let built = tokio::task::spawn_blocking(move || {
-                            fragr_server::navigation::Navigation::shared(arena)
+                            localexception_server::navigation::Navigation::shared(arena)
                         }).await.map_err(|_| "navigation worker failed").and_then(|result| result);
                         match built {
                             Ok(world) => navigation = Some(world),
@@ -1052,11 +1055,11 @@ pub async fn run_bot(
                         _ => micro_action(&plan, id, snapshot),
                     }};
                     let action = if let (Some(_), Some(world)) = (mission_client.state.as_ref(), navigation.as_ref()) {
-                        fragr_server::inventory::control_action_with_target_filter(id, snapshot, loadout.as_ref(), action, true, |mine, other| campaign_enemy_engageable_with_solids(world, mine, other, live_solids.as_deref()))
+                        localexception_server::inventory::control_action_with_target_filter(id, snapshot, loadout.as_ref(), action, true, |mine, other| campaign_enemy_engageable_with_solids(world, mine, other, live_solids.as_deref()))
                     } else if let Some(world) = navigation.as_ref().filter(|_| snapshot.flags.is_some()) {
-                        fragr_server::inventory::control_action_with_target_filter(id, snapshot, loadout.as_ref(), action, true, |mine, other| target_visible(world, mine, other))
+                        localexception_server::inventory::control_action_with_target_filter(id, snapshot, loadout.as_ref(), action, true, |mine, other| target_visible(world, mine, other))
                     } else {
-                        fragr_server::inventory::control_action_with_objective(id, snapshot, loadout.as_ref(), action, snapshot.flags.is_some())
+                        localexception_server::inventory::control_action_with_objective(id, snapshot, loadout.as_ref(), action, snapshot.flags.is_some())
                     };
                     let action = if mission_client.state.as_ref().is_some_and(|state| !matches!(state.phase, MissionPhase::Briefing | MissionPhase::Departed)) {
                         stall.apply(id, snapshot, action)
@@ -1326,13 +1329,13 @@ mod tests {
     use crate::provider::fakes::{push_answers, FakeTransport};
     use crate::provider::HttpResponse;
     use crate::telemetry::fixtures::{player, snapshot};
-    use fragr_server::protocol::{
+    use localexception_server::protocol::{
         AmmoCount, AmmoPool, CampaignRules, CampaignRunState, CombatCounts, LoadoutState,
         MissionMember, PlayerRecord, RecordScope, RecordStatus, WeaponType,
         RECORD_TICKS_PER_SECOND, RECORD_VERSION,
     };
-    use fragr_server::run::{run_server, ServerOptions};
-    use fragr_server::sim::{MapKind, MatchConfig};
+    use localexception_server::run::{run_server, ServerOptions};
+    use localexception_server::sim::{MapKind, MatchConfig};
 
     #[test]
     fn frag_summary_uses_ids_and_retains_legacy_ambiguity_without_double_records() {
@@ -1620,7 +1623,7 @@ mod tests {
         let started = tokio::time::Instant::now();
         let complete = drain_terminal_record(
             &mut stream,
-            &mut fragr_server::protocol::WorldReader::new(),
+            &mut localexception_server::protocol::WorldReader::new(),
             Some(state.party[0].id),
             &state,
             &mut received,
@@ -1641,7 +1644,7 @@ mod tests {
         let mut received = None;
         let complete = drain_terminal_record(
             &mut stream,
-            &mut fragr_server::protocol::WorldReader::new(),
+            &mut localexception_server::protocol::WorldReader::new(),
             Some(state.party[0].id),
             &state,
             &mut received,
@@ -1755,9 +1758,9 @@ mod tests {
 
     #[test]
     fn campaign_decision_enemy_matches_the_exposed_combat_target() {
-        use fragr_server::movement::{Arena, Solid};
-        use fragr_server::navigation::Navigation;
-        use fragr_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
+        use localexception_server::movement::{Arena, Solid};
+        use localexception_server::navigation::Navigation;
+        use localexception_server::protocol::{CampaignActor, EnemyKind, EnemyPhase};
         let id = Uuid::from_u128(1);
         let mut mine = player("Brain", id, 0.0, 0.0, 100, "tack");
         mine.campaign = Some(CampaignActor::Participant {});
@@ -1827,12 +1830,12 @@ mod tests {
     }
 
     async fn boot_server(bots: usize) -> (String, tokio::sync::oneshot::Sender<()>) {
-        boot_server_with_mode(bots, fragr_server::protocol::GameMode::Ffa).await
+        boot_server_with_mode(bots, localexception_server::protocol::GameMode::Ffa).await
     }
 
     async fn boot_server_with_mode(
         bots: usize,
-        mode: fragr_server::protocol::GameMode,
+        mode: localexception_server::protocol::GameMode,
     ) -> (String, tokio::sync::oneshot::Sender<()>) {
         let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
         let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
@@ -1842,12 +1845,12 @@ mod tests {
             authored: None,
             bind: "127.0.0.1:0".to_string(),
             bots,
-            bot_policy: fragr_server::bot_fill::BotPolicy::Fixed,
+            bot_policy: localexception_server::bot_fill::BotPolicy::Fixed,
             fill_target: 0,
-            bot_skill: fragr_server::sim::BotSkill::default(),
+            bot_skill: localexception_server::sim::BotSkill::default(),
             // Larak Lot (map 1) has no flag stands; capture the flag plays
             // on Sector 9.
-            map: if mode == fragr_server::protocol::GameMode::Ctf {
+            map: if mode == localexception_server::protocol::GameMode::Ctf {
                 MapKind::Sector9
             } else {
                 MapKind::default()
@@ -1857,7 +1860,7 @@ mod tests {
             playlist: false,
             solo_broadcast: false,
             match_config: Some(MatchConfig {
-                rules: fragr_server::rules::RuleSet::new(mode, &[], false).unwrap(),
+                rules: localexception_server::rules::RuleSet::new(mode, &[], false).unwrap(),
                 warmup_ticks: 1,
                 boss_spawn_ticks: None,
                 compliance_ping_ticks: None,
@@ -1907,12 +1910,13 @@ mod tests {
             gate: Gate::default(),
             max_seconds: Some(seconds),
             timeline_path: None,
-            body: fragr_server::protocol::BodyKind::Synthetic,
+            body: localexception_server::protocol::BodyKind::Synthetic,
         }
     }
 
     fn budget(run_usd: f64) -> Arc<Mutex<Budget>> {
-        let path = std::env::temp_dir().join(format!("fragr-brain-bot-{}.jsonl", Uuid::new_v4()));
+        let path =
+            std::env::temp_dir().join(format!("localexception-brain-bot-{}.jsonl", Uuid::new_v4()));
         Arc::new(Mutex::new(
             Budget::with_ledger(
                 Caps {
@@ -2033,7 +2037,7 @@ mod tests {
 
     #[tokio::test]
     async fn delayed_model_survives_tram_motion_but_not_objective_or_retry_changes() {
-        use fragr_server::protocol::{
+        use localexception_server::protocol::{
             M05ObjectiveState, M05TramPhase, M05TramState, M05WorkerState, MissionObjective,
             MissionObjectiveAction, Region3,
         };
@@ -2197,12 +2201,12 @@ mod tests {
         let mut yard = mission.clone();
         yard.id = MissionId::ScheduledService;
         yard.m05 = None;
-        yard.m03 = Some(fragr_server::protocol::M03ObjectiveState {
+        yard.m03 = Some(localexception_server::protocol::M03ObjectiveState {
             mast_hp: 80,
             mast_secured: false,
             train_secured: false,
             current: None,
-            cars: vec![fragr_server::protocol::M03CarState {
+            cars: vec![localexception_server::protocol::M03CarState {
                 id: "platform_car".into(),
                 released: true,
                 captives: [[0.0; 3]; 2],
@@ -2222,13 +2226,13 @@ mod tests {
         let mut town = mission;
         town.id = MissionId::NoticeToVacate;
         town.m05 = None;
-        town.m04 = Some(fragr_server::protocol::M04ObjectiveState {
+        town.m04 = Some(localexception_server::protocol::M04ObjectiveState {
             completed: vec![],
             current: None,
             clinic_secured: true,
             clinic_open: true,
             patients_released: true,
-            patients: vec![fragr_server::protocol::M04PatientState {
+            patients: vec![localexception_server::protocol::M04PatientState {
                 id: "patient_a".into(),
                 feet: [0.0; 3],
             }],
@@ -2249,7 +2253,7 @@ mod tests {
         let mut port = town;
         port.id = MissionId::PortOfEntry;
         port.m04 = None;
-        port.m06 = Some(fragr_server::protocol::M06ObjectiveState {
+        port.m06 = Some(localexception_server::protocol::M06ObjectiveState {
             completed: vec![],
             current: None,
             prisoner_route_marked: false,
@@ -2301,7 +2305,8 @@ mod tests {
             let id = Uuid::from_u128(1);
             let welcome = serde_json::json!({"type":"welcome", "player_id":id, "role":"agent"});
             let mut map =
-                serde_json::to_value(fragr_server::sim::GameState::new().map_info()).unwrap();
+                serde_json::to_value(localexception_server::sim::GameState::new().map_info())
+                    .unwrap();
             map["solids"] = serde_json::json!([]);
             map["presentation"] = serde_json::Value::Null;
             let mut scene = snapshot(
@@ -2436,7 +2441,8 @@ mod tests {
 
     #[tokio::test]
     async fn invalid_map_stops_before_actions_or_paid_decisions() {
-        let valid = serde_json::to_value(fragr_server::sim::GameState::new().map_info()).unwrap();
+        let valid =
+            serde_json::to_value(localexception_server::sim::GameState::new().map_info()).unwrap();
         let mut extent = valid.clone();
         extent["half_extent"] = serde_json::json!(f32::MAX);
         let mut version = valid.clone();
@@ -2475,7 +2481,7 @@ mod tests {
             assert!(matches!(
                 serde_json::from_str::<ClientMessage>(hello.to_text().unwrap()).unwrap(),
                 ClientMessage::Hello {
-                    body: Some(fragr_server::protocol::BodyKind::Synthetic),
+                    body: Some(localexception_server::protocol::BodyKind::Synthetic),
                     role: Role::Agent,
                     ..
                 }
@@ -2690,14 +2696,14 @@ mod tests {
 
     #[tokio::test]
     async fn six_free_brains_play_ctf_on_real_sockets() {
-        use fragr_server::protocol::{GameMode, Team};
+        use localexception_server::protocol::{GameMode, Team};
         let (url, shutdown) = boot_server_with_mode(0, GameMode::Ctf).await;
         let transport = Arc::new(FakeTransport::ok(push_answers()));
         let stop = Arc::new(AtomicBool::new(false));
         let (mut observer, _) = connect_async(&url).await.unwrap();
         let hello = serde_json::json!({"type":"hello", "role":"spectator", "name":"Roster observer",
-            "geometry_version":fragr_server::protocol::GEOMETRY_VERSION,
-            "gameplay_version":fragr_server::protocol::GAMEPLAY_VERSION});
+            "geometry_version":localexception_server::protocol::GEOMETRY_VERSION,
+            "gameplay_version":localexception_server::protocol::GAMEPLAY_VERSION});
         observer
             .send(Message::Text(hello.to_string()))
             .await
@@ -2718,7 +2724,7 @@ mod tests {
         // moved or turned since it was first seen: actions are arriving.
         let mut first_pose = std::collections::HashMap::new();
         let mut acted = std::collections::HashSet::new();
-        let mut frames = fragr_server::protocol::WorldReader::new();
+        let mut frames = localexception_server::protocol::WorldReader::new();
         let first_tick = tokio::time::timeout(READINESS_BOUND, async {
             while let Some(Ok(frame)) = observer.next().await {
                 // Pings arrive between text frames; skip them.
@@ -2851,7 +2857,8 @@ mod tests {
             socket.next().await.unwrap().unwrap(); // Initial stance before observations.
             let id = Uuid::from_u128(1);
             let mut map =
-                serde_json::to_value(fragr_server::sim::GameState::new().map_info()).unwrap();
+                serde_json::to_value(localexception_server::sim::GameState::new().map_info())
+                    .unwrap();
             map["solids"] = serde_json::json!([]);
             map["presentation"] = serde_json::Value::Null;
             let scene = snapshot(
@@ -3333,8 +3340,8 @@ mod tests {
                 body: None,
                 dress: None,
                 seat: None,
-                gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
-                geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
+                gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
+                geometry_version: localexception_server::protocol::GEOMETRY_VERSION,
                 role: Role::Spectator,
                 name: "Spec".into(),
 
@@ -3346,7 +3353,7 @@ mod tests {
         .await
         .unwrap();
         let mut saw = false;
-        let mut frames = fragr_server::protocol::WorldReader::new();
+        let mut frames = localexception_server::protocol::WorldReader::new();
         let deadline = tokio::time::Instant::now() + Duration::from_secs(5);
         while tokio::time::Instant::now() < deadline {
             let Some(Ok(frame)) = stream.next().await else {

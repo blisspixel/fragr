@@ -297,7 +297,7 @@ use." (bible)
   dispatcher or ending narrator.
 - **Visual assets.** No ON AIR plaques. The `on_air` palette key "does not
   require radio branding or a logo plaque".
-- **Match calls.** Plain arena calls in fragr's voice: "No station ident and no
+- **Match calls.** Plain arena calls in Local Exception's voice: "No station ident and no
   frequency puns". Recordings are name-free.
 
 ---

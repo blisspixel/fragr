@@ -14,7 +14,7 @@ var _camera: SearchCamera
 var _driver: QaCombat
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

@@ -14,7 +14,7 @@ func _check(condition: bool, message: String) -> void:
 		push_error("test_input_glyphs: " + message)
 
 func _run() -> void:
-	FragrSettings.new("user://glyphs-unused.cfg").apply_controls()
+	LocalExceptionSettings.new("user://glyphs-unused.cfg").apply_controls()
 	InputDevice.reset()
 	_test_layout_detection()
 	_test_device_switching()
@@ -84,12 +84,12 @@ func _test_prompts() -> void:
 	_check(InputGlyphs.plain("{weapon_1}") == "1", "a key-only action still shows its key on a pad")
 	_check(InputGlyphs.plain("{unknown} {}") == "{unknown} {}", "unknown names stay literal")
 	# A rebound key shows up in the prompt.
-	var prefs: FragrSettings = FragrSettings.new("user://glyphs-unused.cfg")
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new("user://glyphs-unused.cfg")
 	InputBindings.assign(prefs, "interact", 0, "key:71")
 	prefs.apply_controls()
 	InputDevice.force(InputDevice.Kind.KEYBOARD)
 	_check(InputGlyphs.plain("{use}") == "G", "prompts follow rebinding")
-	FragrSettings.new("user://glyphs-unused.cfg").apply_controls()
+	LocalExceptionSettings.new("user://glyphs-unused.cfg").apply_controls()
 
 func _test_glyph_images() -> void:
 	var seen: Dictionary = {}

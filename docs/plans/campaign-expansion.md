@@ -154,7 +154,7 @@ one of these is not ready for graybox.
 ## The brief: objectives by difficulty
 
 GoldenEye's best idea was that the difficulty setting changes what you are
-asked to do, not only how hard enemies hit. fragr adopts it without puzzles.
+asked to do, not only how hard enemies hit. Local Exception adopts it without puzzles.
 
 Each level has a **brief** of up to three optional objectives, shown on the
 objective card after the main verb. Assisted lists the first, Standard the

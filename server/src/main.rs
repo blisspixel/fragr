@@ -1,16 +1,16 @@
 use clap::{CommandFactory, FromArgMatches, Parser};
-use fragr_server::logging::{
+use localexception_server::logging::{
     ansi_for_stream, init_logging, init_overview_logging, ColorChoice, OutputMode,
 };
-use fragr_server::run::{run_server, ServerOptions};
+use localexception_server::run::{run_server, ServerOptions};
 use std::io::IsTerminal;
 use std::path::PathBuf;
 
 // Eq is out because a threshold is a float; PartialEq still serves the tests.
 #[derive(Parser, Debug, PartialEq)]
-#[command(name = "fragr-server")]
-#[command(about = "fragr authoritative game server")]
-#[command(version = env!("FRAGR_CLI_VERSION"))]
+#[command(name = "localexception-server")]
+#[command(about = "Local Exception authoritative game server")]
+#[command(version = env!("LOCALEXCEPTION_CLI_VERSION"))]
 struct Args {
     /// Bind address for the WebSocket game server.
     #[arg(long, default_value = "0.0.0.0:6767", help_heading = "Match")]
@@ -22,12 +22,12 @@ struct Args {
 
     /// Fixed rule bots, no bots, or automatic total fighter population.
     #[arg(long, value_enum, default_value = "fixed", help_heading = "Match", conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
-    bot_policy: fragr_server::bot_fill::BotPolicy,
+    bot_policy: localexception_server::bot_fill::BotPolicy,
 
     /// How good the rule bots are, lowest first: tourist, walk-in, regular,
     /// headliner or no-crumbs. Every rung keeps the same honest eyes.
     #[arg(long, value_enum, default_value = "regular", help_heading = "Match", conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
-    bot_skill: fragr_server::sim::BotSkill,
+    bot_skill: localexception_server::sim::BotSkill,
 
     /// Desired total fighter count for automatic fill, 1 through 10.
     #[arg(long, default_value = "0", help_heading = "Match", conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
@@ -47,7 +47,7 @@ struct Args {
     /// stdin shutdown or EOF ends this loopback-only child.
     #[arg(group = "campaign_source")]
     #[arg(long, value_enum, hide = true, conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
-    local_mission: Option<fragr_server::protocol::MissionId>,
+    local_mission: Option<localexception_server::protocol::MissionId>,
 
     /// Own a desktop arcade server (FFA, TDM, CTF, Sabotage, Conquest, with mutators). Readiness is JSON
     /// on stdout; stdin shutdown or EOF ends only this explicit child.
@@ -55,7 +55,7 @@ struct Args {
     #[arg(long, hide = true, conflicts_with_all = ["campaign_source", "run_mode", "local_run_preview", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "frag_limit", "capture_limit", "sabotage_format", "ready_line"])]
     desktop_host: bool,
 
-    /// Loopback child for `fragr-agent-adapter mcp --local`. One flushed ArenaReady
+    /// Loopback child for `localexception-agent-adapter mcp --local`. One flushed ArenaReady
     /// JSON line on stdout after bind; stdin shutdown or EOF stops only this child.
     /// Any arcade mode the dedicated server already accepts, including free-for-all.
     #[arg(long, hide = true, conflicts_with_all = ["campaign_source", "run_mode", "local_run_preview", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "console", "map_file", "campaign_run"])]
@@ -63,7 +63,7 @@ struct Args {
 
     /// Persist an owned desktop campaign run. Omit for ephemeral development runs.
     #[arg(long, value_enum, hide = true, requires = "local_mission")]
-    run_mode: Option<fragr_server::local::LocalRunMode>,
+    run_mode: Option<localexception_server::local::LocalRunMode>,
 
     /// Read-only compatibility summary for the local campaign menu.
     #[arg(long, hide = true, conflicts_with_all = ["local_mission", "map_file", "map", "bots", "bind", "campaign_run", "difficulty", "bench", "bench_verify_trace"])]
@@ -71,7 +71,7 @@ struct Args {
 
     /// Shared campaign pressure. Fixed for this run; does not change arcade rules.
     #[arg(long, value_enum, requires = "campaign_source", help_heading = "Rules", conflicts_with_all = ["bench", "bench_verify_trace", "solo_broadcast", "map_rotate", "no_round_events"])]
-    difficulty: Option<fragr_server::protocol::CampaignDifficulty>,
+    difficulty: Option<localexception_server::protocol::CampaignDifficulty>,
 
     /// One combatant, three mission-start continues. Leaving ends this run.
     #[arg(long, requires = "campaign_source", help_heading = "Rules")]
@@ -110,19 +110,19 @@ struct Args {
     /// Match mode: ffa, tdm, ctf, sabotage or conquest. Conquest uses Holdfast Atoll.
     /// Capture the flag runs on Arena
     /// Duel, Directive 17, or Sector 9; Sabotage runs on Sector 9 or Low Water.
-    #[arg(long, value_enum, default_value_t = fragr_server::protocol::GameMode::Ffa, help_heading = "Match", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
-    mode: fragr_server::protocol::GameMode,
+    #[arg(long, value_enum, default_value_t = localexception_server::protocol::GameMode::Ffa, help_heading = "Match", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    mode: localexception_server::protocol::GameMode,
 
     /// A host rule twist, repeatable: rail-only, shotgun-only, fists-only,
     /// licence-to-kill, golden-rail, two-lives.
     #[arg(long = "mutator", value_enum, help_heading = "Rules", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
-    mutators: Vec<fragr_server::protocol::Mutator>,
+    mutators: Vec<localexception_server::protocol::Mutator>,
 
     /// A named rule package: standard, licence-to-kill, golden-rail,
     /// slappers-only, shotgun-wedding or rail-only. Any `--mutator` stacks on
     /// top.
-    #[arg(long, value_enum, default_value_t = fragr_server::rules::preset::Preset::Standard, help_heading = "Rules", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
-    preset: fragr_server::rules::preset::Preset,
+    #[arg(long, value_enum, default_value_t = localexception_server::rules::preset::Preset::Standard, help_heading = "Rules", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    preset: localexception_server::rules::preset::Preset,
 
     /// Team damage lands. Needs a team mode. Off by default.
     #[arg(long, help_heading = "Rules", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
@@ -140,7 +140,7 @@ struct Args {
     /// Sabotage match length: short (halves of 4, first to 5, the default)
     /// or match (halves of 8, first to 9). Only valid with --mode sabotage.
     #[arg(long, value_enum, help_heading = "Rules", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
-    sabotage_format: Option<fragr_server::protocol::SabotageFormat>,
+    sabotage_format: Option<localexception_server::protocol::SabotageFormat>,
 
     /// Limit Sabotage to ten seated fighters, five per side. Spectators remain welcome.
     #[arg(long, help_heading = "Rules", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
@@ -213,7 +213,7 @@ struct Args {
     status_every_s: u64,
 
     /// Write one NDJSON line per tick (lateness, skipped periods, simulation
-    /// and delivery time) for stutter diagnosis. `FRAGR_TICK_TRACE` sets an
+    /// and delivery time) for stutter diagnosis. `LOCALEXCEPTION_TICK_TRACE` sets an
     /// absolute path when the host is launched by the client. Off by default.
     #[arg(long, value_name = "PATH", help_heading = "Hosting and access", conflicts_with_all = ["local_mission", "bench", "bench_verify_trace", "local_run_preview"])]
     tick_trace: Option<PathBuf>,
@@ -226,7 +226,7 @@ struct Args {
 
     /// Keep fun metrics: match-level tallies (frag pace, lead changes, gun
     /// shares, kill distances, time to contact, tick health), one file per
-    /// match under the run directory (`FRAGR_RUN_DIR`), shredded after 67
+    /// match under the run directory (`LOCALEXCEPTION_RUN_DIR`), shredded after 67
     /// days. No callsign, id or address is recorded, every Welcome and
     /// `/status` says it is on, and nothing is sent anywhere. Off by default.
     #[arg(long, default_value_t = false, help_heading = "Hosting and access", conflicts_with_all = ["campaign_source", "local_mission", "local_run_preview", "bench", "bench_verify_trace", "solo_broadcast"])]
@@ -296,7 +296,7 @@ fn parse_budget_fraction(raw: &str) -> Result<f64, String> {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    fragr_server::metrics::mark_process_start();
+    localexception_server::metrics::mark_process_start();
     let matches = Args::command().get_matches();
     let args = Args::from_arg_matches(&matches)?;
     let head_to_head = head_to_head_path(&args);
@@ -322,13 +322,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         init_logging(args.bench.is_some() || args.local_run_preview, args.color);
     }
     if args.local_run_preview {
-        let preview =
-            fragr_server::local::preview_run(fragr_server::protocol::MissionId::RecallNotice)?;
+        let preview = localexception_server::local::preview_run(
+            localexception_server::protocol::MissionId::RecallNotice,
+        )?;
         println!("{}", serde_json::to_string(&preview)?);
         return Ok(());
     }
     if let Some(mission) = args.local_mission {
-        return fragr_server::local::serve_with_mode(
+        return localexception_server::local::serve_with_mode(
             mission,
             args.seed,
             args.difficulty.unwrap_or_default(),
@@ -341,18 +342,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     if let Some(folder) = &args.fun_summary {
         print!(
             "{}",
-            fragr_server::fun_metrics::summary::host_report(folder.as_deref())?
+            localexception_server::fun_metrics::summary::host_report(folder.as_deref())?
         );
         return Ok(());
     }
     if let Some(path) = args.bench_verify_trace {
         let reader = std::io::BufReader::new(std::fs::File::open(path)?);
-        let summary = fragr_server::trace::verify_trace(reader)?;
+        let summary = localexception_server::trace::verify_trace(reader)?;
         println!("{}", serde_json::to_string_pretty(&summary)?);
         return Ok(());
     }
-    let map = fragr_server::sim::MapKind::from_cli(&args.map).ok_or_else(|| {
-        let roster: Vec<String> = fragr_server::sim::MapKind::ALL
+    let map = localexception_server::sim::MapKind::from_cli(&args.map).ok_or_else(|| {
+        let roster: Vec<String> = localexception_server::sim::MapKind::ALL
             .iter()
             .map(|m| format!("{} ({})", m.id(), m.name()))
             .collect();
@@ -366,7 +367,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .map_off
         .iter()
         .map(|raw| {
-            fragr_server::sim::MapKind::from_cli(raw)
+            localexception_server::sim::MapKind::from_cli(raw)
                 .ok_or_else(|| format!("invalid --map-off {raw:?}; it takes the --map tokens"))
         })
         .collect::<Result<Vec<_>, _>>()?;
@@ -385,7 +386,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let sink = output
             .as_mut()
             .map(|writer| writer as &mut dyn std::io::Write);
-        let mut report = fragr_server::bench::run_bench_with_trace(
+        let mut report = localexception_server::bench::run_bench_with_trace(
             bots,
             args.bench_ticks,
             map,
@@ -393,7 +394,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             sink,
         )?;
         if args.bench_check {
-            report = fragr_server::bench::check_repeated(report)?;
+            report = localexception_server::bench::check_repeated(report)?;
         }
         println!("{}", serde_json::to_string_pretty(&report)?);
         // A run that is not reproducible is a correctness failure, not a slow one.
@@ -402,7 +403,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         }
         if args.bench_assert {
             let complaints =
-                fragr_server::bench::check_thresholds(&report, args.bench_max_budget_p99);
+                localexception_server::bench::check_thresholds(&report, args.bench_max_budget_p99);
             for complaint in &complaints {
                 eprintln!("benchmark: {complaint}");
             }
@@ -413,23 +414,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         return Ok(());
     }
 
-    let join_secret = match fragr_server::join_ticket::JoinSecret::from_process_env() {
+    let join_secret = match localexception_server::join_ticket::JoinSecret::from_process_env() {
         Ok(secret) => secret.map(std::sync::Arc::new),
         Err(error) => {
             eprintln!("{error}");
             std::process::exit(1);
         }
     };
-    let admission = fragr_server::admission_bounds::process_policy(join_secret.is_some());
-    let access = fragr_server::access::AccessConfig {
+    let admission = localexception_server::admission_bounds::process_policy(join_secret.is_some());
+    let access = localexception_server::access::AccessConfig {
         ban_list: args.ban_list,
         allow_list: args.allow_list,
     };
-    if let Err(error) = fragr_server::access::validate(&access) {
+    if let Err(error) = localexception_server::access::validate(&access) {
         eprintln!("{error}");
         std::process::exit(1);
     }
-    let rules = match fragr_server::rules::RuleSet::new(
+    let rules = match localexception_server::rules::RuleSet::new(
         args.mode,
         &args.preset.stack(&args.mutators),
         args.friendly_fire,
@@ -440,24 +441,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             std::process::exit(2);
         }
     };
-    if rules.mode() == fragr_server::protocol::GameMode::Ctf && args.frag_limit.is_some() {
+    if rules.mode() == localexception_server::protocol::GameMode::Ctf && args.frag_limit.is_some() {
         return Err("ctf uses --capture-limit, not --frag-limit".into());
     }
-    if rules.mode() == fragr_server::protocol::GameMode::Conquest && args.frag_limit.is_some() {
+    if rules.mode() == localexception_server::protocol::GameMode::Conquest
+        && args.frag_limit.is_some()
+    {
         return Err("conquest is decided by tickets; --frag-limit does not apply".into());
     }
-    if rules.mode() != fragr_server::protocol::GameMode::Ctf && args.capture_limit.is_some() {
+    if rules.mode() != localexception_server::protocol::GameMode::Ctf
+        && args.capture_limit.is_some()
+    {
         return Err("--capture-limit requires --mode ctf".into());
     }
-    if rules.mode() == fragr_server::protocol::GameMode::Sabotage && args.frag_limit.is_some() {
+    if rules.mode() == localexception_server::protocol::GameMode::Sabotage
+        && args.frag_limit.is_some()
+    {
         return Err("sabotage is won by rounds, not --frag-limit".into());
     }
-    if rules.mode() != fragr_server::protocol::GameMode::Sabotage && args.sabotage_format.is_some()
+    if rules.mode() != localexception_server::protocol::GameMode::Sabotage
+        && args.sabotage_format.is_some()
     {
         return Err("--sabotage-format requires --mode sabotage".into());
     }
     let mut match_config = match_config(rules, args.frag_limit, args.no_round_events);
-    if args.sabotage_five_v_five && args.mode != fragr_server::protocol::GameMode::Sabotage {
+    if args.sabotage_five_v_five && args.mode != localexception_server::protocol::GameMode::Sabotage
+    {
         return Err("--sabotage-five-v-five requires --mode sabotage".into());
     }
     if let Some(config) = match_config.as_mut() {
@@ -465,10 +474,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         if let Some(format) = args.sabotage_format {
             config.sabotage.format = format;
         }
-        if config.rules.mode() == fragr_server::protocol::GameMode::Ctf {
+        if config.rules.mode() == localexception_server::protocol::GameMode::Ctf {
             config.capture_limit = Some(
                 args.capture_limit
-                    .unwrap_or(fragr_server::rules::CTF_CAPTURE_LIMIT),
+                    .unwrap_or(localexception_server::rules::CTF_CAPTURE_LIMIT),
             );
         }
     }
@@ -479,7 +488,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         fill_target: args.fill_target,
         bot_skill: args.bot_skill,
         map,
-        authored: args.map_file.map(fragr_server::maps::AuthoredSource::File),
+        authored: args
+            .map_file
+            .map(localexception_server::maps::AuthoredSource::File),
         difficulty: args.difficulty,
         campaign_run: args.campaign_run,
         map_rotate: args.map_rotate,
@@ -496,25 +507,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         origin_allow: admission.origins,
         spectator_tickets: admission.spectator_tickets,
         human_summary: !args.ready_line && !args.desktop_host,
-        overview: overview.then(|| fragr_server::operator::Style {
+        overview: overview.then(|| localexception_server::operator::Style {
             ansi: ansi_for_stream(args.color, std::io::stdout().is_terminal()),
         }),
         tick_trace: match args.tick_trace {
             Some(path) => Some(path),
-            None => fragr_server::tick_trace::path_from_env()?,
+            None => localexception_server::tick_trace::path_from_env()?,
         },
         head_to_head,
         fun_metrics,
     };
     let started = if args.ready_line {
-        fragr_server::local::serve_ready_line(options, std::io::stdin(), std::io::stdout()).await
+        localexception_server::local::serve_ready_line(options, std::io::stdin(), std::io::stdout())
+            .await
     } else if args.desktop_host {
-        fragr_server::local::serve_arena(options, std::io::stdin(), std::io::stdout()).await
+        localexception_server::local::serve_arena(options, std::io::stdin(), std::io::stdout())
+            .await
     } else {
-        run_server(options, fragr_server::run::stop_signal()?, None).await
+        run_server(options, localexception_server::run::stop_signal()?, None).await
     };
     started.map_err(|error| -> Box<dyn std::error::Error + Send + Sync> {
-        if let Some(line) = fragr_server::net::address_in_use_line(error.as_ref()) {
+        if let Some(line) = localexception_server::net::address_in_use_line(error.as_ref()) {
             Box::new(PlainError(line))
         } else {
             error
@@ -550,8 +563,8 @@ fn fun_metrics_dir(
     if !enabled {
         return Ok(None);
     }
-    let store = fragr_server::fun_metrics::FunStore::for_host().map_err(|error| {
-        format!("--fun-metrics needs a run directory (set FRAGR_RUN_DIR): {error}")
+    let store = localexception_server::fun_metrics::FunStore::for_host().map_err(|error| {
+        format!("--fun-metrics needs a run directory (set LOCALEXCEPTION_RUN_DIR): {error}")
     })?;
     Ok(Some(store.dir().to_path_buf()))
 }
@@ -559,7 +572,7 @@ fn fun_metrics_dir(
 fn head_to_head_path(args: &Args) -> Option<PathBuf> {
     match &args.head_to_head {
         Some(path) => Some(path.clone()),
-        None if args.desktop_host => fragr_server::local::head_to_head_path().ok(),
+        None if args.desktop_host => localexception_server::local::head_to_head_path().ok(),
         None => None,
     }
 }
@@ -567,18 +580,18 @@ fn head_to_head_path(args: &Args) -> Option<PathBuf> {
 /// Arcade rules from the host's flags. None keeps the plain defaults, which
 /// is also what an authored campaign map requires.
 fn match_config(
-    rules: fragr_server::rules::RuleSet,
+    rules: localexception_server::rules::RuleSet,
     frag_limit: Option<u32>,
     no_round_events: bool,
-) -> Option<fragr_server::sim::MatchConfig> {
+) -> Option<localexception_server::sim::MatchConfig> {
     if rules.is_plain() && frag_limit.is_none() && !no_round_events {
         return None;
     }
-    let defaults = fragr_server::sim::MatchConfig::default();
+    let defaults = localexception_server::sim::MatchConfig::default();
     let objective = rules.mode().objective();
-    let sabotage = rules.mode() == fragr_server::protocol::GameMode::Sabotage;
-    let conquest = rules.mode() == fragr_server::protocol::GameMode::Conquest;
-    Some(fragr_server::sim::MatchConfig {
+    let sabotage = rules.mode() == localexception_server::protocol::GameMode::Sabotage;
+    let conquest = rules.mode() == localexception_server::protocol::GameMode::Conquest;
+    Some(localexception_server::sim::MatchConfig {
         frag_limit: (!objective).then(|| frag_limit.unwrap_or_else(|| rules.default_frag_limit())),
         // Sabotage runs its own muster, live and charge clocks.
         time_limit_ticks: if conquest {
@@ -604,8 +617,8 @@ mod tests {
     #[test]
     fn conquest_match_config_has_ten_minute_ticket_clock_without_round_events() {
         for no_round_events in [false, true] {
-            let rules = fragr_server::rules::RuleSet::new(
-                fragr_server::protocol::GameMode::Conquest,
+            let rules = localexception_server::rules::RuleSet::new(
+                localexception_server::protocol::GameMode::Conquest,
                 &[],
                 false,
             )
@@ -625,39 +638,50 @@ mod tests {
 
     #[test]
     fn args_parse_color_choice() {
-        let args = Args::try_parse_from(["fragr-server"]).expect("default args");
+        let args = Args::try_parse_from(["localexception-server"]).expect("default args");
         assert_eq!(args.color, ColorChoice::Auto);
 
-        let args = Args::try_parse_from(["fragr-server", "--color=always"]).expect("color always");
+        let args = Args::try_parse_from(["localexception-server", "--color=always"])
+            .expect("color always");
         assert_eq!(args.color, ColorChoice::Always);
 
-        let args = Args::try_parse_from(["fragr-server", "--color", "never"]).expect("color never");
+        let args = Args::try_parse_from(["localexception-server", "--color", "never"])
+            .expect("color never");
         assert_eq!(args.color, ColorChoice::Never);
     }
 
     #[test]
     fn output_is_a_dedicated_choice_and_parent_owned_children_refuse_it() {
-        let args = Args::try_parse_from(["fragr-server"]).unwrap();
+        let args = Args::try_parse_from(["localexception-server"]).unwrap();
         assert_eq!(args.output, None, "auto is the unspoken default");
         for (word, mode) in [
             ("auto", OutputMode::Auto),
             ("overview", OutputMode::Overview),
             ("log", OutputMode::Log),
         ] {
-            let args = Args::try_parse_from(["fragr-server", "--output", word]).unwrap();
+            let args = Args::try_parse_from(["localexception-server", "--output", word]).unwrap();
             assert_eq!(args.output, Some(mode));
         }
-        assert!(Args::try_parse_from(["fragr-server", "--output", "tui"]).is_err());
-        assert!(
-            Args::try_parse_from(["fragr-server", "--output", "overview", "--console"]).is_ok()
-        );
+        assert!(Args::try_parse_from(["localexception-server", "--output", "tui"]).is_err());
+        assert!(Args::try_parse_from([
+            "localexception-server",
+            "--output",
+            "overview",
+            "--console"
+        ])
+        .is_ok());
         for refused in [
-            &["fragr-server", "--output", "log", "--ready-line"][..],
-            &["fragr-server", "--output", "log", "--desktop-host"][..],
-            &["fragr-server", "--output", "log", "--bench", "4"][..],
-            &["fragr-server", "--output", "log", "--local-run-preview"][..],
+            &["localexception-server", "--output", "log", "--ready-line"][..],
+            &["localexception-server", "--output", "log", "--desktop-host"][..],
+            &["localexception-server", "--output", "log", "--bench", "4"][..],
             &[
-                "fragr-server",
+                "localexception-server",
+                "--output",
+                "log",
+                "--local-run-preview",
+            ][..],
+            &[
+                "localexception-server",
                 "--output",
                 "overview",
                 "--local-mission",
@@ -675,30 +699,37 @@ mod tests {
 
     #[test]
     fn the_head_to_head_book_is_kept_by_a_desktop_host_or_on_request() {
-        let dedicated = Args::try_parse_from(["fragr-server"]).expect("default args");
+        let dedicated = Args::try_parse_from(["localexception-server"]).expect("default args");
         assert_eq!(head_to_head_path(&dedicated), None, "memory only");
-        let asked = Args::try_parse_from(["fragr-server", "--head-to-head", "book.json"])
+        let asked = Args::try_parse_from(["localexception-server", "--head-to-head", "book.json"])
             .expect("hosted book");
         assert_eq!(head_to_head_path(&asked), Some(PathBuf::from("book.json")));
-        let desktop = Args::try_parse_from(["fragr-server", "--desktop-host", "--mode", "tdm"])
-            .expect("desktop host");
+        let desktop =
+            Args::try_parse_from(["localexception-server", "--desktop-host", "--mode", "tdm"])
+                .expect("desktop host");
         assert_eq!(
             head_to_head_path(&desktop),
-            fragr_server::local::head_to_head_path().ok()
+            localexception_server::local::head_to_head_path().ok()
         );
         assert!(head_to_head_path(&desktop).is_none_or(|path| path.ends_with("head-to-head.json")));
         assert!(
-            Args::try_parse_from(["fragr-server", "--head-to-head", "b.json", "--bench", "4"])
-                .is_err(),
+            Args::try_parse_from([
+                "localexception-server",
+                "--head-to-head",
+                "b.json",
+                "--bench",
+                "4"
+            ])
+            .is_err(),
             "a benchmark keeps no book"
         );
     }
 
     #[test]
     fn tick_trace_is_off_by_default_and_refused_where_no_tick_loop_runs() {
-        let args = Args::try_parse_from(["fragr-server"]).expect("default args");
+        let args = Args::try_parse_from(["localexception-server"]).expect("default args");
         assert!(args.tick_trace.is_none());
-        let args = Args::try_parse_from(["fragr-server", "--tick-trace", "ticks.ndjson"])
+        let args = Args::try_parse_from(["localexception-server", "--tick-trace", "ticks.ndjson"])
             .expect("hosted trace");
         assert_eq!(args.tick_trace, Some(PathBuf::from("ticks.ndjson")));
         for other in [
@@ -706,13 +737,13 @@ mod tests {
             ["--bench-verify-trace", "x.ndjson"],
             ["--local-mission", "recall_notice"],
         ] {
-            let mut alone = vec!["fragr-server"];
+            let mut alone = vec!["localexception-server"];
             alone.extend(other);
             assert!(
                 Args::try_parse_from(alone).is_ok(),
                 "{other:?} parses alone"
             );
-            let mut argv = vec!["fragr-server", "--tick-trace", "ticks.ndjson"];
+            let mut argv = vec!["localexception-server", "--tick-trace", "ticks.ndjson"];
             argv.extend(other);
             assert!(
                 Args::try_parse_from(argv).is_err(),
@@ -723,14 +754,19 @@ mod tests {
 
     #[test]
     fn fun_metrics_are_off_unless_asked_and_never_ride_a_campaign_or_bench() {
-        let plain = Args::try_parse_from(["fragr-server"]).unwrap();
+        let plain = Args::try_parse_from(["localexception-server"]).unwrap();
         assert!(!plain.fun_metrics, "off by default");
-        let on = Args::try_parse_from(["fragr-server", "--fun-metrics", "--mode", "tdm"]).unwrap();
+        let on = Args::try_parse_from(["localexception-server", "--fun-metrics", "--mode", "tdm"])
+            .unwrap();
         assert!(on.fun_metrics);
-        assert!(Args::try_parse_from(["fragr-server", "--fun-metrics", "--playlist"]).is_ok());
-        assert!(Args::try_parse_from(["fragr-server", "--fun-metrics", "--console"]).is_ok());
+        assert!(
+            Args::try_parse_from(["localexception-server", "--fun-metrics", "--playlist"]).is_ok()
+        );
+        assert!(
+            Args::try_parse_from(["localexception-server", "--fun-metrics", "--console"]).is_ok()
+        );
         assert!(Args::try_parse_from([
-            "fragr-server",
+            "localexception-server",
             "--desktop-host",
             "--bind",
             "127.0.0.1:0",
@@ -743,7 +779,7 @@ mod tests {
             vec!["--bench", "4"],
             vec!["--solo-broadcast"],
         ] {
-            let mut argv = vec!["fragr-server", "--fun-metrics"];
+            let mut argv = vec!["localexception-server", "--fun-metrics"];
             argv.extend(other.iter().copied());
             assert!(
                 Args::try_parse_from(argv).is_err(),
@@ -760,11 +796,12 @@ mod tests {
 
     #[test]
     fn a_host_reads_its_tally_from_the_release_binary() {
-        let plain = Args::try_parse_from(["fragr-server"]).unwrap();
+        let plain = Args::try_parse_from(["localexception-server"]).unwrap();
         assert_eq!(plain.fun_summary, None, "serving is the default");
-        let own = Args::try_parse_from(["fragr-server", "--fun-summary"]).unwrap();
+        let own = Args::try_parse_from(["localexception-server", "--fun-summary"]).unwrap();
         assert_eq!(own.fun_summary, Some(None), "the host's own folder");
-        let named = Args::try_parse_from(["fragr-server", "--fun-summary", "nights"]).unwrap();
+        let named =
+            Args::try_parse_from(["localexception-server", "--fun-summary", "nights"]).unwrap();
         assert_eq!(named.fun_summary, Some(Some(PathBuf::from("nights"))));
         for other in [
             vec!["--fun-metrics"],
@@ -772,7 +809,7 @@ mod tests {
             vec!["--desktop-host"],
             vec!["--console"],
         ] {
-            let mut argv = vec!["fragr-server", "--fun-summary"];
+            let mut argv = vec!["localexception-server", "--fun-summary"];
             argv.extend(other.iter().copied());
             assert!(
                 Args::try_parse_from(argv).is_err(),
@@ -813,7 +850,7 @@ mod tests {
     fn difficulty_is_explicit_campaign_only_configuration() {
         for tier in ["assisted", "standard", "severe"] {
             assert!(Args::try_parse_from([
-                "fragr-server",
+                "localexception-server",
                 "--local-mission",
                 "recall_notice",
                 "--difficulty",
@@ -821,7 +858,7 @@ mod tests {
             ])
             .is_ok());
             assert!(Args::try_parse_from([
-                "fragr-server",
+                "localexception-server",
                 "--map-file",
                 "mission.json",
                 "--bots",
@@ -830,14 +867,18 @@ mod tests {
                 tier
             ])
             .is_ok());
-            assert!(Args::try_parse_from(["fragr-server", "--difficulty", tier]).is_err());
-            assert!(
-                Args::try_parse_from(["fragr-server", "--bench", "16", "--difficulty", tier])
-                    .is_err()
-            );
+            assert!(Args::try_parse_from(["localexception-server", "--difficulty", tier]).is_err());
+            assert!(Args::try_parse_from([
+                "localexception-server",
+                "--bench",
+                "16",
+                "--difficulty",
+                tier
+            ])
+            .is_err());
         }
         assert!(Args::try_parse_from([
-            "fragr-server",
+            "localexception-server",
             "--local-mission",
             "recall_notice",
             "--difficulty",
@@ -848,38 +889,46 @@ mod tests {
 
     #[test]
     fn local_mission_accepts_only_registered_bundled_missions() {
-        for mission in fragr_server::protocol::MissionId::PLAYABLE {
+        for mission in localexception_server::protocol::MissionId::PLAYABLE {
             let name = serde_json::to_value(mission).unwrap();
-            let args =
-                Args::try_parse_from(["fragr-server", "--local-mission", name.as_str().unwrap()])
-                    .unwrap();
+            let args = Args::try_parse_from([
+                "localexception-server",
+                "--local-mission",
+                name.as_str().unwrap(),
+            ])
+            .unwrap();
             assert_eq!(args.local_mission, Some(mission));
         }
-        assert!(Args::try_parse_from(["fragr-server", "--local-mission", "m03"]).is_err());
-        assert!(Args::try_parse_from(["fragr-server", "--local-mission", "epilogue"]).is_err());
+        assert!(Args::try_parse_from(["localexception-server", "--local-mission", "m03"]).is_err());
+        assert!(
+            Args::try_parse_from(["localexception-server", "--local-mission", "epilogue"]).is_err()
+        );
     }
 
     #[test]
     fn args_default_bind_and_bots() {
-        let args = Args::try_parse_from(["fragr-server"]).expect("defaults");
+        let args = Args::try_parse_from(["localexception-server"]).expect("defaults");
         assert_eq!(args.bind, "0.0.0.0:6767");
         assert_eq!(args.bots, 4);
         assert_eq!(args.map, "1");
         assert!(!args.map_rotate);
         assert!(!args.solo_broadcast);
-        assert_eq!(args.bot_skill, fragr_server::sim::BotSkill::Regular);
+        assert_eq!(
+            args.bot_skill,
+            localexception_server::sim::BotSkill::Regular
+        );
     }
 
     #[test]
     fn bot_skill_takes_every_rung_and_refuses_others() {
-        for skill in fragr_server::sim::BotSkill::ALL {
-            let args = Args::try_parse_from(["fragr-server", "--bot-skill", skill.id()])
+        for skill in localexception_server::sim::BotSkill::ALL {
+            let args = Args::try_parse_from(["localexception-server", "--bot-skill", skill.id()])
                 .expect("every rung parses");
             assert_eq!(args.bot_skill, skill);
         }
-        assert!(Args::try_parse_from(["fragr-server", "--bot-skill", "elite"]).is_err());
+        assert!(Args::try_parse_from(["localexception-server", "--bot-skill", "elite"]).is_err());
         let args = Args::try_parse_from([
-            "fragr-server",
+            "localexception-server",
             "--desktop-host",
             "--bind",
             "127.0.0.1:0",
@@ -887,31 +936,44 @@ mod tests {
             "no-crumbs",
         ])
         .expect("a desktop host picks its rung");
-        assert_eq!(args.bot_skill, fragr_server::sim::BotSkill::NoCrumbs);
+        assert_eq!(
+            args.bot_skill,
+            localexception_server::sim::BotSkill::NoCrumbs
+        );
     }
 
     #[test]
     fn args_custom_bind_and_bots() {
-        let args = Args::try_parse_from(["fragr-server", "--bind", "127.0.0.1:0", "--bots", "2"])
-            .expect("custom");
+        let args = Args::try_parse_from([
+            "localexception-server",
+            "--bind",
+            "127.0.0.1:0",
+            "--bots",
+            "2",
+        ])
+        .expect("custom");
         assert_eq!(args.bind, "127.0.0.1:0");
         assert_eq!(args.bots, 2);
     }
 
     #[test]
     fn args_map_and_rotate() {
-        let args =
-            Args::try_parse_from(["fragr-server", "--map", "compliance-yard", "--map-rotate"])
-                .expect("map args");
+        let args = Args::try_parse_from([
+            "localexception-server",
+            "--map",
+            "compliance-yard",
+            "--map-rotate",
+        ])
+        .expect("map args");
         assert_eq!(args.map, "compliance-yard");
         assert!(args.map_rotate);
-        assert!(fragr_server::sim::MapKind::from_cli(&args.map).is_some());
+        assert!(localexception_server::sim::MapKind::from_cli(&args.map).is_some());
     }
 
     #[test]
     fn map_off_is_repeatable_and_needs_a_rotation() {
         let args = Args::try_parse_from([
-            "fragr-server",
+            "localexception-server",
             "--map-rotate",
             "--map-off",
             "low-water",
@@ -920,9 +982,9 @@ mod tests {
         ])
         .unwrap();
         assert_eq!(args.map_off, ["low-water", "7"]);
-        assert!(Args::try_parse_from(["fragr-server", "--map-off", "2"]).is_err());
+        assert!(Args::try_parse_from(["localexception-server", "--map-off", "2"]).is_err());
         let desktop = Args::try_parse_from([
-            "fragr-server",
+            "localexception-server",
             "--desktop-host",
             "--map-rotate",
             "--map-off",
@@ -933,16 +995,21 @@ mod tests {
 
     #[test]
     fn playlist_is_a_night_list_not_a_fixed_mode() {
-        let args = Args::try_parse_from(["fragr-server", "--playlist"]).unwrap();
+        let args = Args::try_parse_from(["localexception-server", "--playlist"]).unwrap();
         assert!(args.playlist);
         assert!(!args.map_rotate);
         for rejected in [
-            &["fragr-server", "--playlist", "--map", "2"][..],
-            &["fragr-server", "--playlist", "--mode", "tdm"][..],
-            &["fragr-server", "--playlist", "--map-rotate"][..],
-            &["fragr-server", "--playlist", "--mutator", "rail-only"][..],
-            &["fragr-server", "--playlist", "--frag-limit", "5"][..],
-            &["fragr-server", "--playlist", "--no-round-events"][..],
+            &["localexception-server", "--playlist", "--map", "2"][..],
+            &["localexception-server", "--playlist", "--mode", "tdm"][..],
+            &["localexception-server", "--playlist", "--map-rotate"][..],
+            &[
+                "localexception-server",
+                "--playlist",
+                "--mutator",
+                "rail-only",
+            ][..],
+            &["localexception-server", "--playlist", "--frag-limit", "5"][..],
+            &["localexception-server", "--playlist", "--no-round-events"][..],
         ] {
             assert!(Args::try_parse_from(rejected).is_err(), "{rejected:?}");
         }
@@ -950,21 +1017,25 @@ mod tests {
 
     #[test]
     fn args_solo_broadcast() {
-        let args = Args::try_parse_from(["fragr-server", "--solo-broadcast"]).expect("solo");
+        let args =
+            Args::try_parse_from(["localexception-server", "--solo-broadcast"]).expect("solo");
         assert!(args.solo_broadcast);
-        let practice = Args::try_parse_from(["fragr-server", "--no-round-events"]).unwrap();
+        let practice =
+            Args::try_parse_from(["localexception-server", "--no-round-events"]).unwrap();
         assert!(practice.no_round_events);
-        assert!(
-            Args::try_parse_from(["fragr-server", "--solo-broadcast", "--no-round-events"])
-                .is_err()
-        );
+        assert!(Args::try_parse_from([
+            "localexception-server",
+            "--solo-broadcast",
+            "--no-round-events"
+        ])
+        .is_err());
     }
 
     #[test]
     fn host_picks_a_mode_and_repeatable_mutators() {
-        use fragr_server::protocol::{GameMode, Mutator};
+        use localexception_server::protocol::{GameMode, Mutator};
         let args = Args::try_parse_from([
-            "fragr-server",
+            "localexception-server",
             "--mode",
             "tdm",
             "--mutator",
@@ -979,19 +1050,22 @@ mod tests {
         assert_eq!(args.mode, GameMode::Tdm);
         assert_eq!(args.mutators, [Mutator::RailOnly, Mutator::TwoLives]);
         assert!(args.friendly_fire);
-        let rules =
-            fragr_server::rules::RuleSet::new(args.mode, &args.mutators, args.friendly_fire)
-                .unwrap();
+        let rules = localexception_server::rules::RuleSet::new(
+            args.mode,
+            &args.mutators,
+            args.friendly_fire,
+        )
+        .unwrap();
         let config = match_config(rules, args.frag_limit, args.no_round_events).unwrap();
         assert_eq!(config.frag_limit, Some(30));
         assert!(config.boss_spawn_ticks.is_some());
         assert_eq!(config.rules.lives(), Some(2));
 
-        let defaults = Args::try_parse_from(["fragr-server"]).unwrap();
+        let defaults = Args::try_parse_from(["localexception-server"]).unwrap();
         assert_eq!(defaults.mode, GameMode::Ffa);
         assert!(defaults.mutators.is_empty());
         assert!(match_config(Default::default(), None, false).is_none());
-        let team = fragr_server::rules::RuleSet::new(GameMode::Tdm, &[], false).unwrap();
+        let team = localexception_server::rules::RuleSet::new(GameMode::Tdm, &[], false).unwrap();
         assert_eq!(
             match_config(team, None, false).unwrap().frag_limit,
             Some(25)
@@ -1002,7 +1076,7 @@ mod tests {
         assert_eq!(quiet.frag_limit, Some(10));
 
         let ctf = Args::try_parse_from([
-            "fragr-server",
+            "localexception-server",
             "--mode",
             "ctf",
             "--map",
@@ -1013,13 +1087,14 @@ mod tests {
         .unwrap();
         assert_eq!(ctf.mode, GameMode::Ctf);
         assert_eq!(ctf.capture_limit, Some(2));
-        let ctf_rules = fragr_server::rules::RuleSet::new(GameMode::Ctf, &[], false).unwrap();
+        let ctf_rules =
+            localexception_server::rules::RuleSet::new(GameMode::Ctf, &[], false).unwrap();
         let ctf_config = match_config(ctf_rules, None, false).unwrap();
         assert_eq!(ctf_config.boss_spawn_ticks, None);
         assert_eq!(ctf_config.compliance_ping_ticks, None);
 
         let stacked = Args::try_parse_from([
-            "fragr-server",
+            "localexception-server",
             "--preset",
             "shotgun-wedding",
             "--mutator",
@@ -1028,7 +1103,7 @@ mod tests {
             "two-lives",
         ])
         .unwrap();
-        let rules = fragr_server::rules::RuleSet::new(
+        let rules = localexception_server::rules::RuleSet::new(
             stacked.mode,
             &stacked.preset.stack(&stacked.mutators),
             stacked.friendly_fire,
@@ -1043,14 +1118,14 @@ mod tests {
             ]
         );
         let clash = Args::try_parse_from([
-            "fragr-server",
+            "localexception-server",
             "--preset",
             "golden-rail",
             "--mutator",
             "licence-to-kill",
         ])
         .unwrap();
-        assert!(fragr_server::rules::RuleSet::new(
+        assert!(localexception_server::rules::RuleSet::new(
             clash.mode,
             &clash.preset.stack(&clash.mutators),
             clash.friendly_fire
@@ -1058,19 +1133,36 @@ mod tests {
         .is_err());
         assert_eq!(
             defaults.preset,
-            fragr_server::rules::preset::Preset::Standard
+            localexception_server::rules::preset::Preset::Standard
         );
 
         for bad in [
-            vec!["fragr-server", "--mutator", "low-gravity"],
-            vec!["fragr-server", "--preset", "proximity-party"],
-            vec!["fragr-server", "--playlist", "--preset", "golden-rail"],
-            vec!["fragr-server", "--preset", "golden-rail", "--bench", "4"],
-            vec!["fragr-server", "--frag-limit", "0"],
-            vec!["fragr-server", "--mode", "tdm", "--solo-broadcast"],
-            vec!["fragr-server", "--mutator", "rail-only", "--bench", "4"],
+            vec!["localexception-server", "--mutator", "low-gravity"],
+            vec!["localexception-server", "--preset", "proximity-party"],
             vec![
-                "fragr-server",
+                "localexception-server",
+                "--playlist",
+                "--preset",
+                "golden-rail",
+            ],
+            vec![
+                "localexception-server",
+                "--preset",
+                "golden-rail",
+                "--bench",
+                "4",
+            ],
+            vec!["localexception-server", "--frag-limit", "0"],
+            vec!["localexception-server", "--mode", "tdm", "--solo-broadcast"],
+            vec![
+                "localexception-server",
+                "--mutator",
+                "rail-only",
+                "--bench",
+                "4",
+            ],
+            vec![
+                "localexception-server",
                 "--local-mission",
                 "recall_notice",
                 "--mode",
@@ -1083,16 +1175,19 @@ mod tests {
 
     #[tokio::test]
     async fn ctf_refuses_an_unvalidated_map_or_rotation_before_binding() {
-        let rules =
-            fragr_server::rules::RuleSet::new(fragr_server::protocol::GameMode::Ctf, &[], false)
-                .unwrap();
+        let rules = localexception_server::rules::RuleSet::new(
+            localexception_server::protocol::GameMode::Ctf,
+            &[],
+            false,
+        )
+        .unwrap();
         let config = match_config(rules, None, false).unwrap();
         for (map, rotate) in [
-            (fragr_server::sim::MapKind::ComplianceYard, false),
-            (fragr_server::sim::MapKind::ReclamationGulch, false),
-            (fragr_server::sim::MapKind::TripointWorks, false),
-            (fragr_server::sim::MapKind::Sector9, true),
-            (fragr_server::sim::MapKind::ArenaDuel, true),
+            (localexception_server::sim::MapKind::ComplianceYard, false),
+            (localexception_server::sim::MapKind::ReclamationGulch, false),
+            (localexception_server::sim::MapKind::TripointWorks, false),
+            (localexception_server::sim::MapKind::Sector9, true),
+            (localexception_server::sim::MapKind::ArenaDuel, true),
         ] {
             let error = run_server(
                 ServerOptions {
@@ -1116,9 +1211,12 @@ mod tests {
 
     #[tokio::test]
     async fn playlist_refuses_a_fixed_rule_set_before_binding() {
-        let rules =
-            fragr_server::rules::RuleSet::new(fragr_server::protocol::GameMode::Ffa, &[], false)
-                .unwrap();
+        let rules = localexception_server::rules::RuleSet::new(
+            localexception_server::protocol::GameMode::Ffa,
+            &[],
+            false,
+        )
+        .unwrap();
         let error = run_server(
             ServerOptions {
                 playlist: true,
@@ -1160,8 +1258,8 @@ mod tests {
             .await
             .expect("playlist ready timeout")
             .expect("playlist ready addr");
-        let current = fragr_server::protocol::GAMEPLAY_VERSION;
-        let geometry = fragr_server::protocol::GEOMETRY_VERSION;
+        let current = localexception_server::protocol::GAMEPLAY_VERSION;
+        let geometry = localexception_server::protocol::GEOMETRY_VERSION;
         let mut held = Vec::new();
         for (version, geom, admitted) in [
             (current - 1, geometry, false),
@@ -1210,14 +1308,17 @@ mod tests {
     /// because an arena rule set is not a four-seat mission party.
     #[tokio::test]
     async fn a_shared_rule_set_speaks_the_current_contract() {
-        tokio::task::spawn_blocking(fragr_server::session::GameSession::new)
+        tokio::task::spawn_blocking(localexception_server::session::GameSession::new)
             .await
             .expect("navigation fixture");
         let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
         let (ready_tx, ready_rx) = tokio::sync::oneshot::channel::<SocketAddr>();
-        let rules =
-            fragr_server::rules::RuleSet::new(fragr_server::protocol::GameMode::Tdm, &[], false)
-                .unwrap();
+        let rules = localexception_server::rules::RuleSet::new(
+            localexception_server::protocol::GameMode::Tdm,
+            &[],
+            false,
+        )
+        .unwrap();
         let server = tokio::spawn(async move {
             run_server(
                 ServerOptions {
@@ -1239,8 +1340,8 @@ mod tests {
             .await
             .expect("ready timeout")
             .expect("ready addr");
-        let current = fragr_server::protocol::GAMEPLAY_VERSION;
-        let geometry = fragr_server::protocol::GEOMETRY_VERSION;
+        let current = localexception_server::protocol::GAMEPLAY_VERSION;
+        let geometry = localexception_server::protocol::GEOMETRY_VERSION;
         let mut held = Vec::new();
         for (version, geom, admitted) in [
             (current - 1, geometry, false),
@@ -1284,9 +1385,12 @@ mod tests {
     async fn ctf_speaks_the_current_contract_for_spectators_and_fighters() {
         let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
         let (ready_tx, ready_rx) = tokio::sync::oneshot::channel::<SocketAddr>();
-        let rules =
-            fragr_server::rules::RuleSet::new(fragr_server::protocol::GameMode::Ctf, &[], false)
-                .unwrap();
+        let rules = localexception_server::rules::RuleSet::new(
+            localexception_server::protocol::GameMode::Ctf,
+            &[],
+            false,
+        )
+        .unwrap();
         let mut config = match_config(rules, None, true).unwrap();
         config.capture_limit = Some(3);
         let server = tokio::spawn(async move {
@@ -1294,7 +1398,7 @@ mod tests {
                 ServerOptions {
                     bind: "127.0.0.1:0".to_string(),
                     bots: 0,
-                    map: fragr_server::sim::MapKind::Sector9,
+                    map: localexception_server::sim::MapKind::Sector9,
                     match_config: Some(config),
                     status_every_s: 0,
                     ..Default::default()
@@ -1310,8 +1414,8 @@ mod tests {
             .await
             .expect("ctf ready timeout")
             .expect("ctf ready addr");
-        let current = fragr_server::protocol::GAMEPLAY_VERSION;
-        let geometry = fragr_server::protocol::GEOMETRY_VERSION;
+        let current = localexception_server::protocol::GAMEPLAY_VERSION;
+        let geometry = localexception_server::protocol::GEOMETRY_VERSION;
         for (version, geom, role, admitted) in [
             (current - 1, geometry, "spectator", false),
             (current - 1, geometry, "human", false),
@@ -1349,9 +1453,9 @@ mod tests {
 
     #[test]
     fn sabotage_takes_a_format_and_no_frag_or_capture_limit() {
-        use fragr_server::protocol::GameMode;
+        use localexception_server::protocol::GameMode;
         let args = Args::try_parse_from([
-            "fragr-server",
+            "localexception-server",
             "--mode",
             "sabotage",
             "--map",
@@ -1363,9 +1467,10 @@ mod tests {
         assert_eq!(args.mode, GameMode::Sabotage);
         assert_eq!(
             args.sabotage_format,
-            Some(fragr_server::protocol::SabotageFormat::Match)
+            Some(localexception_server::protocol::SabotageFormat::Match)
         );
-        let rules = fragr_server::rules::RuleSet::new(GameMode::Sabotage, &[], false).unwrap();
+        let rules =
+            localexception_server::rules::RuleSet::new(GameMode::Sabotage, &[], false).unwrap();
         let config = match_config(rules, None, false).unwrap();
         assert_eq!(config.frag_limit, None, "rounds decide sabotage");
         assert_eq!(
@@ -1374,22 +1479,24 @@ mod tests {
         );
         assert_eq!(config.boss_spawn_ticks, None);
         assert_eq!(config.compliance_ping_ticks, None);
-        assert!(Args::try_parse_from(["fragr-server", "--sabotage-format", "pairs"]).is_err());
+        assert!(
+            Args::try_parse_from(["localexception-server", "--sabotage-format", "pairs"]).is_err()
+        );
     }
 
     #[tokio::test]
     async fn sabotage_refuses_a_map_without_sites_or_rotation_before_binding() {
-        let rules = fragr_server::rules::RuleSet::new(
-            fragr_server::protocol::GameMode::Sabotage,
+        let rules = localexception_server::rules::RuleSet::new(
+            localexception_server::protocol::GameMode::Sabotage,
             &[],
             false,
         )
         .unwrap();
         let config = match_config(rules, None, false).unwrap();
         for (map, rotate) in [
-            (fragr_server::sim::MapKind::ArenaDuel, false),
-            (fragr_server::sim::MapKind::Directive17, false),
-            (fragr_server::sim::MapKind::Sector9, true),
+            (localexception_server::sim::MapKind::ArenaDuel, false),
+            (localexception_server::sim::MapKind::Directive17, false),
+            (localexception_server::sim::MapKind::Sector9, true),
         ] {
             let error = run_server(
                 ServerOptions {
@@ -1415,8 +1522,8 @@ mod tests {
     async fn sabotage_speaks_the_current_contract_for_spectators_and_fighters() {
         let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
         let (ready_tx, ready_rx) = tokio::sync::oneshot::channel::<SocketAddr>();
-        let rules = fragr_server::rules::RuleSet::new(
-            fragr_server::protocol::GameMode::Sabotage,
+        let rules = localexception_server::rules::RuleSet::new(
+            localexception_server::protocol::GameMode::Sabotage,
             &[],
             false,
         )
@@ -1427,7 +1534,7 @@ mod tests {
                 ServerOptions {
                     bind: "127.0.0.1:0".to_string(),
                     bots: 0,
-                    map: fragr_server::sim::MapKind::Sector9,
+                    map: localexception_server::sim::MapKind::Sector9,
                     match_config: Some(config),
                     status_every_s: 0,
                     ..Default::default()
@@ -1443,8 +1550,8 @@ mod tests {
             .await
             .expect("sabotage ready timeout")
             .expect("sabotage ready addr");
-        let current = fragr_server::protocol::GAMEPLAY_VERSION;
-        let geometry = fragr_server::protocol::GEOMETRY_VERSION;
+        let current = localexception_server::protocol::GAMEPLAY_VERSION;
+        let geometry = localexception_server::protocol::GEOMETRY_VERSION;
         for (version, geom, role, admitted) in [
             (current - 1, geometry, "spectator", false),
             (current - 1, geometry, "agent", false),
@@ -1484,7 +1591,7 @@ mod tests {
     async fn run_server_ws_hello_welcome_tick_then_shutdown() {
         // This test times the wire handshake, not cold topology construction.
         // Prepare the same immutable roster before starting its network timers.
-        tokio::task::spawn_blocking(fragr_server::session::GameSession::new)
+        tokio::task::spawn_blocking(localexception_server::session::GameSession::new)
             .await
             .expect("navigation fixture");
         let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
@@ -1498,10 +1605,10 @@ mod tests {
                     difficulty: None,
                     bind: "127.0.0.1:0".to_string(),
                     bots: 1,
-                    bot_skill: fragr_server::sim::BotSkill::default(),
-                    bot_policy: fragr_server::bot_fill::BotPolicy::Fixed,
+                    bot_skill: localexception_server::sim::BotSkill::default(),
+                    bot_policy: localexception_server::bot_fill::BotPolicy::Fixed,
                     fill_target: 0,
-                    map: fragr_server::sim::MapKind::ArenaDuel,
+                    map: localexception_server::sim::MapKind::ArenaDuel,
                     map_rotate: false,
                     map_off: Vec::new(),
                     playlist: false,
@@ -1543,8 +1650,8 @@ mod tests {
             "type": "hello",
             "role": "agent",
             "name": "CovClimb",
-            "gameplay_version": fragr_server::protocol::GAMEPLAY_VERSION,
-            "geometry_version": fragr_server::protocol::GEOMETRY_VERSION,
+            "gameplay_version": localexception_server::protocol::GAMEPLAY_VERSION,
+            "geometry_version": localexception_server::protocol::GEOMETRY_VERSION,
         });
         sink.send(Message::Text(hello.to_string()))
             .await
@@ -1603,7 +1710,7 @@ mod tests {
     #[test]
     fn server_options_default_matches_cli_defaults() {
         let options = ServerOptions::default();
-        let args = Args::try_parse_from(["fragr-server"]).expect("defaults");
+        let args = Args::try_parse_from(["localexception-server"]).expect("defaults");
         assert_eq!(options.bind, args.bind);
         assert_eq!(options.bots, args.bots);
         assert!(options.match_config.is_none());
@@ -1612,7 +1719,7 @@ mod tests {
     #[test]
     fn access_lists_are_dedicated_server_flags() {
         let args = Args::try_parse_from([
-            "fragr-server",
+            "localexception-server",
             "--ban-list",
             "bans.txt",
             "--allow-list",
@@ -1621,27 +1728,32 @@ mod tests {
         .unwrap();
         assert_eq!(args.ban_list, Some(PathBuf::from("bans.txt")));
         assert_eq!(args.allow_list, Some(PathBuf::from("allow.txt")));
-        let defaults = Args::try_parse_from(["fragr-server"]).unwrap();
+        let defaults = Args::try_parse_from(["localexception-server"]).unwrap();
         assert!(defaults.ban_list.is_none() && defaults.allow_list.is_none());
         for flag in ["--ban-list", "--allow-list"] {
             assert!(Args::try_parse_from([
-                "fragr-server",
+                "localexception-server",
                 "--local-mission",
                 "recall_notice",
                 flag,
                 "list.txt"
             ])
             .is_err());
-            assert!(
-                Args::try_parse_from(["fragr-server", "--bench", "4", flag, "list.txt"]).is_err()
-            );
+            assert!(Args::try_parse_from([
+                "localexception-server",
+                "--bench",
+                "4",
+                flag,
+                "list.txt"
+            ])
+            .is_err());
         }
     }
 
     #[tokio::test]
     async fn run_server_refuses_a_malformed_list_before_binding() {
         let path = std::env::temp_dir().join(format!(
-            "fragr-main-ban-{}-{}.txt",
+            "localexception-main-ban-{}-{}.txt",
             std::process::id(),
             uuid::Uuid::new_v4()
         ));
@@ -1652,7 +1764,7 @@ mod tests {
                 bind: "127.0.0.1:0".to_string(),
                 bots: 0,
                 status_every_s: 0,
-                access: fragr_server::access::AccessConfig {
+                access: localexception_server::access::AccessConfig {
                     ban_list: Some(path.clone()),
                     allow_list: None,
                 },
@@ -1673,16 +1785,27 @@ mod tests {
     #[test]
     fn benchmark_cli_rejects_invalid_limits_and_conflicting_operations() {
         for fraction in ["NaN", "inf", "0", "-0.5", "1.1", "garbage"] {
-            assert!(
-                Args::try_parse_from(["fragr-server", "--bench-max-budget-p99", fraction]).is_err()
-            );
+            assert!(Args::try_parse_from([
+                "localexception-server",
+                "--bench-max-budget-p99",
+                fraction
+            ])
+            .is_err());
         }
-        assert!(
-            Args::try_parse_from(["fragr-server", "--bench", "4", "--bench-ticks", "0"]).is_err()
-        );
-        assert!(Args::try_parse_from(["fragr-server", "--bench-trace", "match.ndjson"]).is_err());
         assert!(Args::try_parse_from([
-            "fragr-server",
+            "localexception-server",
+            "--bench",
+            "4",
+            "--bench-ticks",
+            "0"
+        ])
+        .is_err());
+        assert!(
+            Args::try_parse_from(["localexception-server", "--bench-trace", "match.ndjson"])
+                .is_err()
+        );
+        assert!(Args::try_parse_from([
+            "localexception-server",
             "--bench",
             "4",
             "--bench-verify-trace",
@@ -1690,7 +1813,7 @@ mod tests {
         ])
         .is_err());
         let args = Args::try_parse_from([
-            "fragr-server",
+            "localexception-server",
             "--bench",
             "16",
             "--bench-check",

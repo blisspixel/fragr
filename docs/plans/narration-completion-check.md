@@ -80,7 +80,7 @@ Raw content digests therefore differed even though the authored definitions were
 unchanged. These strict content checks correctly rejected mismatched bytes.
 
 Rebuilding the required local server with
-`cargo build -p fragr-server --release --locked` passed in
+`cargo build -p localexception-server --release --locked` passed in
 `.agents/narration-completion-20260930/release-prerequisite.log`. Both focused
 native harnesses then passed with clean exit-0 logs
 `focused-m04-after-build.log` and `focused-m05-after-build.log`. No map, migration,

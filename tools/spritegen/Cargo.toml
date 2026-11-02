@@ -1,18 +1,18 @@
 [package]
-name = "fragr-spritegen"
+name = "localexception-spritegen"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Developer-only image and model asset production for fragr"
+description = "Developer-only image and model asset production for Local Exception"
 publish = false
 
 [lib]
-name = "fragr_spritegen"
+name = "localexception_spritegen"
 path = "src/lib.rs"
 
 [[bin]]
-name = "fragr-spritegen"
+name = "localexception-spritegen"
 path = "src/main.rs"
 
 [dependencies]
@@ -28,4 +28,4 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 workspace = true
 
 [build-dependencies]
-fragr-build-metadata = { version = "0.1.0", path = "../build-metadata" }
+localexception-build-metadata = { version = "0.1.0", path = "../build-metadata" }

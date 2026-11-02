@@ -5,9 +5,9 @@ var settings_path: String
 var owned: LocalMatch
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	settings_path = "user://late-local-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", settings_path)
+	set_meta("localexception_settings_path", settings_path)
 	node_added.connect(func(node: Node) -> void:
 		if node.has_signal("server_error"):
 			node.server_error.connect(func(message: String) -> void: print("late wire refusal: ", message)))
@@ -37,7 +37,7 @@ func _until(condition: Callable, message: String) -> bool:
 	return passed
 
 func _run() -> void:
-	var preferences := FragrSettings.new(settings_path)
+	var preferences := LocalExceptionSettings.new(settings_path)
 	preferences.set_value("video", "display_mode", 0)
 	_check(preferences.save_to_disk() == OK, "isolated settings")
 	owned = LocalMatch.for_tree(self)

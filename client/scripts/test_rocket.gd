@@ -20,7 +20,7 @@ class CameraProbe extends Node:
 		return first_person
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	_run.call_deferred()
 
 func _check(ok: bool, message: String) -> void:

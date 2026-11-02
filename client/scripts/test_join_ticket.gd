@@ -8,16 +8,16 @@ func _fail(message: String) -> void:
 	quit(1)
 
 func _run() -> void:
-	var previous_server: String = OS.get_environment("FRAGR_SERVER")
-	OS.set_environment("FRAGR_SERVER", "wss://example.test:6767")
+	var previous_server: String = OS.get_environment("LOCALEXCEPTION_SERVER")
+	OS.set_environment("LOCALEXCEPTION_SERVER", "wss://example.test:6767")
 	var tls_network: Node = load("res://scripts/net_client.gd").new()
-	OS.set_environment("FRAGR_SERVER", previous_server)
+	OS.set_environment("LOCALEXCEPTION_SERVER", previous_server)
 	if str(tls_network.get("server_url")) != "wss://example.test:6767":
-		_fail("FRAGR_SERVER TLS address was " + str(tls_network.get("server_url")))
+		_fail("LOCALEXCEPTION_SERVER TLS address was " + str(tls_network.get("server_url")))
 		return
 	tls_network.free()
 	var network: Node = load("res://scripts/net_client.gd").new()
-	var expected := "v1.1700000060.human.5b6e18c7aef8a218ef64786317c23e472eb2b432bfa681e1c76e340b48d232ba"
+	var expected := "v1.1700000060.human.abc2b182719ae11c305e73cd152977f2b34f5fdb59fde7fef27a3acbe59a56b9"
 	var ticket: String = str(network.call("join_ticket", "human", "0123456789abcdef", 1700000060))
 	if ticket != expected:
 		_fail("human ticket was " + ticket)
@@ -35,7 +35,7 @@ func _run() -> void:
 	if str(network.call("join_ticket", "human", "  0123456789abcdef  ", 1700000060)) != expected:
 		_fail("surrounding space changed the secret")
 		return
-	var v2_expected := "v2.1700000060.human.00112233445566778899aabbccddeeff.d3NzOi8vcGxheS5leGFtcGxlOjY3Njc.0ec6964cd92cc8c6b91dea2c4491f9454ebc20e7aadce35b355e4d675df4b6d8"
+	var v2_expected := "v2.1700000060.human.00112233445566778899aabbccddeeff.d3NzOi8vcGxheS5leGFtcGxlOjY3Njc.e3221c936ed32e831fe5e6428525c05478558131c22b9333da60d6fdef85c9c8"
 	var v2_ticket: String = str(network.call("join_ticket_v2", "human", "0123456789abcdef", 1700000060, "00112233445566778899aabbccddeeff", "wss://play.example:6767"))
 	if v2_ticket != v2_expected:
 		_fail("v2 ticket was " + v2_ticket)

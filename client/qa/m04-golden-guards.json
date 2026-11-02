@@ -1,5 +1,5 @@
 {
-  "comment": "M04 golden-slice faction read. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m04_notice_to_vacate.json. A joined player waits at the tram stop while posed views frame the notice-board guards placed from the start: the Clerk behind the board and the two Sweepers either side of the square. Check black armour, red visors, armbands and optics against Low Water's warm plaster, setts and long late-afternoon shade at fighting distance; art review, not combat evidence.",
+  "comment": "M04 golden-slice faction read. LOCALEXCEPTION_QA_BOTS=0, LOCALEXCEPTION_QA_MAP_FILE=server/maps/m04_notice_to_vacate.json. A joined player waits at the tram stop while posed views frame the notice-board guards placed from the start: the Clerk behind the board and the two Sweepers either side of the square. Check black armour, red visors, armbands and optics against Low Water's warm plaster, setts and long late-afternoon shade at fighting distance; art review, not combat evidence.",
   "width": 1280,
   "height": 720,
   "states": [

@@ -71,7 +71,7 @@ func _collect_shots(snapshot: Dictionary) -> void:
 func _observed_state() -> Dictionary:
 	var state: Dictionary = super._observed_state()
 	state["sniper_presentation_shot"] = _shot_report.duplicate(true)
-	state["comparison_art"] = OS.get_environment("FRAGR_SNIPER_ART")
+	state["comparison_art"] = OS.get_environment("LOCALEXCEPTION_SNIPER_ART")
 	state["same_sample_pairs"] = _pairs.duplicate(true)
 	return state
 

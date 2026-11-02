@@ -354,8 +354,10 @@ mod tests {
         use futures_util::{SinkExt, StreamExt};
         use std::time::Duration;
         use tokio_tungstenite::{connect_async, tungstenite::Message};
-        let directory =
-            std::env::temp_dir().join(format!("fragr-repeater-admission-{}", Uuid::new_v4()));
+        let directory = std::env::temp_dir().join(format!(
+            "localexception-repeater-admission-{}",
+            Uuid::new_v4()
+        ));
         std::fs::create_dir(&directory).unwrap();
         let path = directory.join("range.json");
         let bytes = serde_json::to_vec(&json!({

@@ -8,7 +8,7 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	var out_dir: String = OS.get_environment("FRAGR_TIP_CAPTURE_DIR")
+	var out_dir: String = OS.get_environment("LOCALEXCEPTION_TIP_CAPTURE_DIR")
 	if out_dir.is_empty():
 		out_dir = ProjectSettings.globalize_path("res://../docs/screenshots")
 	DirAccess.make_dir_recursive_absolute(out_dir)

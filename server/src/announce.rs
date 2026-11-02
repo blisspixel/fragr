@@ -6,7 +6,7 @@ use std::net::{Ipv4Addr, SocketAddr};
 /// Where a client listens for presence. Game traffic stays on the TCP port.
 pub const BEACON_PORT: u16 = 6768;
 
-const PREFIX: &str = "FRAGR/1 ";
+const PREFIX: &str = "LOCALEXCEPTION/1 ";
 
 /// A loopback listener is this computer only. Anything else can be seen on
 /// the LAN, including a wildcard bind.
@@ -86,19 +86,20 @@ mod tests {
 
     #[test]
     fn a_beacon_is_only_the_game_port() {
-        assert_eq!(parse_beacon(b"FRAGR/1 6767\n"), Some(6767));
-        assert_eq!(parse_beacon(b"FRAGR/1 1\n"), Some(1));
-        assert_eq!(parse_beacon(b"FRAGR/1 65535\n"), Some(65535));
+        assert_eq!(parse_beacon(b"LOCALEXCEPTION/1 6767\n"), Some(6767));
+        assert_eq!(parse_beacon(b"LOCALEXCEPTION/1 1\n"), Some(1));
+        assert_eq!(parse_beacon(b"LOCALEXCEPTION/1 65535\n"), Some(65535));
         assert_eq!(parse_beacon(&beacon_packet(6767)), Some(6767));
         for bad in [
-            b"FRAGR/1 6767".as_slice(),
-            b"FRAGR/1 6767\nextra",
-            b"FRAGR/1 0\n",
-            b"FRAGR/1 06767\n",
-            b"fragr/1 6767\n",
+            b"FRAGR/1 6767\n".as_slice(),
+            b"LOCALEXCEPTION/1 6767".as_slice(),
+            b"LOCALEXCEPTION/1 6767\nextra",
+            b"LOCALEXCEPTION/1 0\n",
+            b"LOCALEXCEPTION/1 06767\n",
+            b"localexception/1 6767\n",
             b"GET /status\n",
-            b"FRAGR/1 65536\n",
-            b"FRAGR/1\n",
+            b"LOCALEXCEPTION/1 65536\n",
+            b"LOCALEXCEPTION/1\n",
         ] {
             assert_eq!(parse_beacon(bad), None, "{bad:?}");
         }

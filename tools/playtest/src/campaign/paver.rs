@@ -4,8 +4,8 @@
 //! between samples may be missed; light spill and audio are not recognition.
 //! This is a declared controller model, not a rendered-legibility measurement.
 use super::{visible, Profile};
-use fragr_server::movement::Arena;
-use fragr_server::protocol::{PaverStripState, PlayerState, Snapshot};
+use localexception_server::movement::Arena;
+use localexception_server::protocol::{PaverStripState, PlayerState, Snapshot};
 use std::collections::{BTreeMap, BTreeSet};
 use uuid::Uuid;
 
@@ -102,13 +102,13 @@ impl Perception {
 mod tests {
     use super::*;
     use crate::campaign::{constrain, visible_aim, PROFILES};
-    use fragr_server::maps::AuthoredSource;
-    use fragr_server::mission::MissionClient;
-    use fragr_server::movement::Solid;
-    use fragr_server::navigation::Navigator;
-    use fragr_server::protocol::{Action, MissionId, MissionReady, Role};
-    use fragr_server::session::GameSession;
-    use fragr_server::sim::PLAYER_FLOOR_Y;
+    use localexception_server::maps::AuthoredSource;
+    use localexception_server::mission::MissionClient;
+    use localexception_server::movement::Solid;
+    use localexception_server::navigation::Navigator;
+    use localexception_server::protocol::{Action, MissionId, MissionReady, Role};
+    use localexception_server::session::GameSession;
+    use localexception_server::sim::PLAYER_FLOOR_Y;
     use std::f32::consts::FRAC_PI_2;
 
     fn scene() -> (Snapshot, PlayerState, Arena, PaverStripState) {

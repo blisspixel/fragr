@@ -4,23 +4,23 @@ extends SceneTree
 ## exhaustion scene, then the coda's fragment on black, the anomaly and the
 ## credits, rendered into a fixed 1280x720 viewport. Presentation only; the
 ## trigger itself is covered by the presentation harness. Development
-## inspection only, never an acceptance. Stills land in FRAGR_QA_DIR.
+## inspection only, never an acceptance. Stills land in LOCALEXCEPTION_QA_DIR.
 const SIZE: Vector2i = Vector2i(1280, 720)
 var _viewport: SubViewport
 var _out_dir: String = ""
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	_run.call_deferred()
 
 func _run() -> void:
-	_out_dir = OS.get_environment("FRAGR_QA_DIR")
+	_out_dir = OS.get_environment("LOCALEXCEPTION_QA_DIR")
 	if _out_dir.is_empty():
-		push_error("wipe_failure_review: FRAGR_QA_DIR is required")
+		push_error("wipe_failure_review: LOCALEXCEPTION_QA_DIR is required")
 		quit(1)
 		return
 	DirAccess.make_dir_recursive_absolute(_out_dir)
-	set_meta("fragr_settings_path", _out_dir.path_join("settings.cfg"))
+	set_meta("localexception_settings_path", _out_dir.path_join("settings.cfg"))
 	_viewport = SubViewport.new()
 	_viewport.size = SIZE
 	_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS

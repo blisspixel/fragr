@@ -1,9 +1,9 @@
 //! Supported stairs, protected edges and cover in the corrected campaign worlds.
 //! These fixtures use explicit initial feet and ordinary movement. Full finite
 //! mission combat and eye-height renderer acceptance are separate checks.
-use fragr_server::combat::line_of_sight;
-use fragr_server::maps::{AuthoredMap, RuntimeMap};
-use fragr_server::movement::{
+use localexception_server::combat::line_of_sight;
+use localexception_server::maps::{AuthoredMap, RuntimeMap};
+use localexception_server::movement::{
     live_step, Arena, MoveInput, MoveState, BODY_HEIGHT, CONTACT_EPSILON, RADIUS,
 };
 use serde_json::{json, Value};

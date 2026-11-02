@@ -18,7 +18,7 @@ var _failures: int = 0
 
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	call_deferred("_run")
 
 
@@ -52,8 +52,8 @@ static func delta_e(a: Color, b: Color) -> float:
 
 
 func _run() -> void:
-	var names: Dictionary[int, String] = {FragrSettings.TEAM_STANDARD: "standard", FragrSettings.TEAM_HIGH_CONTRAST: "high contrast",
-		FragrSettings.TEAM_COLOUR_BLIND: "red-green safe"}
+	var names: Dictionary[int, String] = {LocalExceptionSettings.TEAM_STANDARD: "standard", LocalExceptionSettings.TEAM_HIGH_CONTRAST: "high contrast",
+		LocalExceptionSettings.TEAM_COLOUR_BLIND: "red-green safe"}
 	print("test_colour_vision: | choice | pair | normal | deuteranopia | protanopia |")
 	for choice: int in names:
 		var pairs: Dictionary[String, Array] = {
@@ -69,23 +69,23 @@ func _run() -> void:
 			var deut: float = delta_e(simulate(a, DEUTERANOPIA), simulate(b, DEUTERANOPIA))
 			var prot: float = delta_e(simulate(a, PROTANOPIA), simulate(b, PROTANOPIA))
 			print("test_colour_vision: | %s | %s | %.0f | %.0f | %.0f |" % [names[choice], label, normal, deut, prot])
-			if choice == FragrSettings.TEAM_COLOUR_BLIND:
+			if choice == LocalExceptionSettings.TEAM_COLOUR_BLIND:
 				_check(minf(deut, prot) >= MIN_DELTA_E, "%s stays apart for red-green viewers: %.1f / %.1f" % [label, deut, prot])
 	# The preset keeps the contract: Union red stays Union red, and the free
 	# side's blue is neither the Inheritance's cyan nor an off-white.
-	var blind: int = FragrSettings.TEAM_COLOUR_BLIND
+	var blind: int = LocalExceptionSettings.TEAM_COLOUR_BLIND
 	_check(FactionPalette.team_accent("union", blind) == FactionPalette.UNION_RED, "Union keeps its red")
 	for free: Color in [FactionPalette.team_accent("coalition", blind), MatchRules.team_label_color("coalition", blind)] + FactionPalette.free_pair(blind):
 		_check(FactionPalette.free_accent_allowed(free), "free colour %s avoids red, cyan and off-white" % free.to_html(false))
-	# The setting reaches the palette through FragrSettings.apply, and an
+	# The setting reaches the palette through LocalExceptionSettings.apply, and an
 	# unknown stored choice falls back to standard.
-	var settings: FragrSettings = FragrSettings.new("")
+	var settings: LocalExceptionSettings = LocalExceptionSettings.new("")
 	settings.set_value("accessibility", "team_colours", blind)
 	settings.apply_accessibility()
 	_check(FactionPalette.team_accent("coalition") == FactionPalette.FREE_BLUE and MatchRules.team_label_color("coalition") == FactionPalette.FREE_BLUE_LABEL,
 		"the saved choice recolours the free side")
 	settings.set_value("accessibility", "team_colours", 7)
-	_check(settings.team_colours() == FragrSettings.TEAM_STANDARD, "an unknown choice is refused")
+	_check(settings.team_colours() == LocalExceptionSettings.TEAM_STANDARD, "an unknown choice is refused")
 	settings.apply_accessibility()
 	_check(FactionPalette.team_accent("coalition") == FactionPalette.FREE_AMBER, "standard is amber again")
 	if _failures == 0:

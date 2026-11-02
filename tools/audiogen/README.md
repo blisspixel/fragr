@@ -1,8 +1,8 @@
-# fragr-audiogen
+# Local Exception-audiogen
 
-Developer-only tool that produces sound effects and music beds for fragr through the ElevenLabs HTTP API and writes them as ordinary assets under `client/assets/audio/`. Players never run it. CI never runs it. The game never calls the API.
+Developer-only tool that produces sound effects and music beds for Local Exception through the ElevenLabs HTTP API and writes them as ordinary assets under `client/assets/audio/`. Players never run it. CI never runs it. The game never calls the API.
 
-Crate: `tools/audiogen` (`fragr-audiogen`). Rust only, one HTTP dependency, tested without the network.
+Crate: `tools/audiogen` (`localexception-audiogen`). Rust only, one HTTP dependency, tested without the network.
 
 ## Put in the key
 
@@ -29,7 +29,7 @@ elevenlabs=your-key
 An existing key file outside the checkout can also be supplied explicitly:
 
 ```bash
-cargo run -p fragr-audiogen -- --api-key-file /path/outside/checkout/elevenlabs.key quota
+cargo run -p localexception-audiogen -- --api-key-file /path/outside/checkout/elevenlabs.key quota
 ```
 
 `.env` and `*.key` are gitignored. Keep credentials out of `.agents/`, which is disposable diagnostics and receipts. The tool never prints the key.
@@ -39,7 +39,7 @@ cargo run -p fragr-audiogen -- --api-key-file /path/outside/checkout/elevenlabs.
 Check remaining credits:
 
 ```bash
-cargo run -p fragr-audiogen -- quota
+cargo run -p localexception-audiogen -- quota
 ```
 
 The summary includes credit-extension eligibility, permission, maximum extension
@@ -51,7 +51,7 @@ credit cap bounds estimates, not the provider's billing system.
 One sound effect (24 kHz mono WAV by default, which Godot imports as a sample):
 
 ```bash
-cargo run -p fragr-audiogen -- sfx --name fire_rail \
+cargo run -p localexception-audiogen -- sfx --name fire_rail \
   --prompt "heavy railgun shot, electric charge crack then cold metallic ring, retro arcade, dry" \
   --seconds 0.9 --influence 0.6
 ```
@@ -59,7 +59,7 @@ cargo run -p fragr-audiogen -- sfx --name fire_rail \
 One music bed (MP3 at 44.1 kHz and 128 kbps, which Godot streams):
 
 ```bash
-cargo run -p fragr-audiogen -- music --name music/match_01 \
+cargo run -p localexception-audiogen -- music --name music/match_01 \
   --prompt "driving industrial synth-metal loop for a 90s arena shooter, 140 bpm, no vocals" \
   --length-ms 60000 --instrumental
 ```
@@ -67,16 +67,16 @@ cargo run -p fragr-audiogen -- music --name music/match_01 \
 Spoken lines for the news station and the Host (the default model is `eleven_v3`; `eleven_v4` is also accepted at the same one credit per character, and delivery tags such as `[sighs]` work on both):
 
 ```bash
-cargo run -p fragr-audiogen -- voices
-cargo run -p fragr-audiogen -- tts --name radio/news/generic-01-count --voice <voice_id> \
+cargo run -p localexception-audiogen -- voices
+cargo run -p localexception-audiogen -- tts --name radio/news/generic-01-count --voice <voice_id> \
   --text "[sighs] Good evening. The Continuance lost count again." --stability 0.5
 ```
 
 `voices` prints the account's default voices with ids. ElevenLabs states that every default voice expires on 2026-12-31, so a lasting role needs a voice the account keeps: a designed voice saved to the account, or a shared library voice with a long notice period (see Casting below). Spec items of kind `tts` take `text`, `voice`, optional `model`, `stability`, `format`, `title`. The scripts for the news station live in `specs/radio-news-scripts.json`. Cast the speakers and convert them into a batch spec (no credits spent), then generate:
 
 ```bash
-cargo run -p fragr-audiogen -- scripts --scripts tools/audiogen/specs/radio-news-scripts.json \n  --voice host=<id> --voice tina=<id> --voice phil=<id> --voice caller=<id1>,<id2>,<id3> \n  --out tools/audiogen/specs/radio-news.json
-cargo run -p fragr-audiogen -- batch --spec tools/audiogen/specs/radio-news.json --max-credits 20000
+cargo run -p localexception-audiogen -- scripts --scripts tools/audiogen/specs/radio-news-scripts.json \n  --voice host=<id> --voice tina=<id> --voice phil=<id> --voice caller=<id1>,<id2>,<id3> \n  --out tools/audiogen/specs/radio-news.json
+cargo run -p localexception-audiogen -- batch --spec tools/audiogen/specs/radio-news.json --max-credits 20000
 ```
 
 Caller clips (lines starting with `HOST:` and `CALLER:`) become multi-voice dialogues through the text-to-dialogue endpoint; spec items may also carry `lines` of `{voice_id, text}` directly. Match templates with `{placeholders}` are skipped until round-end data exists. Beds and the sung station ID are music items in `specs/radio-news-beds.json`.
@@ -84,8 +84,8 @@ Caller clips (lines starting with `HOST:` and `CALLER:`) become multi-voice dial
 Everything in a spec file (see `specs/sfx-core.json`):
 
 ```bash
-cargo run -p fragr-audiogen -- batch --spec tools/audiogen/specs/sfx-core.json
-cargo run -p fragr-audiogen -- batch --spec tools/audiogen/specs/sfx-core.json --only frag
+cargo run -p localexception-audiogen -- batch --spec tools/audiogen/specs/sfx-core.json
+cargo run -p localexception-audiogen -- batch --spec tools/audiogen/specs/sfx-core.json --only frag
 ```
 
 ## Casting
@@ -93,7 +93,7 @@ cargo run -p fragr-audiogen -- batch --spec tools/audiogen/specs/sfx-core.json -
 Search the shared voice library (a free GET; legacy custom-rate voices, which bill a credit multiplier, are excluded unless `--include-custom-rates` is passed):
 
 ```bash
-cargo run -p fragr-audiogen -- library --search "narrator" --use-case narrative_story \
+cargo run -p localexception-audiogen -- library --search "narrator" --use-case narrative_story \
   --min-notice-days 365 --sort cloned_by_count --page-size 30
 ```
 
@@ -102,16 +102,16 @@ Each row prints the voice id, owner id, category, labels, notice period, rate, a
 Design a voice from a description, or remix one the account owns, into previews. Previews are candidates, so `--out-dir` is required and should sit outside `client/assets`. The request charges the preview text once for all previews, so it needs a finite `--max-credits` and leaves a pending receipt until the response is written:
 
 ```bash
-cargo run -p fragr-audiogen -- --out-dir .agents/casting --max-credits 400 design \
+cargo run -p localexception-audiogen -- --out-dir .agents/casting --max-credits 400 design \
   --name narrator/warm-a --description "..." --text "<100 to 1000 characters of a real line>" --seed 1
-cargo run -p fragr-audiogen -- --out-dir .agents/casting --max-credits 400 design \
+cargo run -p localexception-audiogen -- --out-dir .agents/casting --max-credits 400 design \
   --name narrator/warm-a-remix --remix <owned_voice_id> --description "slower, closer" --text "..."
 ```
 
 This writes `<name>_<n>.mp3` previews and `<name>.design.json` with each `generated_voice_id`. The default design model is `eleven_ttv_v3`; `eleven_multilingual_ttv_v2` is also accepted. Keep one saved voice per role so every later line stays in the same voice:
 
 ```bash
-cargo run -p fragr-audiogen -- save-voice --generated-voice-id <id> --voice-name "fragr narrator" \
+cargo run -p localexception-audiogen -- save-voice --generated-voice-id <id> --voice-name "localexception narrator" \
   --description "..."
 ```
 
@@ -132,7 +132,7 @@ The in-game radio is a side feature: seven music stations and the news and chat 
 Generate candidates with an out dir whose `radio/<station>/` folders sit beside an `audiogen-manifest.json`, for example a batch spec with `"out_dir": ".agents/asset-round-20261023/audio"` and names such as `radio/rock/neon-rain`. Then run from the repository root:
 
 ```bash
-cargo run -p fragr-audiogen -- review
+cargo run -p localexception-audiogen -- review
 ```
 
 It binds `127.0.0.1:6780` (`--port 0` picks a free port), prints the URL and opens the default browser (`--no-open` skips that). Each station tab shows keepers against the target of 30 (`--target`), rejected and unreviewed counts. Every track shows its source (shipped or candidate), title, duration, file, model and prompt from the nearest manifest.
@@ -151,8 +151,8 @@ Click the waveform to seek. Decisions are written on every mark to `.agents/asse
 When the listening is done, preview the promotion:
 
 ```bash
-cargo run -p fragr-audiogen -- promote
-cargo run -p fragr-audiogen -- promote --apply
+cargo run -p localexception-audiogen -- promote
+cargo run -p localexception-audiogen -- promote --apply
 ```
 
 Without `--apply` it only prints the plan. With it, each candidate keeper is copied to `client/assets/audio/radio/<station>/NN-slug.<ext>`, numbered after the station's highest existing track (on the news station a candidate named `ad-...`, `caller-...` and so on joins that series, so `ad-moon-soap` ships as `ad-09-moon-soap.mp3`), and gets an entry in `client/assets/audio/audiogen-manifest.json` copied from its candidate manifest entry (prompt, model, format, title, length), which is the record `radio.gd` reads. Rejected shipped tracks are deleted with their `.import` sidecar and manifest entry. A keeper without a candidate manifest entry has no provenance and blocks the run. A station that loses tracks may not end below 12 (`--min-tracks`, the radio's no-repeat window) unless `--force` is passed. Promoted candidates are recorded in the decisions file and hidden from the page, so a second run copies nothing twice. Afterwards run the Godot import (`tools/godot_check.sh`) to create `.import` files, check `git status client/assets/audio`, and stage with `git add -A client/assets/audio`. Promotion does not commit; the distribution basis in [Licensing of the output](#licensing-of-the-output) still applies.
@@ -164,25 +164,25 @@ The campaign score (`client/assets/audio/README.md`, "Campaign score") ships two
 Listen side by side outside the game, one tab per level or cue with its designed feeling, prompt and length:
 
 ```bash
-cargo run -p fragr-audiogen -- review --score
+cargo run -p localexception-audiogen -- review --score
 ```
 
-`--score` switches the review page to `score/slots.json`, the shipped score folders and `.agents/score-review/decisions.json`. Marking a take Reject and running `cargo run -p fragr-audiogen -- promote --score --apply` removes it; a slot always keeps at least one take.
+`--score` switches the review page to `score/slots.json`, the shipped score folders and `.agents/score-review/decisions.json`. Marking a take Reject and running `cargo run -p localexception-audiogen -- promote --score --apply` removes it; a slot always keeps at least one take.
 
 Collect the picks made in game:
 
 ```bash
-cargo run -p fragr-audiogen -- score-picks
-cargo run -p fragr-audiogen -- score-picks --save .agents/score-picks.json
+cargo run -p localexception-audiogen -- score-picks
+cargo run -p localexception-audiogen -- score-picks --save .agents/score-picks.json
 ```
 
-The settings file defaults to Godot's user data folder for the project: `~/.local/share/godot/app_userdata/fragr/settings.cfg` on Linux (or under ``), `~/Library/Application Support/Godot/app_userdata/fragr/settings.cfg` on macOS and `%APPDATA%\Godot\app_userdata\fragr\settings.cfg` on Windows; `--settings` names another. An unpicked slot plays take A.
+The settings file defaults to Godot's user data folder for the project: `~/.local/share/localexception/settings.cfg` on Linux (or under ``), `~/Library/Application Support/localexception/settings.cfg` on macOS and `%APPDATA%\localexception\settings.cfg` on Windows; `--settings` names another. An unpicked slot plays take A.
 
 Then delete every take that was not picked, with its `.import` file and manifest entry, in one step:
 
 ```bash
-cargo run -p fragr-audiogen -- score-prune
-cargo run -p fragr-audiogen -- score-prune --apply
+cargo run -p localexception-audiogen -- score-prune
+cargo run -p localexception-audiogen -- score-prune --apply
 ```
 
 Without `--apply` it only prints the plan. Slots without a pick keep both takes, and a slot whose pick no longer ships is reported and left alone. Afterwards run `tools/godot_check.sh` and stage with `git add -A client/assets/audio`.
@@ -192,8 +192,8 @@ Without `--apply` it only prints the plan. Slots without a pick keep both takes,
 A local, free BS.1770-4 / EBU R128 meter for WAV files (integer PCM or float, any channel count). It reports integrated loudness with the -70 LUFS absolute and -10 LU relative gates, loudness range (EBU Tech 3342), momentary and short-term maxima, sample peak and 4x oversampled true peak. Its tests pin it to the EBU Tech 3341 and 3342 reference signals, and it agrees with `ffmpeg -af ebur128=peak=true` to 0.1 LU on integrated loudness and 0.2 LU on range for the shipped score and radio files.
 
 ```bash
-cargo run -p fragr-audiogen -- loudness capture.wav
-cargo run -p fragr-audiogen -- loudness --check --json .agents/mix.json capture.wav
+cargo run -p localexception-audiogen -- loudness capture.wav
+cargo run -p localexception-audiogen -- loudness --check --json .agents/mix.json capture.wav
 ```
 
 `--check` exits non-zero unless every file is inside the gameplay target from the 1.0 bar: -23 to -18 LUFS integrated and true peak at or below -1 dBTP. QA tour captures (`client/qa/mix-loudness.json`, `client/qa/mix-watch.json`) are the usual input; they are recorded after the Master limiter and before the Master volume, which defaults to 0.9 (about -0.9 dB).
@@ -204,8 +204,8 @@ cargo run -p fragr-audiogen -- loudness --check --json .agents/mix.json capture.
 Crackpot's certificate, the few seconds of hard-tuned pop that play when a benchmark run completes (`client/scripts/benchmark_jingle.gd`), ships six takes from `specs/benchmark-jingle-20261031.json`: three lyrics, two takes each, at `client/assets/audio/jingle/benchmark/<take>.mp3`. Nick picks one by ear with the Jingle buttons on the benchmark results screen; the game saves it as `[audio] benchmark_jingle` in the same settings file the score picks use, and an unpicked game plays 1A. Then delete the other five, with their `.import` files and manifest entries:
 
 ```bash
-cargo run -p fragr-audiogen -- jingle-prune
-cargo run -p fragr-audiogen -- jingle-prune --apply
+cargo run -p localexception-audiogen -- jingle-prune
+cargo run -p localexception-audiogen -- jingle-prune --apply
 ```
 
 Without `--apply` it only prints the plan, and with no pick saved it keeps every take. Once one take remains the results screen drops the picker by itself. Afterwards run `tools/godot_check.sh` and stage with `git add -A client/assets/audio`.

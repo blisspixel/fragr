@@ -9,7 +9,7 @@
 - Protocol: WebSocket over TCP
 - Format: JSON text messages
 - Address: Server binds `0.0.0.0:6767` by default (loopback, LAN, or public host)
-- Client: Loopback default, accepts `FRAGR_SERVER` env var for remote connections
+- Client: Loopback default, accepts `LOCALEXCEPTION_SERVER` env var for remote connections
 - Tick rate: ~20 Hz server broadcast
 - Multi-peer: Multiple spectators/players can connect to same match
 - Fan-out: each broadcast is encoded once per tick and every session's bounded queue shares that payload; targeted messages are encoded per session. Since gameplay 66 a fighter in a shared arcade room receives its own view of the world instead (other fighters it cannot perceive are withheld, `server/src/interest.rs`): fighters with the same view share one cut of the world text, and each view goes as a delta from the world that socket last carried. Spectators keep the shared world. Measured before and after in [BENCHMARK.md](BENCHMARK.md#local-spectator-fan-out).
@@ -17,7 +17,7 @@
 - Size: worlds go as deltas from the world the reader holds (gameplay 63), with fighter motion rounded to the millimetre and 1e-4 rad on the wire. Measured in [BENCHMARK.md](BENCHMARK.md#quantized-motion-434-stage-4-wave-16): about 51 KiB/s per client at the 64-connection cap.
 - Limits: Ordered TCP delivery stalls newer updates behind a lost segment; JSON text is still larger than a binary, relevant-state format.
 
-LAN presence is a separate UDP broadcast on port 6768, `FRAGR/1 <game-port>`.
+LAN presence is a separate UDP broadcast on port 6768, `LOCALEXCEPTION/1 <game-port>`.
 It is not this transport and it does not carry snapshots or inputs.
 
 **Current playable path.** Spectators and agents share this transport with humans. The local pawn predicts and reconciles movement on the 20 Hz WebSocket path. The [continuous moving-combat probe](plans/websocket-moving-combat-probe.md) measured correction, fallback, cadence and payload on loopback. The [delayed-egress probe](plans/websocket-delayed-egress.md) passed nine 20-second Windows-to-WSL sessions with 0, 40 and 80 ms server-egress delay. Those sessions shared one physical machine and injected no loss or jitter. Competitive feel still needs a two-machine, unsteered human session. The earlier [Action-to-Ack baseline](plans/human-action-ack-baseline.md) samples server-selected Actions; its send-to-Ack interval is not general input latency or RTT.
@@ -35,7 +35,7 @@ participant transform interpolation. Bounded hitscan lag compensation (gameplay
 delay all combat facts or prove two-machine feel. Evidence and limitations are
 in [the presentation plan](plans/remote-participant-presentation.md).
 
-**Simulated links, 2026-10-28.** `fragr-playtest --fanout-matrix --fanout-link`
+**Simulated links, 2026-10-28.** `localexception-playtest --fanout-matrix --fanout-link`
 puts watchers behind an in-process TCP relay that imposes capacity, delay,
 jitter, retransmission stalls and outages, and `--rewind-matrix
 --rewind-jitter` models the same on the lag-compensation timeline. Results

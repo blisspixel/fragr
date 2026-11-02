@@ -28,16 +28,16 @@ func _capture(name: String) -> void:
 	_expect(root.get_texture().get_image().save_png(_captures.path_join(name + ".png")) == OK, "capture " + name)
 
 func _run() -> void:
-	_captures = OS.get_environment("FRAGR_RECOVERY_CAPTURE_DIR")
+	_captures = OS.get_environment("LOCALEXCEPTION_RECOVERY_CAPTURE_DIR")
 	if not _captures.is_empty():
 		DirAccess.make_dir_recursive_absolute(_captures)
 	var settings_path: String = "user://test-campaign-recovery-%d.cfg" % OS.get_process_id()
 	var records_path: String = "user://test-campaign-records-%d" % OS.get_process_id()
 	var run_directory: String = ProjectSettings.globalize_path("user://test-campaign-run-%d" % OS.get_process_id())
-	OS.set_environment("FRAGR_RUN_DIR", run_directory)
-	set_meta("fragr_records_path", records_path)
-	set_meta("fragr_settings_path", settings_path)
-	var preferences: FragrSettings = FragrSettings.new(settings_path)
+	OS.set_environment("LOCALEXCEPTION_RUN_DIR", run_directory)
+	set_meta("localexception_records_path", records_path)
+	set_meta("localexception_settings_path", settings_path)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	preferences.set_value("video", "display_mode", 0)
 	_expect(preferences.save_to_disk() == OK, "isolated preferences saved")
 	root.mode = Window.MODE_WINDOWED
@@ -84,7 +84,7 @@ func _run() -> void:
 			name = run_files.get_next()
 		run_files.list_dir_end()
 		DirAccess.remove_absolute(run_directory)
-	OS.unset_environment("FRAGR_RUN_DIR")
+	OS.unset_environment("LOCALEXCEPTION_RUN_DIR")
 	if not _failed:
 		print("test_campaign_recovery: PASS real M01 death, three input-driven retries, entry restore and exhaustion")
 	quit(1 if _failed else 0)

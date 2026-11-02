@@ -7,10 +7,10 @@ extends "res://qa/m18_live_review.gd"
 ## comes in, she speaks and they walk her out, then the three under guard.
 ## Observations only; the agent's inputs are its own.
 ##
-## Run against `fragr-server --bots 0 --map-file server/maps/m17-peace-without-interruption.json`
-## with `fragr-agent-adapter scripted-bot` joined, on a real display, via
-## tools/qa_tour.sh with FRAGR_QA_SCRIPT=res://qa/m17_live_review.gd and
-## FRAGR_QA_MANIFEST=res://qa/m17-live-review.json. Stills land in FRAGR_QA_DIR.
+## Run against `localexception-server --bots 0 --map-file server/maps/m17-peace-without-interruption.json`
+## with `localexception-agent-adapter scripted-bot` joined, on a real display, via
+## tools/qa_tour.sh with LOCALEXCEPTION_QA_SCRIPT=res://qa/m17_live_review.gd and
+## LOCALEXCEPTION_QA_MANIFEST=res://qa/m17-live-review.json. Stills land in LOCALEXCEPTION_QA_DIR.
 const M17_MANIFEST: String = "res://qa/m17-live-review.json"
 ## Inside the chamber by the core seal: Voss beside the rostrum's east end
 ## with the seal behind her, the party at the rostrum off to one side and

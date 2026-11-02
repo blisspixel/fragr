@@ -1,5 +1,5 @@
 extends CanvasLayer
-class_name FragrConsole
+class_name LocalExceptionConsole
 
 ## A drop-down console on the tilde key, in the tradition of Quake, Half-Life
 ## and Counter-Strike before 1.6. It is a player convenience and a development
@@ -12,7 +12,7 @@ class_name FragrConsole
 ## boot menu where there is no match at all.
 
 signal command_run(line: String)
-var preferences: FragrSettings
+var preferences: LocalExceptionSettings
 
 const MAX_LINES: int = 400
 const HISTORY_MAX: int = 64
@@ -31,7 +31,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build()
 	visible = false
-	echo("fragr console. Type help for commands, tilde to close.")
+	echo("localexception console. Type help for commands, tilde to close.")
 
 func _build() -> void:
 	_panel = Panel.new()
@@ -288,7 +288,7 @@ func _save_preference(section: String, key: String, value: Variant) -> void:
 	if preferences == null:
 		echo("no settings store")
 		return
-	var candidate: FragrSettings = preferences.draft()
+	var candidate: LocalExceptionSettings = preferences.draft()
 	candidate.set_value(section, key, value)
 	var result: Error = preferences.commit(candidate)
 	if result != OK:

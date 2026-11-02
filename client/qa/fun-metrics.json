@@ -1,5 +1,5 @@
 {
-  "comment": "Fun metrics as a player meets them: tools/qa_tour.sh with FRAGR_QA_FUN_METRICS=1 and FRAGR_QA_MANIFEST=res://qa/fun-metrics.json. The host's switch under more options, the join page's match line read from /status, and the match feed's notice on join, before the first fight.",
+  "comment": "Fun metrics as a player meets them: tools/qa_tour.sh with LOCALEXCEPTION_QA_FUN_METRICS=1 and LOCALEXCEPTION_QA_MANIFEST=res://qa/fun-metrics.json. The host's switch under more options, the join page's match line read from /status, and the match feed's notice on join, before the first fight.",
   "width": 1280,
   "height": 720,
   "states": [

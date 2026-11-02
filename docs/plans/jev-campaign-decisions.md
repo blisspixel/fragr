@@ -103,7 +103,7 @@ art, not a finished visual pass.
 
 Focused brain tests and clippy passed. The full workspace test suite passed
 before the target-filter correction, after two attempts to rebuild
-`fragr-server.exe` collided with live M01 processes on Windows. Stopping those
+`localexception-server.exe` collided with live M01 processes on Windows. Stopping those
 exact processes removed the lock. The six-map mixed roster passed. Its spawn
 deaths remain a separate open issue. The integrated branch then passed the
 full workspace suite, Godot checks, release benchmark, release build, cargo

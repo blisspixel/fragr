@@ -7,8 +7,8 @@
 //! fresh-player acceptance. A death spends a continue at once, so play time
 //! lost to a death is measured from the save the retry returned to.
 //!
-//! `cargo test -p fragr-server --release --lib checkpoint_gap_survey -- --ignored --nocapture`
-//! prints the table; `FRAGR_CHECKPOINT_GAPS=<path>` also writes it as JSON.
+//! `cargo test -p localexception-server --release --lib checkpoint_gap_survey -- --ignored --nocapture`
+//! prints the table; `LOCALEXCEPTION_CHECKPOINT_GAPS=<path>` also writes it as JSON.
 use crate::inventory::control_action_with_target_filter;
 use crate::maps::AuthoredSource;
 use crate::mission::route_skill::{FutileTargets, TellReader};
@@ -322,9 +322,9 @@ fn play_until(
 }
 
 #[test]
-#[ignore = "per-level survey: cargo test -p fragr-server --release --lib checkpoint_gap_survey -- --ignored --nocapture"]
+#[ignore = "per-level survey: cargo test -p localexception-server --release --lib checkpoint_gap_survey -- --ignored --nocapture"]
 fn checkpoint_gap_survey() {
-    let only: Option<String> = std::env::var("FRAGR_CHECKPOINT_LEVEL").ok();
+    let only: Option<String> = std::env::var("LOCALEXCEPTION_CHECKPOINT_LEVEL").ok();
     let mut rows = Vec::new();
     for mission in MissionId::ALL {
         if mission == MissionId::StillHere
@@ -346,7 +346,7 @@ fn checkpoint_gap_survey() {
         );
         rows.push(row);
     }
-    if let Ok(path) = std::env::var("FRAGR_CHECKPOINT_GAPS") {
+    if let Ok(path) = std::env::var("LOCALEXCEPTION_CHECKPOINT_GAPS") {
         std::fs::write(path, serde_json::to_string_pretty(&rows).unwrap() + "\n").unwrap();
     }
 }

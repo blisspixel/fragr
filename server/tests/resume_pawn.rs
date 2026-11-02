@@ -2,9 +2,9 @@
 
 use std::time::Duration;
 
-use fragr_server::protocol::{Role, ServerMessage};
-use fragr_server::run::{run_server, ServerOptions};
 use futures_util::{SinkExt, StreamExt};
+use localexception_server::protocol::{Role, ServerMessage};
+use localexception_server::run::{run_server, ServerOptions};
 use tokio::time::timeout;
 use tokio_tungstenite::tungstenite::Message;
 
@@ -13,7 +13,7 @@ use support::{connect_async, Socket};
 
 #[tokio::test]
 async fn a_drop_keeps_the_same_pawn_and_leave_removes_it() {
-    tokio::task::spawn_blocking(fragr_server::session::GameSession::new)
+    tokio::task::spawn_blocking(localexception_server::session::GameSession::new)
         .await
         .expect("navigation");
     let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel();
@@ -44,7 +44,7 @@ async fn a_drop_keeps_the_same_pawn_and_leave_removes_it() {
         .send(Message::Text(
             format!(
                 r#"{{"type":"hello","role":"human","name":"Patch","geometry_version":2,"gameplay_version":{},"resume":""}}"#,
-                fragr_server::protocol::GAMEPLAY_VERSION
+                localexception_server::protocol::GAMEPLAY_VERSION
             ),
         ))
         .await
@@ -58,7 +58,7 @@ async fn a_drop_keeps_the_same_pawn_and_leave_removes_it() {
         .send(Message::Text(
             format!(
                 r#"{{"type":"hello","role":"spectator","name":"Eyes","geometry_version":2,"gameplay_version":{}}}"#,
-                fragr_server::protocol::GAMEPLAY_VERSION
+                localexception_server::protocol::GAMEPLAY_VERSION
             ),
         ))
         .await
@@ -82,7 +82,7 @@ async fn a_drop_keeps_the_same_pawn_and_leave_removes_it() {
         .send(Message::Text(
             format!(
                 r#"{{"type":"hello","role":"human","name":"Patch","geometry_version":2,"gameplay_version":{},"resume":"{token}"}}"#,
-                fragr_server::protocol::GAMEPLAY_VERSION
+                localexception_server::protocol::GAMEPLAY_VERSION
             ),
         ))
         .await

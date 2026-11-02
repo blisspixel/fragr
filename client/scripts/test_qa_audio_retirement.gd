@@ -4,7 +4,7 @@ const TOUR = preload("res://scripts/qa_tour.gd")
 var _failures: int = 0
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	_run.call_deferred()
 
 func _check(condition: bool, message: String) -> void:

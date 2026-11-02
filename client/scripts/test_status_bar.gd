@@ -5,9 +5,9 @@ var hud: CanvasLayer
 var settings_path: String
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	settings_path = "user://status-bar-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", settings_path)
+	set_meta("localexception_settings_path", settings_path)
 	_run.call_deferred()
 
 func _check(ok: bool, message: String) -> void:
@@ -17,7 +17,7 @@ func _check(ok: bool, message: String) -> void:
 
 func _run() -> void:
 	root.size = Vector2i(1280, 720)
-	if not OS.get_environment("FRAGR_STATUS_CAPTURE").is_empty():
+	if not OS.get_environment("LOCALEXCEPTION_STATUS_CAPTURE").is_empty():
 		var background: ColorRect = ColorRect.new()
 		background.color = MenuTheme.SURFACE
 		background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -42,7 +42,7 @@ func _run() -> void:
 	quit(0 if failures == 0 else 1)
 
 func _capture(name: String) -> void:
-	var directory: String = OS.get_environment("FRAGR_STATUS_CAPTURE")
+	var directory: String = OS.get_environment("LOCALEXCEPTION_STATUS_CAPTURE")
 	if directory.is_empty() or DisplayServer.get_name() == "headless":
 		return
 	await _settle()
@@ -149,10 +149,10 @@ func _test_vitals_and_motion() -> void:
 	hud.show_critical_crossing(25, 10)
 	_check(hud._critical_pulse == pulse, "remaining below threshold never restarts the pulse")
 	await process_frame
-	var prefs: FragrSettings = FragrSettings.new(settings_path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	prefs.set_value("accessibility", "reduced_motion", true)
 	_check(prefs.save_to_disk() == OK, "reduced motion persists")
-	var restored: FragrSettings = FragrSettings.new(settings_path)
+	var restored: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	restored.load_from_disk()
 	hud.apply_preferences(restored)
 	_check(hud.reduced_motion and not hud.head_bob_enabled and restored.get_value("gameplay", "head_bob"), "effective override preserves saved bob choice")
@@ -281,7 +281,7 @@ func _test_regions() -> void:
 	hud._process(1.1)
 	await _settle()
 	_check(hud.mode_chip_label.visible and hud.sabotage_hud.visible, "Sabotage facts return after card expiry")
-	var preferences: FragrSettings = FragrSettings.new(settings_path)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	preferences.set_value("gameplay", "debug_telemetry", true)
 	hud.apply_preferences(preferences)
 	await _settle()
@@ -297,7 +297,7 @@ func _test_vehicle_regions() -> void:
 	hud.regions.vehicle = vehicle
 	vehicle.geometry_changed.connect(hud.regions.layout)
 	vehicle.visibility_changed.connect(hud.regions.layout)
-	var preferences: FragrSettings = FragrSettings.new(settings_path)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	hud.apply_preferences(preferences)
 	hud.set_mode("PLAYING")
 	for scenario: String in ["nearby", "hot_gunner", "aircraft"]:

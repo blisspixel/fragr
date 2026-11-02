@@ -706,7 +706,8 @@ mod tests {
             .duration_since(std::time::UNIX_EPOCH)
             .map(|d| d.as_nanos())
             .unwrap_or_default();
-        let dir = std::env::temp_dir().join(format!("fragr-audiogen-casting-{tag}-{nanos}"));
+        let dir =
+            std::env::temp_dir().join(format!("localexception-audiogen-casting-{tag}-{nanos}"));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         dir
@@ -1108,7 +1109,7 @@ mod tests {
     fn save_voice_posts_the_preview_and_prints_the_id() {
         let params = SaveVoiceParams {
             generated_voice_id: "gen1".into(),
-            voice_name: "fragr narrator".into(),
+            voice_name: "localexception narrator".into(),
             description: "Warm, unhurried narrator.".into(),
         };
         let request = save_voice_request(&params).unwrap();

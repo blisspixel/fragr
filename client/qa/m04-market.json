@@ -1,5 +1,5 @@
 {
-  "comment": "Notice to Vacate authoring route. FRAGR_QA_BOTS=0, FRAGR_QA_MAP_FILE=server/maps/m04_notice_to_vacate.json, FRAGR_QA_MANIFEST=res://qa/m04-market.json, seed42. Ordinary human input and finite discovery supplies. All28 enemies, optionalclinic, three secrets and realroof departure. Accurateaim authoring evidence, not fresh-player or11minute acceptance.",
+  "comment": "Notice to Vacate authoring route. LOCALEXCEPTION_QA_BOTS=0, LOCALEXCEPTION_QA_MAP_FILE=server/maps/m04_notice_to_vacate.json, LOCALEXCEPTION_QA_MANIFEST=res://qa/m04-market.json, seed42. Ordinary human input and finite discovery supplies. All28 enemies, optionalclinic, three secrets and realroof departure. Accurateaim authoring evidence, not fresh-player or11minute acceptance.",
   "width": 1280,
   "height": 720,
   "combat_travel": false,

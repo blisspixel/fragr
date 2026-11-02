@@ -1,6 +1,6 @@
-use fragr_server::protocol::{ClientMessage, Role, ServerMessage, GEOMETRY_VERSION};
-use fragr_server::run::{run_server, ServerOptions};
 use futures_util::{SinkExt, StreamExt};
+use localexception_server::protocol::{ClientMessage, Role, ServerMessage, GEOMETRY_VERSION};
+use localexception_server::run::{run_server, ServerOptions};
 use std::path::PathBuf;
 use std::time::Duration;
 use tokio_tungstenite::tungstenite::Message;
@@ -29,13 +29,13 @@ async fn invalid_authoring_configuration_fails_before_readiness() {
     let base = ServerOptions {
         bind: "127.0.0.1:0".into(),
         bots: 0,
-        authored: Some(fragr_server::maps::AuthoredSource::File(map_path())),
+        authored: Some(localexception_server::maps::AuthoredSource::File(map_path())),
         ..Default::default()
     };
     let mut cases = vec![
         ServerOptions {
             authored: None,
-            difficulty: Some(fragr_server::protocol::CampaignDifficulty::Severe),
+            difficulty: Some(localexception_server::protocol::CampaignDifficulty::Severe),
             ..base.clone()
         },
         ServerOptions {
@@ -55,12 +55,12 @@ async fn invalid_authoring_configuration_fails_before_readiness() {
             ..base.clone()
         },
         ServerOptions {
-            map: fragr_server::sim::MapKind::ComplianceYard,
+            map: localexception_server::sim::MapKind::ComplianceYard,
             ..base.clone()
         },
     ];
     cases.push(ServerOptions {
-        authored: Some(fragr_server::maps::AuthoredSource::File(
+        authored: Some(localexception_server::maps::AuthoredSource::File(
             map_path().with_extension("missing"),
         )),
         ..base
@@ -84,8 +84,8 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
         ServerOptions {
             bind: "127.0.0.1:0".into(),
             bots: 0,
-            authored: Some(fragr_server::maps::AuthoredSource::File(map_path())),
-            difficulty: Some(fragr_server::protocol::CampaignDifficulty::Severe),
+            authored: Some(localexception_server::maps::AuthoredSource::File(map_path())),
+            difficulty: Some(localexception_server::protocol::CampaignDifficulty::Severe),
             ..Default::default()
         },
         async {
@@ -98,7 +98,7 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
     legacy
         .send(Message::Text(
             serde_json::json!({"type":"hello", "role":"human", "name":"Legacy geometry",
-                "gameplay_version":fragr_server::protocol::GAMEPLAY_VERSION})
+                "gameplay_version":localexception_server::protocol::GAMEPLAY_VERSION})
             .to_string(),
         ))
         .await
@@ -130,7 +130,7 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
                     body: None,
                     dress: None,
                     seat: None,
-                    gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+                    gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
                     geometry_version: GEOMETRY_VERSION,
                     role,
                     name: format!("{role:?} walker"),
@@ -168,8 +168,8 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
                 if let ServerMessage::Mission { state, .. } = receive(&mut socket).await {
                     assert_eq!(
                         state.rules,
-                        fragr_server::protocol::CampaignRules::new(
-                            fragr_server::protocol::CampaignDifficulty::Severe
+                        localexception_server::protocol::CampaignRules::new(
+                            localexception_server::protocol::CampaignDifficulty::Severe
                         )
                     );
                     break;
@@ -184,15 +184,18 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
                     match receive(&mut socket).await {
                         ServerMessage::Loadout(loadout) => {
                             loadout.validate_for(id, None).unwrap();
-                            assert_eq!(loadout.selected, fragr_server::protocol::WeaponType::Fists);
+                            assert_eq!(
+                                loadout.selected,
+                                localexception_server::protocol::WeaponType::Fists
+                            );
                             assert_eq!(loadout.weapons.len(), 1);
                             has_loadout = true;
                         }
                         ServerMessage::Mission { state, .. } => {
                             assert_eq!(
                                 state.rules,
-                                fragr_server::protocol::CampaignRules::new(
-                                    fragr_server::protocol::CampaignDifficulty::Severe
+                                localexception_server::protocol::CampaignRules::new(
+                                    localexception_server::protocol::CampaignDifficulty::Severe
                                 )
                             );
                             mission = Some(state);
@@ -211,7 +214,7 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
             socket
                 .send(Message::Text(
                     serde_json::to_string(&ClientMessage::MissionReady(
-                        fragr_server::protocol::MissionReady {
+                        localexception_server::protocol::MissionReady {
                             id: state.id,
                             attempt: state.attempt,
                         },
@@ -222,11 +225,13 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
                 .unwrap();
             socket
                 .send(Message::Text(
-                    serde_json::to_string(&ClientMessage::Action(fragr_server::protocol::Action {
-                        forward: true,
-                        yaw: Some(std::f32::consts::FRAC_PI_2),
-                        ..Default::default()
-                    }))
+                    serde_json::to_string(&ClientMessage::Action(
+                        localexception_server::protocol::Action {
+                            forward: true,
+                            yaw: Some(std::f32::consts::FRAC_PI_2),
+                            ..Default::default()
+                        },
+                    ))
                     .unwrap(),
                 ))
                 .await
@@ -264,8 +269,8 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
                 );
                 assert!(guards.iter().all(|p| matches!(
                     p.campaign,
-                    Some(fragr_server::protocol::CampaignActor::Hostile {
-                        phase: fragr_server::protocol::EnemyPhase::Idle,
+                    Some(localexception_server::protocol::CampaignActor::Hostile {
+                        phase: localexception_server::protocol::EnemyPhase::Idle,
                         ..
                     })
                 )));
@@ -278,7 +283,7 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
         moved,
         "both roles must move through live input below the roof"
     );
-    use fragr_server::protocol::{Action, LookAt, WeaponType};
+    use localexception_server::protocol::{Action, LookAt, WeaponType};
     let human = &mut sockets[0];
     let mut discovered = None;
     send_action(
@@ -314,7 +319,7 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
         },
     )
     .await;
-    let bullets = loadout.ammo(fragr_server::protocol::AmmoPool::Bullets);
+    let bullets = loadout.ammo(localexception_server::protocol::AmmoPool::Bullets);
     let authored = WeaponType::Tack.pickup_rounds();
     // This host is Severe. Ordinary discovery is two thirds of the authored grant.
     let severe = (authored.saturating_mul(2) / 3).max(1);
@@ -328,7 +333,7 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
                 .unwrap();
             // One shot spends one bullet from the carried total and from the
             // pistol magazine. The reserve is the total minus every magazine.
-            if fired.ammo(fragr_server::protocol::AmmoPool::Bullets) == bullets - 1 {
+            if fired.ammo(localexception_server::protocol::AmmoPool::Bullets) == bullets - 1 {
                 assert_eq!(fired.shots(WeaponType::Tack), Some(11));
                 spent = true;
                 break;
@@ -339,15 +344,15 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
     let reload = serde_json::json!({"type": "action", "reload": true}).to_string();
     assert!(
         matches!(
-            serde_json::from_str::<fragr_server::protocol::ClientMessage>(&reload).unwrap(),
-            fragr_server::protocol::ClientMessage::Action(action) if action.reload
+            serde_json::from_str::<localexception_server::protocol::ClientMessage>(&reload).unwrap(),
+            localexception_server::protocol::ClientMessage::Action(action) if action.reload
         ),
         "a pressed reload is an action, and it is omitted while false"
     );
     let omitted = serde_json::json!({"type": "action", "fire": true}).to_string();
     assert!(matches!(
-        serde_json::from_str::<fragr_server::protocol::ClientMessage>(&omitted).unwrap(),
-        fragr_server::protocol::ClientMessage::Action(action) if !action.reload
+        serde_json::from_str::<localexception_server::protocol::ClientMessage>(&omitted).unwrap(),
+        localexception_server::protocol::ClientMessage::Action(action) if !action.reload
     ));
     for socket in &mut sockets {
         socket.close(None).await.unwrap();
@@ -356,7 +361,7 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
     server.await.unwrap().unwrap();
 }
 
-async fn send_action(socket: &mut Socket, action: fragr_server::protocol::Action) {
+async fn send_action(socket: &mut Socket, action: localexception_server::protocol::Action) {
     socket
         .send(Message::Text(
             serde_json::to_string(&ClientMessage::Action(action)).unwrap(),

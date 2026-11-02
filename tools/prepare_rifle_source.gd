@@ -6,7 +6,7 @@ const SOURCE_SHA256: String = "5d53e8995a825b4e594c9b812759dcb070342bfddc73bd64b
 const METRES: float = 0.94
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:

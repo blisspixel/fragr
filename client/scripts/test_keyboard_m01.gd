@@ -18,11 +18,11 @@ var _shots_hit: int = 0
 var _assist_engaged: bool = false
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	settings_path = "user://keyboard-m01-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", settings_path)
+	set_meta("localexception_settings_path", settings_path)
 	run_directory = ProjectSettings.globalize_path("user://keyboard-m01-run-%d" % OS.get_process_id())
-	OS.set_environment("FRAGR_RUN_DIR", run_directory)
+	OS.set_environment("LOCALEXCEPTION_RUN_DIR", run_directory)
 	call_deferred("_run")
 
 func _finalize() -> void:
@@ -38,7 +38,7 @@ func _finalize() -> void:
 			name = saved.get_next()
 		saved.list_dir_end()
 		DirAccess.remove_absolute(run_directory)
-	OS.unset_environment("FRAGR_RUN_DIR")
+	OS.unset_environment("LOCALEXCEPTION_RUN_DIR")
 
 func _expect(value: bool, message: String) -> void:
 	if not value:
@@ -152,7 +152,7 @@ func _teardown() -> void:
 	await process_frame
 
 func _run() -> void:
-	var prefs: FragrSettings = FragrSettings.new(settings_path)
+	var prefs: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	prefs.set_value("video", "display_mode", 0)
 	_expect(prefs.save_to_disk() == OK, "isolated preferences saved")
 	_expect(prefs.get_value("controls", "aim_assist") == AimAssist.Level.STANDARD, "standard aim assist is the default")

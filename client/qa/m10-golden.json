@@ -1,5 +1,5 @@
 {
-  "comment": "M10 golden-slice art review. Eye-height spectator views of every beat on the authored route through the Common Carrier's three decks: passenger deck, forward cargo, lower service, the freight shaft, the aft hold, the command approach and its window. Run with FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m10_common_carrier.json. Look at each still against docs/design/space.md, the art bible and the Recall Notice bar; this is art review, not combat or fresh-player evidence. Boarders appear in m10-golden-guards.json and through combat in client/qa/m10_common_carrier.json.",
+  "comment": "M10 golden-slice art review. Eye-height spectator views of every beat on the authored route through the Common Carrier's three decks: passenger deck, forward cargo, lower service, the freight shaft, the aft hold, the command approach and its window. Run with LOCALEXCEPTION_QA_BOTS=0 LOCALEXCEPTION_QA_MAP_FILE=server/maps/m10_common_carrier.json. Look at each still against docs/design/space.md, the art bible and the Recall Notice bar; this is art review, not combat or fresh-player evidence. Boarders appear in m10-golden-guards.json and through combat in client/qa/m10_common_carrier.json.",
   "width": 1280,
   "height": 720,
   "states": [

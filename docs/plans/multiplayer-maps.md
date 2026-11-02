@@ -16,7 +16,7 @@ fronts with jeeps, bikes and jetpacks. Fights and flow first. A new player gets
 a frag in their first minute; a veteran is still finding faster routes and
 tighter item timings a year later.
 
-This file owns three things: the rule sheet every fragr multiplayer map is built
+This file owns three things: the rule sheet every Local Exception multiplayer map is built
 against, the proposed roster, and the mode order.
 [MAP-DESIGN.md](../MAP-DESIGN.md) owns general level craft;
 [MODES.md](../MODES.md) owns what each mode is.

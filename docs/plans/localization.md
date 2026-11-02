@@ -8,7 +8,7 @@ locale selection and reviewed additional languages remain planned.
 
 ## Goal
 
-fragr speaks more than English: the basics people expect (English, Spanish, Japanese, German, French, Portuguese, Simplified Chinese, Korean), regional flavours that fit the game's wider world (Canadian French, Australian English), languages that are rare in games and deserve care (Hawaiian, Navajo), and a few constructed or joke languages that fit the lore (an in-world Continuance officialese, a static-corrupted "Dead Air" mode, Esperanto, Toki Pona, pirate, and leetspeak). All text is localised; audio stays English with localised captions until a per-language voice pass is approved.
+Local Exception speaks more than English: the basics people expect (English, Spanish, Japanese, German, French, Portuguese, Simplified Chinese, Korean), regional flavours that fit the game's wider world (Canadian French, Australian English), languages that are rare in games and deserve care (Hawaiian, Navajo), and a few constructed or joke languages that fit the lore (an in-world Continuance officialese, a static-corrupted "Dead Air" mode, Esperanto, Toki Pona, pirate, and leetspeak). All text is localised; audio stays English with localised captions until a per-language voice pass is approved.
 
 ## Non-goals
 

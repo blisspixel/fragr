@@ -8,7 +8,7 @@ var _stills: Array[Image] = []
 var _receipts: Array[Dictionary] = []
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	MouseCapture.release()
 	call_deferred("_run")
 
@@ -54,9 +54,9 @@ func _run() -> void:
 			if not (entry.get(key) is float or entry.get(key) is int) or not is_finite(float(entry[key])):
 				_fail("invalid recorded facing")
 				return
-	_out = OS.get_environment("FRAGR_QA_DIR")
+	_out = OS.get_environment("LOCALEXCEPTION_QA_DIR")
 	if _out.is_empty():
-		_fail("set FRAGR_QA_DIR to an inspection output directory")
+		_fail("set LOCALEXCEPTION_QA_DIR to an inspection output directory")
 		return
 	if DirAccess.make_dir_recursive_absolute(_out) != OK:
 		_fail("cannot create output directory")

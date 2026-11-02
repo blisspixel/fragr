@@ -1,10 +1,10 @@
 //! Repeatable local spectator delivery measurements over the real WebSocket path.
 
 use super::{agent_task, transport, Error, Policy, TICKS_PER_SECOND};
-use fragr_server::protocol::{ClientMessage, Role, ServerMessage};
-use fragr_server::run::{run_server_with_metrics, RunMetrics, ServerOptions};
-use fragr_server::sim::{MapKind, MatchConfig};
 use futures_util::{SinkExt, StreamExt};
+use localexception_server::protocol::{ClientMessage, Role, ServerMessage};
+use localexception_server::run::{run_server_with_metrics, RunMetrics, ServerOptions};
+use localexception_server::sim::{MapKind, MatchConfig};
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::net::SocketAddr;
@@ -214,18 +214,21 @@ pub struct FanoutRow {
 #[derive(Debug, Clone, Serialize)]
 pub struct FanoutReport {
     pub schema: u32,
-    pub build: fragr_server::protocol::BuildInfo,
-    pub environment: fragr_server::bench::BenchEnvironment,
+    pub build: localexception_server::protocol::BuildInfo,
+    pub environment: localexception_server::bench::BenchEnvironment,
     pub seconds_per_row: u64,
     pub rows: Vec<FanoutRow>,
 }
 
 /// Total milliseconds a summary's samples represent.
-fn total_ms(summary: &fragr_server::bench::Summary) -> f64 {
+fn total_ms(summary: &localexception_server::bench::Summary) -> f64 {
     summary.mean * summary.count as f64
 }
 
-fn serialization_ms_per_second(report: &fragr_server::run::RunMetricsReport, seconds: f64) -> f64 {
+fn serialization_ms_per_second(
+    report: &localexception_server::run::RunMetricsReport,
+    seconds: f64,
+) -> f64 {
     if seconds <= 0.0 {
         return 0.0;
     }
@@ -340,8 +343,8 @@ async fn watcher_task(
             body: None,
             dress: None,
             seat: None,
-            gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
-            geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
+            gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
+            geometry_version: localexception_server::protocol::GEOMETRY_VERSION,
             role: Role::Spectator,
             name,
             ticket: None,
@@ -354,7 +357,7 @@ async fn watcher_task(
     let (mut welcomed, mut mapped) = (false, false);
     let mut ready = Some(ready);
     let mut result = WatchResult::default();
-    let mut world = fragr_server::protocol::WorldReader::new();
+    let mut world = localexception_server::protocol::WorldReader::new();
     loop {
         if kind == WatcherKind::Stalled && start.borrow().is_some() {
             // Read nothing for the window, then see whether the server closed.
@@ -477,11 +480,11 @@ async fn probe_task(
             body: None,
             dress: None,
             seat: None,
-            gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
-            geometry_version: fragr_server::protocol::GEOMETRY_VERSION,
+            gameplay_version: localexception_server::protocol::GAMEPLAY_VERSION,
+            geometry_version: localexception_server::protocol::GEOMETRY_VERSION,
             role: Role::Human,
             name: format!("Probe-{}", index + 1),
-            ticket: fragr_server::join_ticket::ticket_for(Role::Human),
+            ticket: localexception_server::join_ticket::ticket_for(Role::Human),
             resume: None,
         })
         .map_err(transport)?,
@@ -490,7 +493,7 @@ async fn probe_task(
     .map_err(transport)?;
     let mut ready = Some(ready);
     let mut result = ProbeResult::default();
-    let mut world = fragr_server::protocol::WorldReader::new();
+    let mut world = localexception_server::protocol::WorldReader::new();
     let mut pending = std::collections::VecDeque::new();
     let mut acknowledged = false;
     let mut step = 0u32;
@@ -1001,8 +1004,8 @@ async fn measured_row(
 fn report(seconds_per_row: u64, rows: Vec<FanoutRow>) -> FanoutReport {
     FanoutReport {
         schema: FANOUT_SCHEMA,
-        build: fragr_server::metrics::build_info(),
-        environment: fragr_server::bench::BenchEnvironment::current(),
+        build: localexception_server::metrics::build_info(),
+        environment: localexception_server::bench::BenchEnvironment::current(),
         seconds_per_row,
         rows,
     }
@@ -1255,8 +1258,8 @@ mod tests {
         assert_eq!(row.tick_to_watcher_ms.max, 5.0);
         let json = serde_json::to_value(FanoutReport {
             schema: FANOUT_SCHEMA,
-            build: fragr_server::metrics::build_info(),
-            environment: fragr_server::bench::BenchEnvironment::current(),
+            build: localexception_server::metrics::build_info(),
+            environment: localexception_server::bench::BenchEnvironment::current(),
             seconds_per_row: 10,
             rows: vec![row],
         })
@@ -1280,8 +1283,8 @@ mod tests {
 
     #[test]
     fn serialization_rate_sums_tick_and_writer_encodes() {
-        let probe = fragr_server::net::WriterProbe::default();
-        let mut report = fragr_server::run::RunMetrics::default().report();
+        let probe = localexception_server::net::WriterProbe::default();
+        let mut report = localexception_server::run::RunMetrics::default().report();
         assert_eq!(serialization_ms_per_second(&report, 2.0), 0.0);
         report.broadcast_encode_ms.mean = 0.5;
         report.broadcast_encode_ms.count = 40;

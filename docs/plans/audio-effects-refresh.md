@@ -32,9 +32,9 @@ attempts. Keep that headroom, record before/after quota and stop on unexpected
 charges or uncertain requests. Never overwrite the live library while evaluating.
 
 ```powershell
-cargo +1.98.1 run -p fragr-audiogen --locked -- quota
-cargo +1.98.1 run -p fragr-audiogen --locked -- --dry-run --max-credits 2000 batch --spec tools/audiogen/specs/sfx-refresh-pilot.json
-cargo +1.98.1 run -p fragr-audiogen --locked -- --max-credits 2000 batch --spec tools/audiogen/specs/sfx-refresh-pilot.json
+cargo +1.98.1 run -p localexception-audiogen --locked -- quota
+cargo +1.98.1 run -p localexception-audiogen --locked -- --dry-run --max-credits 2000 batch --spec tools/audiogen/specs/sfx-refresh-pilot.json
+cargo +1.98.1 run -p localexception-audiogen --locked -- --max-credits 2000 batch --spec tools/audiogen/specs/sfx-refresh-pilot.json
 ```
 
 The explicit toolchain is installed in the current Windows environment. Other

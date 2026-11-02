@@ -110,7 +110,7 @@ fn motorcycle_shared_vectors_cover_driving_collision_and_landing() {
     let document = serde_json::json!({ "version": 1, "vectors": vectors });
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../client/golden/motorcycle_vectors.json");
-    if std::env::var_os("FRAGR_UPDATE_MOTORCYCLE_VECTORS").is_some() {
+    if std::env::var_os("LOCALEXCEPTION_UPDATE_MOTORCYCLE_VECTORS").is_some() {
         std::fs::write(
             &path,
             format!("{}\n", serde_json::to_string_pretty(&document).unwrap()),

@@ -1,5 +1,5 @@
 {
-  "comment": "Gun effects in a live match on Larak Lot, first person, through ordinary input, from the TOLL north spawn: the Railgun into an enamel toll booth, Rifle rounds into the concrete west wall and the booth, a Shotgun blast into the wall, then the marks they left. Run tools/qa_tour.sh with FRAGR_QA_MANIFEST=res://qa/combat-vfx.json, FRAGR_QA_MAP=1, FRAGR_QA_BOTS=0, FRAGR_QA_NO_ROUND_EVENTS=1 and FRAGR_QA_MUTATORS=full-arsenal, so every arcade gun is owned from the first tick. The Rocket is res://qa/combat-vfx-rocket.json; the controlled lineup is client/qa/combat_vfx_review.gd. Inspection only; not a tour publish.",
+  "comment": "Gun effects in a live match on Larak Lot, first person, through ordinary input, from the TOLL north spawn: the Railgun into an enamel toll booth, Rifle rounds into the concrete west wall and the booth, a Shotgun blast into the wall, then the marks they left. Run tools/qa_tour.sh with LOCALEXCEPTION_QA_MANIFEST=res://qa/combat-vfx.json, LOCALEXCEPTION_QA_MAP=1, LOCALEXCEPTION_QA_BOTS=0, LOCALEXCEPTION_QA_NO_ROUND_EVENTS=1 and LOCALEXCEPTION_QA_MUTATORS=full-arsenal, so every arcade gun is owned from the first tick. The Rocket is res://qa/combat-vfx-rocket.json; the controlled lineup is client/qa/combat_vfx_review.gd. Inspection only; not a tour publish.",
   "width": 1280,
   "height": 720,
   "states": [

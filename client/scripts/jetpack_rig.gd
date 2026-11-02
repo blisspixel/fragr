@@ -182,7 +182,7 @@ func apply(fact: Dictionary, fuel_max: float) -> void:
 		var finish: StandardMaterial3D = _gauge.material_override as StandardMaterial3D
 		finish.emission_energy_multiplier = 0.2 + 1.4 * fuel_fraction
 		_gauge.scale.y = maxf(0.1, fuel_fraction)
-	if thrusting and not _hiss.playing and is_inside_tree() and not get_tree().has_meta("fragr_automated"):
+	if thrusting and not _hiss.playing and is_inside_tree() and not get_tree().has_meta("localexception_automated"):
 		_hiss.play()
 	elif not thrusting and _hiss.playing:
 		_hiss.stop()

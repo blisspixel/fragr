@@ -5,7 +5,7 @@ const Library = preload("res://scripts/offworld_materials.gd")
 const OUTPUT: String = "res://art/environment/offworld-batch-20261001/material_preview.png"
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	_run.call_deferred()
 
 func _run() -> void:

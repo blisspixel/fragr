@@ -44,7 +44,7 @@ The console is funny because the world is coherent, not because it winks.
 2. **Jokes come from the world.** Office bureaucracy, the three-door rule, no
    reloads, carry every gun, Cells, continues, Larak's 2009 signature, Hermes
    holding doors, Floating 67, Meat Proxy. A classic code is a doorway into a
-   fragr line, never a quote of another game's text.
+   Local Exception line, never a quote of another game's text.
 3. **Some things are not jokes.**
    - The Interruption gets one quiet line. "Nobody who was there makes jokes
      about it", and the console does not either.
@@ -196,7 +196,7 @@ whose host turns it on. The server enforces every rule; the client only asks.
   through `observe` and `round_state`, because the agent door shows what humans
   see.
 
-### Classic codes, answered in fragr's voice
+### Classic codes, answered in Local Exception's voice
 
 Typed codes from the classics are recognised. With cheats off, they get an
 in-world refusal. With cheats on, they work as the matching lore command,

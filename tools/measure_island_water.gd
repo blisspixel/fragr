@@ -13,7 +13,7 @@ var output: String
 var rows: Array[Dictionary] = []
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	call_deferred("_run")
 
 func _run() -> void:
@@ -67,7 +67,7 @@ func _run() -> void:
 		world.add_child(boat)
 		boat.speed = 10.0
 		boats.append(boat)
-	var preferences: FragrSettings = FragrSettings.new(output.path_join("unused-settings.cfg"))
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(output.path_join("unused-settings.cfg"))
 	preferences.set_value("video", "resolution_height", 0)
 	preferences.set_value("video", "pixel_scale", 0)
 	for actor_count: int in [0, 64]:

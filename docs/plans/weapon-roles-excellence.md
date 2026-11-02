@@ -74,7 +74,7 @@ godot --headless --path client --import --quit-after 120
 
 ## How each weapon should feel
 
-1. `cargo run -p fragr-server -- --bots 4` (port 6767).
+1. `cargo run -p localexception-server -- --bots 4` (port 6767).
 2. Open Godot client, Join or Solo Scrap.
 3. **Flechette:** mid crosshair, snappy mid-range chatter, balanced viewmodel.
 4. **Rail:** tight center dot, long reach, heavy fire kick, cold gunmetal flash, sparse cadence.

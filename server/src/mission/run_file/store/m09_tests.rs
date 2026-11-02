@@ -43,7 +43,8 @@ fn m09_entry_round_trips_and_preserves_real_m08_carry() {
     let source = completed_archive()
         .promote_next(MissionId::PassengerManifest, HASHES[8])
         .unwrap();
-    let directory = std::env::temp_dir().join(format!("fragr-m09-entry-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-m09-entry-{}", Uuid::new_v4()));
     let store = RunStore::open_with_hashes(&directory, HASHES).unwrap();
     store.save(&source).unwrap();
     assert_eq!(store.load().unwrap().unwrap(), source);
@@ -344,7 +345,8 @@ fn m09_carried_custody_survives_actual_retry_and_newer_inventory_revisions() {
     let after = game.campaign_run_document().unwrap().unwrap();
     assert_eq!(after.m08_outcome, saved.m08_outcome);
     assert_eq!(after.remaining_continues, saved.remaining_continues - 1);
-    let directory = std::env::temp_dir().join(format!("fragr-m09-carry-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-m09-carry-{}", Uuid::new_v4()));
     let store = RunStore::open_with_hashes(&directory, [hash; CAMPAIGN_STAGES]).unwrap();
     store.save(&after).unwrap();
     assert_eq!(store.load().unwrap().unwrap(), after);
@@ -537,8 +539,10 @@ fn m09_capture_route_preflights_real_held_and_released_contacts_for_all_four_cas
                         .collect(),
                 };
                 assert_eq!(document.m09_outcome, Some(expected));
-                let directory = std::env::temp_dir()
-                    .join(format!("fragr-m09-actual-receipt-{}", Uuid::new_v4()));
+                let directory = std::env::temp_dir().join(format!(
+                    "localexception-m09-actual-receipt-{}",
+                    Uuid::new_v4()
+                ));
                 let store =
                     RunStore::open_with_hashes(&directory, [hash; CAMPAIGN_STAGES]).unwrap();
                 store.save(&document).unwrap();

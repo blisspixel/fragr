@@ -1,18 +1,18 @@
 [package]
-name = "fragr-licenses"
+name = "localexception-licenses"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Writes the third-party license notices shipped beside fragr-server in desktop packages"
+description = "Writes the third-party license notices shipped beside localexception-server in desktop packages"
 publish = false
 
 [lib]
-name = "fragr_licenses"
+name = "localexception_licenses"
 path = "src/lib.rs"
 
 [[bin]]
-name = "fragr-licenses"
+name = "localexception-licenses"
 path = "src/main.rs"
 
 [dependencies]
@@ -23,4 +23,4 @@ serde_json = "1.0"
 workspace = true
 
 [build-dependencies]
-fragr-build-metadata = { version = "0.1.0", path = "../build-metadata" }
+localexception-build-metadata = { version = "0.1.0", path = "../build-metadata" }

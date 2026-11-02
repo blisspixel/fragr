@@ -1,4 +1,4 @@
-# fragr lore
+# Local Exception lore
 
 World canon, reconciled 2026-09-20, structure updated 2026-09-25. These chapters
 describe fiction, not claims that a character, map, or mechanic ships.

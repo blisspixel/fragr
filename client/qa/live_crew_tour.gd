@@ -8,8 +8,8 @@ var _cast_samples: Array[Dictionary] = []
 var _last_cast_ms: int = -1000
 
 func _run() -> void:
-	var directory: String = OS.get_environment("FRAGR_QA_DIR")
-	_crew_mission = OS.get_environment("FRAGR_LIVE_CREW_MISSION")
+	var directory: String = OS.get_environment("LOCALEXCEPTION_QA_DIR")
+	_crew_mission = OS.get_environment("LOCALEXCEPTION_LIVE_CREW_MISSION")
 	if not directory.is_absolute_path() or _crew_mission not in ["m09", "m10"]:
 		push_error("live_crew_tour: absolute output and m09/m10 mission required")
 		quit(1)
@@ -18,7 +18,7 @@ func _run() -> void:
 	if DirAccess.make_dir_recursive_absolute(run_directory) != OK:
 		quit(1)
 		return
-	OS.set_environment("FRAGR_RUN_DIR", run_directory)
+	OS.set_environment("LOCALEXCEPTION_RUN_DIR", run_directory)
 	if _crew_mission == "m10" and not _write_carry_fixture(run_directory):
 		quit(1)
 		return
@@ -37,7 +37,7 @@ func _run() -> void:
 		_owned.stop()
 		quit(1)
 		return
-	set_meta("fragr_boot", {"mode": "campaign", "host": _owned.url, "run_mode": "resume" if _crew_mission == "m10" else "new", "play_arrival": true})
+	set_meta("localexception_boot", {"mode": "campaign", "host": _owned.url, "run_mode": "resume" if _crew_mission == "m10" else "new", "play_arrival": true})
 	await super._run()
 
 func _load_manifest() -> Dictionary:

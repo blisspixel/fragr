@@ -2,7 +2,7 @@
 //! began, not that its actors spawned or first took damage. Challenge flags
 //! are monotone over an attempt; only their first observed transition after
 //! this boundary has stage timing, and even that does not identify an owner.
-use fragr_server::protocol::{CampaignRunStatus, LoadoutState, MissionState};
+use localexception_server::protocol::{CampaignRunStatus, LoadoutState, MissionState};
 use serde::{Deserialize, Serialize};
 
 pub(super) mod stage;

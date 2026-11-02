@@ -20,7 +20,7 @@ var development_mission: bool = false
 ## Still Here keeps no save of its own: leaving loses nothing.
 var epilogue: bool = false
 var hosting_server: bool = false
-var preferences: FragrSettings
+var preferences: LocalExceptionSettings
 var _settings_panel: SettingsPanel
 var _settings_frame: PanelContainer
 var _centre: CenterContainer
@@ -40,7 +40,7 @@ var _announcer_volume: HSlider
 ## Menu audio changes are heard at once and written on drag end or close.
 ## Only the keys this menu owns are copied, so the Audio page keeps the rest.
 const MENU_AUDIO_KEYS: Array[String] = ["music", "announcer", "announcer_volume"]
-var _audio_draft: FragrSettings = null
+var _audio_draft: LocalExceptionSettings = null
 var _music_revision: int = -1
 ## The campaign score, when this is a campaign: On or Off and the A or B take
 ## for this level and for the last story cue, switched live.
@@ -202,10 +202,10 @@ func _build_announcer() -> void:
 	_announcer_mode = OptionButton.new()
 	_announcer_mode.name = "AnnouncerMode"
 	_announcer_mode.custom_minimum_size = Vector2(260.0, 42.0)
-	for text: String in FragrSettings.announcer_labels():
+	for text: String in LocalExceptionSettings.announcer_labels():
 		_announcer_mode.add_item(text)
 	_announcer_mode.item_selected.connect(func(index: int) -> void:
-		_set_menu_audio("announcer", FragrSettings.ANNOUNCER_MODES[index])
+		_set_menu_audio("announcer", LocalExceptionSettings.ANNOUNCER_MODES[index])
 		commit_audio())
 	row.add_child(_announcer_mode)
 	# Name the slider: without it the row reads as a second music control.
@@ -281,7 +281,7 @@ func _build_footsteps() -> void:
 func toggle_footsteps_take() -> void:
 	var next: String = "b" if Footsteps.take == "a" else "a"
 	if preferences != null:
-		var candidate: FragrSettings = preferences.draft()
+		var candidate: LocalExceptionSettings = preferences.draft()
 		candidate.set_value("footsteps", "take", next)
 		if preferences.commit(candidate) != OK:
 			push_warning("pause_menu: the footstep take could not be saved")
@@ -398,7 +398,7 @@ func refresh_music() -> void:
 	_music_volume.set_value_no_signal(volume)
 	_music_volume.editable = preferences != null
 	_update_volume_note(volume)
-	_announcer_mode.select(maxi(0, FragrSettings.ANNOUNCER_MODES.find(int(_menu_audio("announcer", FragrSettings.ANNOUNCER_ON)))))
+	_announcer_mode.select(maxi(0, LocalExceptionSettings.ANNOUNCER_MODES.find(int(_menu_audio("announcer", LocalExceptionSettings.ANNOUNCER_ON)))))
 	_announcer_mode.disabled = preferences == null
 	_announcer_volume.set_value_no_signal(float(_menu_audio("announcer_volume", 1.0)))
 	_announcer_volume.editable = preferences != null
@@ -449,9 +449,9 @@ func _set_menu_audio(key: String, value: Variant) -> void:
 func commit_audio() -> void:
 	if _audio_draft == null or preferences == null:
 		return
-	var draft: FragrSettings = _audio_draft
+	var draft: LocalExceptionSettings = _audio_draft
 	_audio_draft = null
-	var candidate: FragrSettings = preferences.draft()
+	var candidate: LocalExceptionSettings = preferences.draft()
 	for key: String in MENU_AUDIO_KEYS:
 		candidate.set_value("audio", key, draft.get_value("audio", key))
 	if preferences.commit(candidate) != OK:

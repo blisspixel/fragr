@@ -39,16 +39,16 @@ Make the #124 weapon-table claim CI-assertable from `tools/playtest`, not only r
 ```bash
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
-cargo test -p fragr-playtest
+cargo test -p localexception-playtest
 cargo test --workspace
 cargo llvm-cov --workspace --locked --summary-only --fail-under-lines 80
-cargo run -p fragr-playtest -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ttk-proof.json
+cargo run -p localexception-playtest -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ttk-proof.json
 ```
 
 ## Success criteria
 
 - [x] Sticky flechette / rail / scatter TTK asserted in playtest tests
-- [x] `fragr-playtest --assert` fails if the table leaves the band
+- [x] `localexception-playtest --assert` fails if the table leaves the band
 - [x] Per-weapon `time_to_kill_s` present on combat reports
 - [x] Unfiltered coverage floor remains 80
 - [ ] Lean PR squash-merged when green

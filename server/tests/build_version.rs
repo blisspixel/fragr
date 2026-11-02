@@ -78,8 +78,8 @@ fn build_in(
         // A source-archive fixture must not discover the checkout containing
         // a caller-selected TMPDIR. Real fixture repositories remain below it.
         .env("GIT_CEILING_DIRECTORIES", std::env::temp_dir())
-        .env_remove("FRAGR_BUILD_VERSION")
-        .env_remove("FRAGR_BUILD_COMMIT")
+        .env_remove("LOCALEXCEPTION_BUILD_VERSION")
+        .env_remove("LOCALEXCEPTION_BUILD_COMMIT")
         .env_remove("GIT_DIR")
         .env_remove("GIT_WORK_TREE")
         .env_remove("GIT_INDEX_FILE")
@@ -90,10 +90,10 @@ fn build_in(
         .env_remove("RUSTC_WRAPPER")
         .env_remove("RUSTC_WORKSPACE_WRAPPER");
     if let Some(value) = version {
-        cmd.env("FRAGR_BUILD_VERSION", value);
+        cmd.env("LOCALEXCEPTION_BUILD_VERSION", value);
     }
     if let Some(value) = commit {
-        cmd.env("FRAGR_BUILD_COMMIT", value);
+        cmd.env("LOCALEXCEPTION_BUILD_COMMIT", value);
     }
     let output = run(&mut cmd);
     let executable = target
@@ -114,12 +114,12 @@ fn write_package(package: &Path, library: &Path, dependency_path: &str) {
     fs::create_dir_all(library.join("src")).unwrap();
     // TMPDIR may live under the checkout. Keep this independent Cargo fixture
     // out of the parent workspace without changing its cache assertions.
-    fs::write(package.join("Cargo.toml"), format!("[workspace]\n[package]\nname = \"metadata-fixture\"\nversion = \"0.1.0\"\nedition = \"2021\"\n[build-dependencies]\nfragr-build-metadata = {{ path = \"{dependency_path}\" }}\n")).unwrap();
-    fs::write(package.join("Cargo.lock"), "version = 4\n\n[[package]]\nname = \"fragr-build-metadata\"\nversion = \"0.1.0\"\n\n[[package]]\nname = \"metadata-fixture\"\nversion = \"0.1.0\"\ndependencies = [\"fragr-build-metadata\"]\n").unwrap();
+    fs::write(package.join("Cargo.toml"), format!("[workspace]\n[package]\nname = \"metadata-fixture\"\nversion = \"0.1.0\"\nedition = \"2021\"\n[build-dependencies]\nlocalexception-build-metadata = {{ path = \"{dependency_path}\" }}\n")).unwrap();
+    fs::write(package.join("Cargo.lock"), "version = 4\n\n[[package]]\nname = \"localexception-build-metadata\"\nversion = \"0.1.0\"\n\n[[package]]\nname = \"metadata-fixture\"\nversion = \"0.1.0\"\ndependencies = [\"localexception-build-metadata\"]\n").unwrap();
     fs::write(package.join("build.rs"), include_str!("../build.rs")).unwrap();
     fs::write(
         library.join("Cargo.toml"),
-        "[package]\nname = \"fragr-build-metadata\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        "[package]\nname = \"localexception-build-metadata\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
     )
     .unwrap();
     fs::write(
@@ -127,7 +127,7 @@ fn write_package(package: &Path, library: &Path, dependency_path: &str) {
         include_str!("../../tools/build-metadata/src/lib.rs"),
     )
     .unwrap();
-    fs::write(package.join("src/main.rs"), "fn main() { println!(\"{} {}\", env!(\"FRAGR_CLI_VERSION\"), option_env!(\"FRAGR_BUILD_COMMIT\").unwrap_or(\"unknown\")); }\n").unwrap();
+    fs::write(package.join("src/main.rs"), "fn main() { println!(\"{} {}\", env!(\"LOCALEXCEPTION_CLI_VERSION\"), option_env!(\"LOCALEXCEPTION_BUILD_COMMIT\").unwrap_or(\"unknown\")); }\n").unwrap();
 }
 
 #[test]
@@ -137,7 +137,7 @@ fn shared_target_rebinds_metadata_dependency_to_the_current_worktree() {
         .unwrap()
         .as_nanos();
     let root = Fixture(std::env::temp_dir().join(format!(
-        "fragr-build-include-{}-{unique}",
+        "localexception-build-include-{}-{unique}",
         std::process::id()
     )));
     let repo = root.0.join("repo");
@@ -169,8 +169,8 @@ fn shared_target_rebinds_metadata_dependency_to_the_current_worktree() {
     // Keep the branch refs and both package-local wrappers unchanged. Only
     // this worktree's build dependency changes after the other build.
     let changed = shared.replace(
-        "println!(\"cargo:rustc-env=FRAGR_CLI_VERSION={cli}\");",
-        "println!(\"cargo:rustc-env=FRAGR_CLI_VERSION=fixture-updated\");",
+        "println!(\"cargo:rustc-env=LOCALEXCEPTION_CLI_VERSION={cli}\");",
+        "println!(\"cargo:rustc-env=LOCALEXCEPTION_CLI_VERSION=fixture-updated\");",
     );
     assert_ne!(changed, shared);
     fs::write(library.join("src/lib.rs"), changed).unwrap();
@@ -196,7 +196,7 @@ fn cargo_refreshes_identity_for_branch_tags_packed_refs_and_worktrees() {
         .unwrap()
         .as_nanos();
     let root = Fixture(std::env::temp_dir().join(format!(
-        "fragr-build-metadata-{}-{unique}",
+        "localexception-build-metadata-{}-{unique}",
         std::process::id()
     )));
     let repo = root.0.join("repo");

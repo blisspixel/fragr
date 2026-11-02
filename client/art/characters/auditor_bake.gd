@@ -18,7 +18,7 @@ const SOURCES: Array[String] = ["res://art/characters/auditor_rig.gd",
 	"res://art/characters/geometry.gd", "res://scripts/enemy_animation.gd"]
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	MouseCapture.release()
 	call_deferred("bake")
 

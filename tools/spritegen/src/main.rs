@@ -10,10 +10,10 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use clap::{Parser, Subcommand};
-use fragr_spritegen::reduce::{
+use localexception_spritegen::reduce::{
     nearest_upscale, parse_hex, reduce_file, ChromaKey, Palette, Reduction,
 };
-use fragr_spritegen::{
+use localexception_spritegen::{
     check_budget, estimate, parse_spec, read_dotenv_credential, Error, Frame, Method, Request,
     Response, Spec, Transport,
 };
@@ -21,9 +21,9 @@ use tracing_subscriber::EnvFilter;
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "fragr-spritegen",
-    version = env!("FRAGR_CLI_VERSION"),
-    about = "Developer-only image and model asset production for fragr"
+    name = "localexception-spritegen",
+    version = env!("LOCALEXCEPTION_CLI_VERSION"),
+    about = "Developer-only image and model asset production for Local Exception"
 )]
 struct Cli {
     /// Ignored dotenv file holding image and model service credentials.
@@ -178,10 +178,10 @@ impl HttpTransport {
 impl Transport for HttpTransport {
     fn send(&self, credential: &str, request: &Request) -> Result<Response, Error> {
         let authorization = if self.meshy {
-            fragr_spritegen::meshy::validate_api_url(&request.url)?;
+            localexception_spritegen::meshy::validate_api_url(&request.url)?;
             format!("Bearer {credential}")
         } else {
-            fragr_spritegen::validate_api_url(&request.url)?;
+            localexception_spritegen::validate_api_url(&request.url)?;
             format!("Key {credential}")
         };
         let mut builder = match request.method {
@@ -204,7 +204,7 @@ impl Transport for HttpTransport {
     }
 
     fn download(&self, url: &str) -> Result<Vec<u8>, Error> {
-        fragr_spritegen::validate_download_url(url)?;
+        localexception_spritegen::validate_download_url(url)?;
         let response = self
             .client
             .get(url)
@@ -220,7 +220,7 @@ impl Transport for HttpTransport {
     }
 
     fn put(&self, url: &str, headers: &[(String, String)], body: Vec<u8>) -> Result<u16, Error> {
-        fragr_spritegen::validate_download_url(url)?;
+        localexception_spritegen::validate_download_url(url)?;
         let mut builder = self.client.put(url);
         for (name, value) in headers {
             builder = builder.header(name.as_str(), value.as_str());
@@ -284,7 +284,7 @@ fn price_run(
 fn record_reference(
     out: &std::path::Path,
     name: &str,
-    uploaded: &fragr_spritegen::upload::Uploaded,
+    uploaded: &localexception_spritegen::upload::Uploaded,
 ) -> Result<(), Error> {
     std::fs::create_dir_all(out).map_err(|e| Error::Io(e.to_string()))?;
     let line = serde_json::json!({
@@ -307,8 +307,8 @@ fn run(cli: Cli) -> Result<(), Error> {
 
     match &cli.command {
         Cmd::MeshyHold { credits, reason } => {
-            fragr_spritegen::meshy::retain_external_hold(
-                &fragr_spritegen::meshy::account_hold_for_credentials(&cli.env_file)?,
+            localexception_spritegen::meshy::retain_external_hold(
+                &localexception_spritegen::meshy::account_hold_for_credentials(&cli.env_file)?,
                 *credits,
                 reason,
             )?;
@@ -335,17 +335,17 @@ fn run(cli: Cli) -> Result<(), Error> {
                 .transpose()?;
             let ledger = out
                 .as_ref()
-                .map(|path| fragr_spritegen::ledger::Ledger::open(path))
+                .map(|path| localexception_spritegen::ledger::Ledger::open(path))
                 .transpose()?;
-            let key = fragr_spritegen::meshy::read_credential(&cli.env_file)?;
+            let key = localexception_spritegen::meshy::read_credential(&cli.env_file)?;
             let mut transport = HttpTransport::new()?;
             transport.meshy = true;
-            let result = fragr_spritegen::meshy::check(
+            let result = localexception_spritegen::meshy::check(
                 &transport,
                 &key,
                 *required_credits,
                 ledger.as_ref(),
-                &fragr_spritegen::meshy::account_hold_for_credentials(&cli.env_file)?,
+                &localexception_spritegen::meshy::account_hold_for_credentials(&cli.env_file)?,
             )?;
             let json = serde_json::to_string_pretty(&result)
                 .map_err(|_| Error::Io("model report serialization failed".into()))?;
@@ -365,7 +365,7 @@ fn run(cli: Cli) -> Result<(), Error> {
             max_spend_usd,
         } => {
             check_budget(0.0, *max_spend_usd)?;
-            fragr_spritegen::meshy::check_credit_cap(*max_credits)?;
+            localexception_spritegen::meshy::check_credit_cap(*max_credits)?;
             let bytes = read_bounded(
                 std::fs::File::open(spec)
                     .map_err(|_| Error::Io("could not open model spec".into()))?,
@@ -373,12 +373,12 @@ fn run(cli: Cli) -> Result<(), Error> {
             )?;
             let text = String::from_utf8(bytes)
                 .map_err(|_| Error::Spec("model spec must be UTF-8".into()))?;
-            let mut spec = fragr_spritegen::meshy::parse_spec(&text)?;
+            let mut spec = localexception_spritegen::meshy::parse_spec(&text)?;
             spec.bind_account(&cli.env_file)?;
-            let key = fragr_spritegen::meshy::read_credential(&cli.env_file)?;
+            let key = localexception_spritegen::meshy::read_credential(&cli.env_file)?;
             let mut transport = HttpTransport::new()?;
             transport.meshy = true;
-            fragr_spritegen::meshy::generate(
+            localexception_spritegen::meshy::generate(
                 &transport,
                 &key,
                 &spec,
@@ -393,13 +393,15 @@ fn run(cli: Cli) -> Result<(), Error> {
                 Some(path) => {
                     let file = std::fs::File::open(path)
                         .map_err(|_| Error::Io("could not open API-check specification".into()))?;
-                    let bytes =
-                        read_bounded(file, fragr_spritegen::api_check::MAX_SPEC_BYTES as u32)?;
+                    let bytes = read_bounded(
+                        file,
+                        localexception_spritegen::api_check::MAX_SPEC_BYTES as u32,
+                    )?;
                     let text = String::from_utf8(bytes)
                         .map_err(|_| Error::Spec("API-check specification must be UTF-8".into()))?;
-                    fragr_spritegen::api_check::parse_spec(&text)?
+                    localexception_spritegen::api_check::parse_spec(&text)?
                 }
-                None => fragr_spritegen::api_check::default_spec(),
+                None => localexception_spritegen::api_check::default_spec(),
             };
             // Refuse an existing report before loading credentials or making calls.
             let mut receipt = match report {
@@ -413,8 +415,11 @@ fn run(cli: Cli) -> Result<(), Error> {
                 None => None,
             };
             let credential = read_dotenv_credential(&cli.env_file)?;
-            let result =
-                fragr_spritegen::api_check::check(&HttpTransport::new()?, &credential, &spec)?;
+            let result = localexception_spritegen::api_check::check(
+                &HttpTransport::new()?,
+                &credential,
+                &spec,
+            )?;
             let json = serde_json::to_string_pretty(&result)
                 .map_err(|_| Error::Io("could not serialize API-check report".into()))?;
             if let Some(file) = receipt.as_mut() {
@@ -436,7 +441,7 @@ fn run(cli: Cli) -> Result<(), Error> {
             frame_id,
             request_id,
         } => {
-            let mut ledger = fragr_spritegen::ledger::Ledger::open(out)?;
+            let mut ledger = localexception_spritegen::ledger::Ledger::open(out)?;
             ledger.recover(frame_id, request_id)?;
             writeln!(
                 out_stream,
@@ -542,12 +547,12 @@ fn run(cli: Cli) -> Result<(), Error> {
                 .and_then(|n| n.to_str())
                 .ok_or_else(|| Error::Spec(format!("{} has no file name", file.display())))?
                 .to_string();
-            let content_type = fragr_spritegen::upload::content_type_for(&name)?;
+            let content_type = localexception_spritegen::upload::content_type_for(&name)?;
             let bytes = std::fs::read(file)
                 .map_err(|e| Error::Io(format!("could not read {}: {e}", file.display())))?;
             let credential = read_dotenv_credential(&cli.env_file)?;
             let transport = HttpTransport::new()?;
-            let uploaded = fragr_spritegen::upload::upload_reference(
+            let uploaded = localexception_spritegen::upload::upload_reference(
                 &transport,
                 &credential,
                 content_type,
@@ -585,12 +590,12 @@ fn run(cli: Cli) -> Result<(), Error> {
             let spec = load(spec)?;
             let selected = select(&spec, only);
             let transport = HttpTransport::new()?;
-            fragr_spritegen::generation::generate(
+            localexception_spritegen::generation::generate(
                 &transport,
                 &credential,
                 &spec,
                 &selected,
-                fragr_spritegen::generation::Options {
+                localexception_spritegen::generation::Options {
                     max_spend_usd: *max_spend_usd,
                     show_prompts: *show_prompts,
                 },
@@ -609,7 +614,7 @@ fn main() {
         .init();
 
     if let Err(err) = run(Cli::parse()) {
-        eprintln!("fragr-spritegen: {err}");
+        eprintln!("localexception-spritegen: {err}");
         std::process::exit(1);
     }
 }
@@ -642,14 +647,17 @@ mod tests {
                 "3",
             ],
         ] {
-            let mut argv = vec!["fragr-spritegen", "--env-file", "missing-env"];
+            let mut argv = vec!["localexception-spritegen", "--env-file", "missing-env"];
             argv.extend(args);
             assert!(matches!(run(Cli::parse_from(argv)), Err(Error::Budget(_))));
         }
-        let path = std::env::temp_dir().join(format!("fragr-model-report-{}", std::process::id()));
+        let path = std::env::temp_dir().join(format!(
+            "localexception-model-report-{}",
+            std::process::id()
+        ));
         std::fs::write(&path, "preserved").unwrap();
         let cli = Cli::parse_from([
-            "fragr-spritegen",
+            "localexception-spritegen",
             "--env-file",
             "missing-env",
             "meshy-check",
@@ -686,13 +694,16 @@ mod tests {
 
     #[test]
     fn api_check_rejects_bad_spec_and_existing_receipt_before_loading_credentials() {
-        let dir = std::env::temp_dir().join(format!("fragr-api-check-cli-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!(
+            "localexception-api-check-cli-{}",
+            std::process::id()
+        ));
         std::fs::create_dir(&dir).unwrap();
         let spec = dir.join("spec.json");
         let report = dir.join("report.json");
         std::fs::write(&spec, "bad JSON with secret-value").unwrap();
         let cli = Cli::parse_from([
-            "fragr-spritegen",
+            "localexception-spritegen",
             "--env-file",
             "missing-env",
             "api-check",
@@ -704,7 +715,7 @@ mod tests {
         assert!(!error.to_string().contains("secret-value"));
         std::fs::write(&report, "existing receipt").unwrap();
         let cli = Cli::parse_from([
-            "fragr-spritegen",
+            "localexception-spritegen",
             "--env-file",
             "missing-env",
             "api-check",
@@ -777,7 +788,7 @@ mod tests {
     #[test]
     fn missing_cap_is_refused_before_loading_a_key_or_spec() {
         let cli = Cli::parse_from([
-            "fragr-spritegen",
+            "localexception-spritegen",
             "--env-file",
             "missing-env",
             "gen",
@@ -789,9 +800,10 @@ mod tests {
 
     #[test]
     fn recovery_command_needs_no_key_and_updates_only_a_reservation() {
-        let dir = std::env::temp_dir().join(format!("fragr-recover-cli-{}", std::process::id()));
+        let dir =
+            std::env::temp_dir().join(format!("localexception-recover-cli-{}", std::process::id()));
         std::fs::create_dir(&dir).unwrap();
-        let mut ledger = fragr_spritegen::ledger::Ledger::open(&dir).unwrap();
+        let mut ledger = localexception_spritegen::ledger::Ledger::open(&dir).unwrap();
         let spec = parse_spec(
             r#"{"model":"m","out_dir":"o","frames":[{"id":"tack","subject":"pistol"}]}"#,
         )
@@ -799,15 +811,18 @@ mod tests {
         ledger
             .record(
                 "tack",
-                fragr_spritegen::ledger::Event::Reserved {
-                    identity: fragr_spritegen::ledger::Identity::new(&spec.model, &spec.frames[0]),
+                localexception_spritegen::ledger::Event::Reserved {
+                    identity: localexception_spritegen::ledger::Identity::new(
+                        &spec.model,
+                        &spec.frames[0],
+                    ),
                     estimated_usd: 0.02,
                 },
             )
             .unwrap();
         drop(ledger);
         let args = [
-            "fragr-spritegen",
+            "localexception-spritegen",
             "--env-file",
             "missing-env",
             "recover",
@@ -820,10 +835,10 @@ mod tests {
         ];
         run(Cli::parse_from(args)).unwrap();
         assert!(run(Cli::parse_from(args)).is_err());
-        let ledger = fragr_spritegen::ledger::Ledger::open(&dir).unwrap();
+        let ledger = localexception_spritegen::ledger::Ledger::open(&dir).unwrap();
         assert!(matches!(
             ledger.job("tack").unwrap().stage,
-            fragr_spritegen::ledger::Stage::Submitted { .. }
+            localexception_spritegen::ledger::Stage::Submitted { .. }
         ));
         drop(ledger);
         std::fs::remove_dir_all(dir).unwrap();
@@ -831,8 +846,11 @@ mod tests {
 
     #[test]
     fn upload_records_the_public_url_beside_its_file_name() {
-        let dir = std::env::temp_dir().join(format!("fragr-upload-record-{}", std::process::id()));
-        let uploaded = fragr_spritegen::upload::Uploaded {
+        let dir = std::env::temp_dir().join(format!(
+            "localexception-upload-record-{}",
+            std::process::id()
+        ));
+        let uploaded = localexception_spritegen::upload::Uploaded {
             public_url: "https://cdn.example.com/a.png".into(),
             content_type: "image/png".into(),
             bytes: 3,
@@ -851,7 +869,7 @@ mod tests {
     #[test]
     fn upload_refuses_an_unsupported_file_before_reading_a_key() {
         let cli = Cli::parse_from([
-            "fragr-spritegen",
+            "localexception-spritegen",
             "--env-file",
             "missing-env",
             "upload",
@@ -862,7 +880,7 @@ mod tests {
         ]);
         assert!(matches!(run(cli), Err(Error::Spec(_))));
         let cli = Cli::parse_from([
-            "fragr-spritegen",
+            "localexception-spritegen",
             "--env-file",
             "missing-env",
             "upload",
@@ -877,7 +895,7 @@ mod tests {
     #[test]
     fn reduce_parses_a_chroma_key_with_its_defaults() {
         let cli = Cli::try_parse_from([
-            "fragr-spritegen",
+            "localexception-spritegen",
             "reduce",
             "--input",
             "a.png",
@@ -913,7 +931,7 @@ mod tests {
     #[test]
     fn gen_parses_a_cap() {
         let cli = Cli::parse_from([
-            "fragr-spritegen",
+            "localexception-spritegen",
             "gen",
             "--spec",
             "s.json",
@@ -929,7 +947,7 @@ mod tests {
     #[test]
     fn reduce_requires_an_exact_valid_matte_colour() {
         let args = [
-            "fragr-spritegen",
+            "localexception-spritegen",
             "reduce",
             "--input",
             "sprite.png",
@@ -949,7 +967,7 @@ mod tests {
 
     #[test]
     fn gen_without_a_cap_parses_but_is_refused_later() {
-        let cli = Cli::parse_from(["fragr-spritegen", "gen", "--spec", "s.json"]);
+        let cli = Cli::parse_from(["localexception-spritegen", "gen", "--spec", "s.json"]);
         match cli.command {
             Cmd::Gen { max_spend_usd, .. } => {
                 assert_eq!(max_spend_usd, None);
@@ -961,7 +979,7 @@ mod tests {
 
     #[test]
     fn prompts_needs_no_credential_and_no_network() {
-        let dir = std::env::temp_dir().join("fragr-spritegen-main-prompts");
+        let dir = std::env::temp_dir().join("localexception-spritegen-main-prompts");
         std::fs::create_dir_all(&dir).unwrap();
         let spec = dir.join("spec.json");
         std::fs::write(
@@ -971,7 +989,7 @@ mod tests {
         .unwrap();
 
         let cli = Cli::parse_from([
-            "fragr-spritegen",
+            "localexception-spritegen",
             "prompts",
             "--spec",
             spec.to_str().unwrap(),

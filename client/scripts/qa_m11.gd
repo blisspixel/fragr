@@ -18,14 +18,14 @@ func _process(delta: float) -> bool:
 	return false
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	MouseCapture.release()
 	_prepare.call_deferred()
 
 func _prepare() -> void:
-	var output: String = OS.get_environment("FRAGR_QA_DIR")
+	var output: String = OS.get_environment("LOCALEXCEPTION_QA_DIR")
 	if output.is_empty():
-		push_error("qa_m11: FRAGR_QA_DIR is required for isolated evidence")
+		push_error("qa_m11: LOCALEXCEPTION_QA_DIR is required for isolated evidence")
 		quit(1)
 		return
 	var runs: String = output.path_join("local-run")
@@ -36,8 +36,8 @@ func _prepare() -> void:
 		return
 	file.store_string(JSON.stringify(LocalFixture.completed_ship()) + "\n  \n")
 	file.close()
-	_previous_server = OS.get_environment("FRAGR_SERVER")
-	OS.set_environment("FRAGR_RUN_DIR", runs)
+	_previous_server = OS.get_environment("LOCALEXCEPTION_SERVER")
+	OS.set_environment("LOCALEXCEPTION_RUN_DIR", runs)
 	_owned = LocalMatch.for_tree(self)
 	await process_frame
 	if not _owned.start_mission("standard", "resume", MissionState.M11_ID):
@@ -50,16 +50,16 @@ func _prepare() -> void:
 		push_error("qa_m11: owned native child did not become ready")
 		quit(1)
 		return
-	OS.set_environment("FRAGR_SERVER", _owned.url)
-	OS.set_environment("FRAGR_QA_MANIFEST", "res://qa/m11_right_of_search.json")
+	OS.set_environment("LOCALEXCEPTION_SERVER", _owned.url)
+	OS.set_environment("LOCALEXCEPTION_QA_MANIFEST", "res://qa/m11_right_of_search.json")
 	await _run()
 
 func _finalize() -> void:
 	if is_instance_valid(_owned):
 		_owned.stop()
 	if _previous_server.is_empty():
-		OS.unset_environment("FRAGR_SERVER")
+		OS.unset_environment("LOCALEXCEPTION_SERVER")
 	else:
-		OS.set_environment("FRAGR_SERVER", _previous_server)
-	OS.unset_environment("FRAGR_RUN_DIR")
+		OS.set_environment("LOCALEXCEPTION_SERVER", _previous_server)
+	OS.unset_environment("LOCALEXCEPTION_RUN_DIR")
 	super._finalize()

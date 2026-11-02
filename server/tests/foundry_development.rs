@@ -1,12 +1,12 @@
-use fragr_server::maps::{AuthoredMap, RuntimeMap};
-use fragr_server::movement::{BODY_HEIGHT, CONTACT_EPSILON, EYE_HEIGHT};
-use fragr_server::navigation::{NavigationGoal, Navigator, RouteStatus, SEARCH_LIMIT};
-use fragr_server::protocol::{
+use localexception_server::maps::{AuthoredMap, RuntimeMap};
+use localexception_server::movement::{BODY_HEIGHT, CONTACT_EPSILON, EYE_HEIGHT};
+use localexception_server::navigation::{NavigationGoal, Navigator, RouteStatus, SEARCH_LIMIT};
+use localexception_server::protocol::{
     Action, AmmoPool, CampaignActor, EnemyPhase, LookAt, Role, ServerMessage, WeaponType,
 };
-use fragr_server::session::GameSession;
-use fragr_server::sim::PickupKind;
-use fragr_server::sim::{GameState, PLAYER_FLOOR_Y};
+use localexception_server::session::GameSession;
+use localexception_server::sim::PickupKind;
+use localexception_server::sim::{GameState, PLAYER_FLOOR_Y};
 use serde_json::{json, Value};
 use sha2::Digest;
 use std::collections::HashSet;
@@ -143,7 +143,7 @@ fn foundry_is_a_strict_standalone_slice_and_all_authored_destinations_return() {
         .iter()
         .filter(|stock| stock.id.starts_with("staging_"))
     {
-        assert!(stock.z + fragr_server::sim::PLAYER_RADIUS < final_min[2]);
+        assert!(stock.z + localexception_server::sim::PLAYER_RADIUS < final_min[2]);
     }
     println!("foundry strict development source: 121 solids, 22 guards, 19 finite stocks, {routes} return routes");
 }
@@ -258,7 +258,7 @@ fn foundry_successor_keeps_the_practice_bytes_and_loads_the_rocket_lesson_geomet
     let state = GameState::with_authored_map(map.clone());
     assert_eq!(
         state.mission_state().unwrap().id,
-        fragr_server::protocol::MissionId::WeightOfPermission
+        localexception_server::protocol::MissionId::WeightOfPermission
     );
     assert!(matches!(
         state.map_info(),
@@ -408,11 +408,11 @@ fn advance(
                     && matches!(p.campaign, Some(CampaignActor::Hostile { .. }))
             })
             .collect();
-        let aim = |target: &fragr_server::protocol::PlayerState| {
+        let aim = |target: &localexception_server::protocol::PlayerState| {
             [
                 target.x,
                 target.y - PLAYER_FLOOR_Y
-                    + fragr_server::combat::target_height(target.campaign) * 0.9,
+                    + localexception_server::combat::target_height(target.campaign) * 0.9,
                 target.z,
             ]
         };
@@ -420,7 +420,11 @@ fn advance(
             .iter()
             .copied()
             .filter(|target| {
-                fragr_server::combat::line_of_sight(eye, aim(target), &state.current_arena().solids)
+                localexception_server::combat::line_of_sight(
+                    eye,
+                    aim(target),
+                    &state.current_arena().solids,
+                )
             })
             .min_by(|a, b| {
                 (a.x - me.x)

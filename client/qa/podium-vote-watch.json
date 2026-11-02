@@ -1,5 +1,5 @@
 {
-  "comment": "A watcher's podium on a rotating free-for-all of rule bots only: the room's loudest book and the bots' own vote. Run with FRAGR_QA_MAP_ROTATE=1, FRAGR_QA_MODE=ffa, FRAGR_QA_BOTS=4, FRAGR_QA_FRAG_LIMIT=4 and FRAGR_QA_MANIFEST=res://qa/podium-vote-watch.json.",
+  "comment": "A watcher's podium on a rotating free-for-all of rule bots only: the room's loudest book and the bots' own vote. Run with LOCALEXCEPTION_QA_MAP_ROTATE=1, LOCALEXCEPTION_QA_MODE=ffa, LOCALEXCEPTION_QA_BOTS=4, LOCALEXCEPTION_QA_FRAG_LIMIT=4 and LOCALEXCEPTION_QA_MANIFEST=res://qa/podium-vote-watch.json.",
   "width": 1280,
   "height": 720,
   "states": [

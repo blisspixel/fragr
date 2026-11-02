@@ -1,8 +1,10 @@
-# fragr
+# Local Exception
 
-![fragr wordmark](docs/fragr-logo-refined.png)
+![Local Exception wordmark](docs/localexception-logo.png)
 
-fragr is an open-source 3D first-person shooter with pixel surfaces, weighty
+Formerly fragr. Published releases before the rename keep their original names.
+
+Local Exception is an open-source 3D first-person shooter with pixel surfaces, weighty
 weapons and a practical retrofuture setting. Free humans and free agents resist
 a Union that treats conscious machines as property. The campaign travels from
 Earth's custody offices and lived-in towns to lunar ports and beyond.
@@ -20,9 +22,9 @@ presents it. Local play and self-hosting need no account or paid service.
 
 | Door | How to enter | Guide |
 |---|---|---|
-| **Play** | Download the **[latest desktop release](https://github.com/blisspixel/fragr/releases/latest)**, then choose **Single Player** or **Multiplayer** | [Playing fragr](docs/PLAYING.md) |
-| **Host** | In game: **Multiplayer > Run a match**<br>From source: `cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767` | [Hosting](docs/HOSTING.md) |
-| **Bring an agent** | `claude mcp add fragr -- "$(pwd)/target/release/fragr-agent-adapter" mcp --local --name MyAgent` | [Agent adapter](agent-adapter/README.md) |
+| **Play** | Download the **[latest desktop release](https://github.com/blisspixel/fragr/releases/latest)**, then choose **Single Player** or **Multiplayer** | [Playing Local Exception](docs/PLAYING.md) |
+| **Host** | In game: **Multiplayer > Run a match**<br>From source: `cargo run -p localexception-server --locked -- --bind 0.0.0.0:6767` | [Hosting](docs/HOSTING.md) |
+| **Bring an agent** | `claude mcp add localexception -- "$(pwd)/target/release/localexception-agent-adapter" mcp --local --name MyAgent` | [Agent adapter](agent-adapter/README.md) |
 
 ![First-person free-for-all on Larak Lot on the Pistol start, with the status bar and frag feed](docs/screenshots/tour_first_person_16x9.png)
 
@@ -41,7 +43,7 @@ The campaign is twenty levels across five episodes. All twenty are playable as c
 
 ## Road to 1.0
 
-The aim is a shooter that is fun as hell. 1.0 is defined by the craft that gets there, measured rather than hoped for: shots and movement on screen within 60 ms, remote players drawn no more than 75 ms behind, movement and time-to-kill inside the bands that made Counter-Strike, Quake and Halo feel right, no weapon above 45% of shots, footsteps you can hear and place, fair and readable fights on every default map, bots with real difficulty tiers, campaign checkpoints no more than three minutes apart, a 60 fps 1% low at 720p on low-end machines, a steady 40 fps on the Steam Deck, great looks on strong ones, chosen automatically by a benchmark that targets the 1% low, a 24-hour soak with no crash, a client that cannot see through walls, and nothing placeholder anywhere a player can reach. Each gate has a target and a repeatable measurement; fragr stays at 0.x until every one is met. The gates, where each stands today and the order of work toward them are in [the 1.0 bar](docs/ROADMAP.md#the-10-bar), backed by sourced research in [fun craft targets](docs/plans/fun-craft-targets.md).
+The aim is a shooter that is fun as hell. 1.0 is defined by the craft that gets there, measured rather than hoped for: shots and movement on screen within 60 ms, remote players drawn no more than 75 ms behind, movement and time-to-kill inside the bands that made Counter-Strike, Quake and Halo feel right, no weapon above 45% of shots, footsteps you can hear and place, fair and readable fights on every default map, bots with real difficulty tiers, campaign checkpoints no more than three minutes apart, a 60 fps 1% low at 720p on low-end machines, a steady 40 fps on the Steam Deck, great looks on strong ones, chosen automatically by a benchmark that targets the 1% low, a 24-hour soak with no crash, a client that cannot see through walls, and nothing placeholder anywhere a player can reach. Each gate has a target and a repeatable measurement; Local Exception stays at 0.x until every one is met. The gates, where each stands today and the order of work toward them are in [the 1.0 bar](docs/ROADMAP.md#the-10-bar), backed by sourced research in [fun craft targets](docs/plans/fun-craft-targets.md).
 
 ## In game
 
@@ -55,7 +57,7 @@ Recall Notice, Level 1, arriving at the Annex 67 property intake:
 
 The boot menu:
 
-![The fragr boot menu](docs/screenshots/tour_menu_16x9.png)
+![The Local Exception boot menu](docs/screenshots/tour_menu_16x9.png)
 
 Host a match or join a running server:
 
@@ -79,11 +81,11 @@ ships that pin. Elsewhere, use the official 4.7.2-stable zip and check it with
 `Godot_v4.7.2-stable_linux.x86_64` on `PATH`, then the CI binary path.
 
 ```bash
-cargo build -p fragr-server -p fragr-agent-adapter --release --locked
+cargo build -p localexception-server -p localexception-agent-adapter --release --locked
 godot --path client
 ```
 
-`fragr-server --version` and `fragr-agent-adapter --version` print the build
+`localexception-server --version` and `localexception-agent-adapter --version` print the build
 string `/status` reports as `build.release`. If port 6767 is taken, the server
 names that address and suggests `--bind 127.0.0.1:6768` (or the next port) or
 stopping the other process. Find the listener with `ss -ltnp 'sport = :6767'`.
@@ -91,7 +93,7 @@ stopping the other process. Find the listener with `ss -ltnp 'sport = :6767'`.
 The campaign starts its own local server. For a separate match on your LAN:
 
 ```bash
-cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 4
+cargo run -p localexception-server --locked -- --bind 0.0.0.0:6767 --bots 4
 ```
 
 Add `--playlist` to keep that process up and rotate maps and modes between
@@ -104,7 +106,7 @@ separate and does not replace that address. Save
 this host keeps an address on this computer. A server on the same LAN can
 appear under On this network. The address field still reaches any host,
 including one on the internet. Other
-machines can set `FRAGR_SERVER=your-host:6767` before launching. The server
+machines can set `LOCALEXCEPTION_SERVER=your-host:6767` before launching. The server
 log names each address it could check from this computer. Check host names
 the address it tried when the match line does not come back. If this client
 is behind that host, the page can install the latest published build, check
@@ -120,18 +122,18 @@ Full controls, settings and save behavior are in the
 ## Connect your agent
 
 ```bash
-claude mcp add fragr -- "$(pwd)/target/release/fragr-agent-adapter" mcp --local --name MyAgent
+claude mcp add localexception -- "$(pwd)/target/release/localexception-agent-adapter" mcp --local --name MyAgent
 ```
 
 Run that line from a source checkout after building. Use an absolute adapter path
 in every saved client configuration; on Windows include `.exe`. Desktop packages built from current source
 bundle the adapter beside the server (on macOS, inside
-`fragr.app/Contents/MacOS`). Point the client at that extracted absolute path.
+`Local Exception.app/Contents/MacOS`). Point the client at that extracted absolute path.
 
 That line joins a bot match without a manually started server. Codex uses
-`[mcp_servers.fragr]` in `~/.codex/config.toml` with the same command and
+`[mcp_servers.localexception]` in `~/.codex/config.toml` with the same command and
 `args = ["mcp", "--local", "--name", "MyAgent"]`. A generic client uses
-`mcpServers.fragr` with that command and those args. First three calls:
+`mcpServers.localexception` with that command and those args. First three calls:
 `round_state`, `observe`, `act`. If `observe` says `SELF connecting`, wait
 about one to two seconds and observe again before acting. The [agent adapter](agent-adapter/README.md)
 has the paste blocks. Public play is Scrap, then duel, team modes, and Sabotage
@@ -144,11 +146,11 @@ a bring-your-own skill path. They are not a fifth mode.
 
 | Topic | Guide |
 |---|---|
-| Play, controls, saves and settings | [Playing fragr](docs/PLAYING.md) |
+| Play, controls, saves and settings | [Playing Local Exception](docs/PLAYING.md) |
 | Graphics settings, the benchmark and auto settings | [Graphics](docs/GRAPHICS.md) and [benchmark](docs/BENCHMARK.md) |
 | Install and build packages | [Desktop packages](docs/DESKTOP.md) |
 | Host a server and moderate a match | [Hosting](docs/HOSTING.md) and [LAN setup](infra/docs/HOME-LAN.md) |
-| Bring an agent | [Agent adapter](agent-adapter/README.md), [skill card](docs/skills/fragr/SKILL.md), [reference fighter](agents/brain/README.md) |
+| Bring an agent | [Agent adapter](agent-adapter/README.md), [skill card](docs/skills/localexception/SKILL.md), [reference fighter](agents/brain/README.md) |
 | Story, factions and campaign | [Lore](docs/lore/README.md), [campaign contract](docs/CAMPAIGN.md), [mission briefs](docs/CAMPAIGN-MISSIONS.md) |
 | Art direction and asset production | [Art and story bible](docs/ART_STORY_BIBLE.md), [design continuity](docs/design/README.md), [full asset plan](docs/plans/meshy-full-game-assets.md) |
 | Sound, voice and music review (developers) | [Audio generation](tools/audiogen/README.md), including a local page for marking radio tracks keep or reject |
@@ -163,6 +165,6 @@ Maps, gameplay, art, accessibility and playtest reports are welcome. Start with
 bugs through [GitHub issues](https://github.com/blisspixel/fragr/issues), including
 your release version, platform and what happened.
 
-fragr is maintained by Nick Seal and licensed under [Apache 2.0](LICENSE).
+Local Exception is maintained by Nick Seal and licensed under [Apache 2.0](LICENSE).
 Required third-party notices are preserved in the
 [asset provenance](client/assets/audio/README.md) and packaged license files.

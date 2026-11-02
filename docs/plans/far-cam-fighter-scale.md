@@ -36,8 +36,8 @@ Pixel-3D look bar sealed on tip (`5d16f32`, #66). **Far-cam fighter scale is the
 
 ```bash
 /workspace/godot/Godot_v4.7.2-stable_linux.x86_64 --path client --headless --script res://scripts/test_far_cam_scale.gd
-# Optional tip still (needs fragr-server + Xvfb)
-cargo run -p fragr-server -- --bots 4 &
+# Optional tip still (needs localexception-server + Xvfb)
+cargo run -p localexception-server -- --bots 4 &
 PATH="/workspace/godot:$PATH" OUT_DIR=docs/screenshots tools/capture_tip_screenshots.sh
 ```
 

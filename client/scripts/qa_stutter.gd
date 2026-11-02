@@ -6,19 +6,19 @@ extends SceneTree
 ## respawn, the pause menu opened and closed, then walking again. Each phase
 ## is a mark, so the report has one row per phase.
 ##
-## FRAGR_QA_DIR (required) receives settings, the client trace, the joined
-## report and a Markdown table. FRAGR_STUTTER_HOST is "local" (default: the
+## LOCALEXCEPTION_QA_DIR (required) receives settings, the client trace, the joined
+## report and a Markdown table. LOCALEXCEPTION_STUTTER_HOST is "local" (default: the
 ## client launches the desktop host, as Host a match does) or "join"
-## (FRAGR_SERVER names a separately started server). FRAGR_TICK_TRACE names
+## (LOCALEXCEPTION_SERVER names a separately started server). LOCALEXCEPTION_TICK_TRACE names
 ## the server half: a launched host inherits it; a separate server must be
-## started with --tick-trace at the same path. FRAGR_STUTTER_VSYNC=1 turns
-## vsync on; FRAGR_STUTTER_FPS_CAP sets the frame cap; FRAGR_STUTTER_MODE and
-## FRAGR_STUTTER_BOTS change the hosted match; FRAGR_STUTTER_FULLSCREEN=1 uses
+## started with --tick-trace at the same path. LOCALEXCEPTION_STUTTER_VSYNC=1 turns
+## vsync on; LOCALEXCEPTION_STUTTER_FPS_CAP sets the frame cap; LOCALEXCEPTION_STUTTER_MODE and
+## LOCALEXCEPTION_STUTTER_BOTS change the hosted match; LOCALEXCEPTION_STUTTER_FULLSCREEN=1 uses
 ## the default fullscreen window. On Linux each phase also records the host
 ## load and the main thread's CPU and run-queue wait shares.
 ##
-## FRAGR_STUTTER_REPORT_ONLY=1 skips the match and only rebuilds report.json
-## and table.md from client-trace.json in FRAGR_QA_DIR and the FRAGR_TICK_TRACE
+## LOCALEXCEPTION_STUTTER_REPORT_ONLY=1 skips the match and only rebuilds report.json
+## and table.md from client-trace.json in LOCALEXCEPTION_QA_DIR and the LOCALEXCEPTION_TICK_TRACE
 ## file, for traces recorded elsewhere (a player's `stutter stop` file and a
 ## host's --tick-trace file) or after the report logic changes.
 ##
@@ -39,7 +39,7 @@ var _phase_notes: Dictionary = {}
 
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	_started = Time.get_ticks_msec()
 	MouseCapture.release()
 	call_deferred("_run")
@@ -73,22 +73,22 @@ func _until(condition: Callable, timeout_ms: int = 30000) -> bool:
 
 
 func _run() -> void:
-	_directory = OS.get_environment("FRAGR_QA_DIR")
-	if not _require(not _directory.is_empty() and _directory.is_absolute_path(), "FRAGR_QA_DIR must name an absolute owned directory"):
+	_directory = OS.get_environment("LOCALEXCEPTION_QA_DIR")
+	if not _require(not _directory.is_empty() and _directory.is_absolute_path(), "LOCALEXCEPTION_QA_DIR must name an absolute owned directory"):
 		quit(1)
 		return
 	DirAccess.make_dir_recursive_absolute(_directory)
-	if OS.get_environment("FRAGR_STUTTER_REPORT_ONLY") == "1":
+	if OS.get_environment("LOCALEXCEPTION_STUTTER_REPORT_ONLY") == "1":
 		quit(0 if _write_report() else 1)
 		return
-	set_meta("fragr_settings_path", _directory.path_join("settings.cfg"))
-	set_meta("fragr_records_path", _directory.path_join("records.json"))
-	var settings: FragrSettings = FragrSettings.new(_directory.path_join("settings.cfg"))
-	settings.set_value("video", "display_mode", 2 if OS.get_environment("FRAGR_STUTTER_FULLSCREEN") == "1" else 0)
-	settings.set_value("video", "vsync", OS.get_environment("FRAGR_STUTTER_VSYNC") == "1")
+	set_meta("localexception_settings_path", _directory.path_join("settings.cfg"))
+	set_meta("localexception_records_path", _directory.path_join("records.json"))
+	var settings: LocalExceptionSettings = LocalExceptionSettings.new(_directory.path_join("settings.cfg"))
+	settings.set_value("video", "display_mode", 2 if OS.get_environment("LOCALEXCEPTION_STUTTER_FULLSCREEN") == "1" else 0)
+	settings.set_value("video", "vsync", OS.get_environment("LOCALEXCEPTION_STUTTER_VSYNC") == "1")
 	# A frame cap leaves the main thread idle between frames; 0 keeps the default uncapped loop.
-	if OS.get_environment("FRAGR_STUTTER_FPS_CAP").is_valid_int():
-		settings.set_value("video", "fps_cap", OS.get_environment("FRAGR_STUTTER_FPS_CAP").to_int())
+	if OS.get_environment("LOCALEXCEPTION_STUTTER_FPS_CAP").is_valid_int():
+		settings.set_value("video", "fps_cap", OS.get_environment("LOCALEXCEPTION_STUTTER_FPS_CAP").to_int())
 	settings.set_value("audio", "music", 0.0)
 	settings.set_value("audio", "voice", 0.0)
 	if not _require(settings.save_to_disk() == OK, "isolated settings save"):
@@ -96,20 +96,20 @@ func _run() -> void:
 		return
 	root.mode = Window.MODE_WINDOWED
 	root.size = Vector2i(1280, 720)
-	var host_mode: String = OS.get_environment("FRAGR_STUTTER_HOST")
-	var url: String = OS.get_environment("FRAGR_SERVER")
+	var host_mode: String = OS.get_environment("LOCALEXCEPTION_STUTTER_HOST")
+	var url: String = OS.get_environment("LOCALEXCEPTION_SERVER")
 	if host_mode != "join":
 		host_mode = "local"
 		url = await _launch_local_host()
 		if url.is_empty():
 			_finish()
 			return
-	if not _require(not url.is_empty(), "join mode needs FRAGR_SERVER"):
+	if not _require(not url.is_empty(), "join mode needs LOCALEXCEPTION_SERVER"):
 		_finish()
 		return
 	_phase_notes["host"] = host_mode
 	_phase_notes["server"] = url
-	set_meta("fragr_boot", {"mode": "join", "host": url})
+	set_meta("localexception_boot", {"mode": "join", "host": url})
 	change_scene_to_file("res://scenes/main.tscn")
 	if not _require(await _until(func() -> bool: return current_scene != null and current_scene.has_method("begin_stutter_trace")), "match scene loaded"):
 		_finish()
@@ -137,10 +137,10 @@ func _run() -> void:
 func _launch_local_host() -> String:
 	_host = LocalHost.for_tree(self)
 	await process_frame
-	# Team deathmatch is the host menu's default mode. FRAGR_STUTTER_MODE picks another.
-	var mode: String = OS.get_environment("FRAGR_STUTTER_MODE") if not OS.get_environment("FRAGR_STUTTER_MODE").is_empty() else "tdm"
+	# Team deathmatch is the host menu's default mode. LOCALEXCEPTION_STUTTER_MODE picks another.
+	var mode: String = OS.get_environment("LOCALEXCEPTION_STUTTER_MODE") if not OS.get_environment("LOCALEXCEPTION_STUTTER_MODE").is_empty() else "tdm"
 	var request: Dictionary = {"mode": mode, "lan": false, "bot_policy": "fixed", "map_id": 1,
-		"bots": int(OS.get_environment("FRAGR_STUTTER_BOTS")) if OS.get_environment("FRAGR_STUTTER_BOTS").is_valid_int() else 4,
+		"bots": int(OS.get_environment("LOCALEXCEPTION_STUTTER_BOTS")) if OS.get_environment("LOCALEXCEPTION_STUTTER_BOTS").is_valid_int() else 4,
 		"fill_target": 0, "port": 0}
 	if not _require(_host.start_host(request), "desktop host starts: " + _host.error_key):
 		return ""
@@ -321,10 +321,10 @@ func _finish() -> void:
 
 
 ## Joins client-trace.json in the output directory with the server tick trace
-## named by FRAGR_TICK_TRACE, then writes report.json and table.md. A report-only
+## named by LOCALEXCEPTION_TICK_TRACE, then writes report.json and table.md. A report-only
 ## run keeps the phase notes of the report it replaces.
 func _write_report() -> bool:
-	var server_path: String = OS.get_environment("FRAGR_TICK_TRACE")
+	var server_path: String = OS.get_environment("LOCALEXCEPTION_TICK_TRACE")
 	var server: Dictionary = {}
 	if not server_path.is_empty():
 		server = StutterReport.parse_tick_trace(FileAccess.get_file_as_string(server_path))

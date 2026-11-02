@@ -1,6 +1,6 @@
 name: Release
 
-# Builds the desktop packages: the exported Godot client with fragr-server beside
+# Builds the desktop packages: the exported Godot client with localexception-server beside
 # it, one zip per platform. A v* tag attaches them to that tag's GitHub release.
 # A manual run, or a pull request that touches packaging, only builds and smokes
 # them and keeps them as workflow artifacts.
@@ -63,31 +63,31 @@ jobs:
         shell: bash
         env:
           # Baked into GET /status as ops.build; an empty release reads as none.
-          FRAGR_BUILD_COMMIT: ${{ github.sha }}
-          FRAGR_BUILD_VERSION: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
+          LOCALEXCEPTION_BUILD_COMMIT: ${{ github.sha }}
+          LOCALEXCEPTION_BUILD_VERSION: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
         run: |
           set -euo pipefail
           mkdir -p out
           case "${{ matrix.platform }}" in
             macos-universal)
-              cargo build -p fragr-server -p fragr-agent-adapter --release --locked --target aarch64-apple-darwin
-              MACOSX_DEPLOYMENT_TARGET=10.13 cargo build -p fragr-server -p fragr-agent-adapter --release --locked --target x86_64-apple-darwin
-              lipo -create -output out/fragr-server \
-                target/aarch64-apple-darwin/release/fragr-server \
-                target/x86_64-apple-darwin/release/fragr-server
-              lipo -info out/fragr-server
-              lipo -create -output out/fragr-agent-adapter \
-                target/aarch64-apple-darwin/release/fragr-agent-adapter \
-                target/x86_64-apple-darwin/release/fragr-agent-adapter
-              lipo -info out/fragr-agent-adapter
+              cargo build -p localexception-server -p localexception-agent-adapter --release --locked --target aarch64-apple-darwin
+              MACOSX_DEPLOYMENT_TARGET=10.13 cargo build -p localexception-server -p localexception-agent-adapter --release --locked --target x86_64-apple-darwin
+              lipo -create -output out/localexception-server \
+                target/aarch64-apple-darwin/release/localexception-server \
+                target/x86_64-apple-darwin/release/localexception-server
+              lipo -info out/localexception-server
+              lipo -create -output out/localexception-agent-adapter \
+                target/aarch64-apple-darwin/release/localexception-agent-adapter \
+                target/x86_64-apple-darwin/release/localexception-agent-adapter
+              lipo -info out/localexception-agent-adapter
               ;;
             windows-x86_64)
-              cargo build -p fragr-server -p fragr-agent-adapter --release --locked
-              cp target/release/fragr-server.exe target/release/fragr-agent-adapter.exe out/
+              cargo build -p localexception-server -p localexception-agent-adapter --release --locked
+              cp target/release/localexception-server.exe target/release/localexception-agent-adapter.exe out/
               ;;
             *)
-              cargo build -p fragr-server -p fragr-agent-adapter --release --locked
-              cp target/release/fragr-server target/release/fragr-agent-adapter out/
+              cargo build -p localexception-server -p localexception-agent-adapter --release --locked
+              cp target/release/localexception-server target/release/localexception-agent-adapter out/
               ;;
           esac
       - name: Third-party license notices for the linked crates
@@ -101,7 +101,7 @@ jobs:
           esac
           # Fails when any linked crate lacks a license the deny.toml allowlist accepts,
           # or has neither its own license file nor a standard text for its license.
-          cargo run -p fragr-licenses --locked -- "${targets[@]}" --package fragr-server --package fragr-agent-adapter --deny deny.toml --out out/THIRD_PARTY_LICENSES.txt
+          cargo run -p localexception-licenses --locked -- "${targets[@]}" --package localexception-server --package localexception-agent-adapter --deny deny.toml --out out/THIRD_PARTY_LICENSES.txt
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: server-${{ matrix.platform }}
@@ -163,7 +163,7 @@ jobs:
           set -euo pipefail
           "$GODOT_BIN" --headless --path client --import
           mkdir -p builds/windows builds/linux builds/macos
-          for preset in "Windows Desktop|../builds/windows/fragr.exe" "Linux/X11|../builds/linux/fragr.x86_64" "macOS|../builds/macos/fragr.zip"; do
+          for preset in "Windows Desktop|../builds/windows/localexception.exe" "Linux/X11|../builds/linux/localexception.x86_64" "macOS|../builds/macos/localexception.zip"; do
             log=$("$GODOT_BIN" --headless --path client --export-release "${preset%%|*}" "${preset#*|}" 2>&1) || { printf '%s\n' "$log"; exit 1; }
             if grep -qE 'SCRIPT ERROR|(^|[[:space:]])ERROR:' <<<"$log"; then printf '%s\n' "$log"; exit 1; fi
           done
@@ -222,30 +222,30 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then version="$GITHUB_REF_NAME"; else version="dev-${GITHUB_SHA::7}"; fi
-          name="fragr-$version-$PLATFORM"
+          name="localexception-$version-$PLATFORM"
           root="dist/$name"
           mkdir -p "$root/licenses"
-          # local_match.gd looks for fragr-server in the game executable's own directory.
+          # local_match.gd looks for localexception-server in the game executable's own directory.
           case "$PLATFORM" in
             linux-x86_64)
-              cp stage/client/fragr.x86_64 stage/server/fragr-server stage/server/fragr-agent-adapter "$root/"
-              chmod +x "$root/fragr.x86_64" "$root/fragr-server" "$root/fragr-agent-adapter"
+              cp stage/client/localexception.x86_64 stage/server/localexception-server stage/server/localexception-agent-adapter "$root/"
+              chmod +x "$root/localexception.x86_64" "$root/localexception-server" "$root/localexception-agent-adapter"
               ;;
             windows-x86_64)
-              cp stage/client/fragr.exe stage/server/fragr-server.exe stage/server/fragr-agent-adapter.exe "$root/"
+              cp stage/client/localexception.exe stage/server/localexception-server.exe stage/server/localexception-agent-adapter.exe "$root/"
               ;;
             macos-universal)
-              ditto -x -k stage/client/fragr.zip "$root/"
-              app="$root/fragr.app"
-              test -f "$app/Contents/MacOS/fragr" || { echo "expected fragr.app from the export"; ls "$root"; exit 1; }
-              cp stage/server/fragr-server stage/server/fragr-agent-adapter "$app/Contents/MacOS/"
+              ditto -x -k stage/client/localexception.zip "$root/"
+              app="$root/Local Exception.app"
+              test -f "$app/Contents/MacOS/Local Exception" || { echo "expected Local Exception.app from the export"; ls "$root"; exit 1; }
+              cp stage/server/localexception-server stage/server/localexception-agent-adapter "$app/Contents/MacOS/"
               chmod +x "$app/Contents/MacOS/"*
               # Ad-hoc signature only: Apple Silicon refuses unsigned code. Not notarized.
               codesign --force --deep --sign - "$app"
               codesign --verify --deep --strict --verbose=2 "$app"
               ;;
           esac
-          cp LICENSE "$root/licenses/fragr-LICENSE.txt"
+          cp LICENSE "$root/licenses/localexception-LICENSE.txt"
           cp stage/server/THIRD_PARTY_LICENSES.txt "$root/licenses/THIRD_PARTY_LICENSES.txt"
           cp client/assets/fonts/OFL.txt "$root/licenses/fonts-OFL.txt"
           cp client/assets/fonts/silkscreen/OFL.txt "$root/licenses/silkscreen-OFL.txt"
@@ -273,20 +273,20 @@ jobs:
           esac
           root="$check/$PACKAGE_NAME"
           case "$PLATFORM" in
-            linux-x86_64) game="$root/fragr.x86_64"; server="$root/fragr-server" ;;
-            windows-x86_64) game="$root/fragr.exe"; server="$root/fragr-server.exe" ;;
+            linux-x86_64) game="$root/localexception.x86_64"; server="$root/localexception-server" ;;
+            windows-x86_64) game="$root/localexception.exe"; server="$root/localexception-server.exe" ;;
             macos-universal)
-              app="$root/fragr.app"
-              game="$app/Contents/MacOS/fragr"
-              server="$app/Contents/MacOS/fragr-server"
+              app="$root/Local Exception.app"
+              game="$app/Contents/MacOS/Local Exception"
+              server="$app/Contents/MacOS/localexception-server"
               codesign --verify --deep --strict "$app"
               ;;
           esac
-          for notice in fragr-LICENSE.txt THIRD_PARTY_LICENSES.txt godot-LICENSE.txt godot-COPYRIGHT.txt fonts-OFL.txt silkscreen-OFL.txt; do
+          for notice in localexception-LICENSE.txt THIRD_PARTY_LICENSES.txt godot-LICENSE.txt godot-COPYRIGHT.txt fonts-OFL.txt silkscreen-OFL.txt; do
             test -s "$root/licenses/$notice" || { echo "missing licenses/$notice"; exit 1; }
           done
           grep -c '^License: ' "$root/licenses/THIRD_PARTY_LICENSES.txt"
-          adapter="$(dirname "$server")/fragr-agent-adapter"
+          adapter="$(dirname "$server")/localexception-agent-adapter"
           if [[ "$PLATFORM" == windows-x86_64 ]]; then adapter="$adapter.exe"; fi
           "$adapter" --version
           "$adapter" mcp --help > "$RUNNER_TEMP/adapter-help.txt"
@@ -296,8 +296,8 @@ jobs:
           echo "bundled server bench: $(wc -c < "$RUNNER_TEMP/bench.json") bytes of JSON"
           # The exported game boots its main scene, finds the bundled server beside
           # itself, asks for a run preview, and verifies both owned arena presets.
-          export FRAGR_RUN_DIR="$RUNNER_TEMP/fragr-runs"
-          mkdir -p "$FRAGR_RUN_DIR"
+          export LOCALEXCEPTION_RUN_DIR="$RUNNER_TEMP/localexception-runs"
+          mkdir -p "$LOCALEXCEPTION_RUN_DIR"
           out=$("$game" --headless -- --check-install 2>&1) && status=0 || status=$?
           printf '%s\n' "$out" | grep -v 'Unreferenced static string' || true
           [ "$status" -eq 0 ] || { echo "install check exited $status"; exit 1; }
@@ -305,20 +305,20 @@ jobs:
             echo "install check reported a script or runtime error"
             exit 1
           fi
-          grep -q 'fragr install check: PASS' <<<"$out"
+          grep -q 'localexception install check: PASS' <<<"$out"
       - name: Record the Windows executable icon
         if: matrix.platform == 'windows-x86_64'
         shell: pwsh
         run: |
           Add-Type -AssemblyName System.Drawing
-          $exe = Get-ChildItem -Recurse -Path dist -Filter fragr.exe | Select-Object -First 1
-          [System.Drawing.Icon]::ExtractAssociatedIcon($exe.FullName).ToBitmap().Save("$env:RUNNER_TEMP/fragr-exe-icon.png")
+          $exe = Get-ChildItem -Recurse -Path dist -Filter localexception.exe | Select-Object -First 1
+          [System.Drawing.Icon]::ExtractAssociatedIcon($exe.FullName).ToBitmap().Save("$env:RUNNER_TEMP/localexception-exe-icon.png")
       - name: Keep the Windows icon evidence
         if: matrix.platform == 'windows-x86_64'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: windows-exe-icon
-          path: ${{ runner.temp }}/fragr-exe-icon.png
+          path: ${{ runner.temp }}/localexception-exe-icon.png
           retention-days: 7
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:

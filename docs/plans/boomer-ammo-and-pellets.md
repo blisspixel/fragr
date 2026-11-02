@@ -114,7 +114,7 @@ in-place conversion: the rules
 | `tools/godot_check.sh` (Godot 4.7.2 console) | `Godot checks: PASS` |
 | `bash tools/test_godot_check.sh` | every scenario `ok` |
 | `tools/qa_tour.sh --publish` | 25 states, 11 stills published |
-| M01 discovery tour (`FRAGR_QA_MANIFEST=res://qa/m01-discovery.json`, no bots) | 10 states, every `expect_equipment` held |
+| M01 discovery tour (`LOCALEXCEPTION_QA_MANIFEST=res://qa/m01-discovery.json`, no bots) | 10 states, every `expect_equipment` held |
 
 New deterministic tests: `tests::pellets` (point-blank blast lands all seven
 for 70 and two kill with one frag; every pellet falls off by its own distance;

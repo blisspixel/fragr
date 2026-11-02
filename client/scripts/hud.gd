@@ -207,7 +207,7 @@ var reduced_motion: bool = false
 ## The Blood setting. Off, the damage edge flashes bone instead of red.
 var blood_enabled: bool = true
 ## Settings > Audio > Announcer: which Host calls reach the voice row.
-var announcer: int = FragrSettings.ANNOUNCER_ON
+var announcer: int = LocalExceptionSettings.ANNOUNCER_ON
 var _round_pulse: Tween
 var _warmup_pulse: Tween
 var _critical_pulse: Tween
@@ -1440,7 +1440,7 @@ func reset_host_chrome():
 
 ## Standalone previews load their own store. Live changes use the same reader.
 func _load_display_settings() -> void:
-	var settings: FragrSettings = FragrSettings.for_tree(get_tree())
+	var settings: LocalExceptionSettings = LocalExceptionSettings.for_tree(get_tree())
 	settings.load_from_disk()
 	apply_preferences(settings)
 
@@ -1474,7 +1474,7 @@ func show_critical_crossing(before: int, after: int) -> void:
 	_critical_pulse.tween_property(health_value, "scale", Vector2(1.12, 1.12), 0.08)
 	_critical_pulse.tween_property(health_value, "scale", Vector2.ONE, 0.18)
 
-func apply_preferences(settings: FragrSettings) -> void:
+func apply_preferences(settings: LocalExceptionSettings) -> void:
 	scope_mode = int(settings.get_value("controls", "scope_mode"))
 	if sniper_scope != null:
 		sniper_scope.set_mode(scope_mode)
@@ -1555,9 +1555,9 @@ func show_host_join(host_line: String, duck: bool = true) -> void:
 ## through here.
 func announcer_allows(big_moment: bool) -> bool:
 	match announcer:
-		FragrSettings.ANNOUNCER_OFF:
+		LocalExceptionSettings.ANNOUNCER_OFF:
 			return false
-		FragrSettings.ANNOUNCER_BIG_MOMENTS:
+		LocalExceptionSettings.ANNOUNCER_BIG_MOMENTS:
 			return big_moment
 	return true
 

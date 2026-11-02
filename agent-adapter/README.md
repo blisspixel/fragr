@@ -3,26 +3,26 @@
 ## Connect your agent
 
 Desktop packages built from current source include the adapter next to the server (macOS:
-`fragr.app/Contents/MacOS`). Use the absolute extracted adapter path, with
+`Local Exception.app/Contents/MacOS`). Use the absolute extracted adapter path, with
 `.exe` on Windows. Older packages require the source build below.
 
-From a source checkout, one release build, then one config line. The adapter spawns a loopback bot match when `127.0.0.1:6767` is not already a fragr server, and stops that server when the client closes stdin.
+From a source checkout, one release build, then one config line. The adapter spawns a loopback bot match when `127.0.0.1:6767` is not already a Local Exception server, and stops that server when the client closes stdin.
 
 ```bash
-cargo build -p fragr-server -p fragr-agent-adapter --release --locked
+cargo build -p localexception-server -p localexception-agent-adapter --release --locked
 ```
 
 Claude Code:
 
 ```bash
-claude mcp add fragr -- "$(pwd)/target/release/fragr-agent-adapter" mcp --local --name MyAgent
+claude mcp add localexception -- "$(pwd)/target/release/localexception-agent-adapter" mcp --local --name MyAgent
 ```
 
 Codex (`~/.codex/config.toml`):
 
 ```toml
-[mcp_servers.fragr]
-command = "/absolute/path/to/fragr/target/release/fragr-agent-adapter"
+[mcp_servers.localexception]
+command = "/absolute/path/to/localexception/target/release/localexception-agent-adapter"
 args = ["mcp", "--local", "--name", "MyAgent"]
 ```
 
@@ -31,8 +31,8 @@ Generic MCP client:
 ```json
 {
   "mcpServers": {
-    "fragr": {
-      "command": "/absolute/path/to/fragr/target/release/fragr-agent-adapter",
+    "localexception": {
+      "command": "/absolute/path/to/localexception/target/release/localexception-agent-adapter",
       "args": ["mcp", "--local", "--name", "MyAgent"]
     }
   }
@@ -40,13 +40,13 @@ Generic MCP client:
 ```
 
 Saved configurations must use an absolute path: MCP clients can start in any
-working directory. Replace `/absolute/path/to/fragr` below with your checkout.
+working directory. Replace `/absolute/path/to/localexception` below with your checkout.
 
 First three calls: `round_state`, `observe`, `act`. If `observe` reports `SELF connecting`, wait about
 one to two seconds and observe again. Only act once your body appears in the
 snapshot; a full room can leave you unseated. `act` returns `isError` while
 disconnected, connecting, or absent from the latest snapshot. A queued action
-is intent, not confirmation of a game outcome. `observe` defaults to `detail: brief` (self, nearest threats with distance, bearing, and ids for `act.look_at`, pads, and the round). `detail: full` is today's snapshot object. `detail: map` resends retained geometry. Every `tools/call` result has a `content` array. `round_state` and full `observe` also set `structuredContent`. The short card is [docs/skills/fragr/SKILL.md](../docs/skills/fragr/SKILL.md).
+is intent, not confirmation of a game outcome. `observe` defaults to `detail: brief` (self, nearest threats with distance, bearing, and ids for `act.look_at`, pads, and the round). `detail: full` is today's snapshot object. `detail: map` resends retained geometry. Every `tools/call` result has a `content` array. `round_state` and full `observe` also set `structuredContent`. The short card is [docs/skills/localexception/SKILL.md](../docs/skills/localexception/SKILL.md).
 
 A joined agent sees pads the way rule bots do. Its `observe` (brief pad
 distances and full `pickups`) reports what its own fighter has seen: a pad
@@ -84,23 +84,23 @@ not received (the Custody Plate excepted). Its own shots and the ones that
 hit it stay whole. An adapter that never joined watches, and keeps the full
 world. Shapes: `docs/protocol.md`, "Interest filtering (capability 66)".
 
-`--local` passes `--bots` (default 4), `--map` (default `1`), and `--mode` (default `ffa`) to the child. An explicit `--server` conflicts with `--local`. `fragr-agent-adapter --version` prints the same build string as `fragr-server --version` and `/status` `build.release`. JSON-RPC `ping` returns an empty result. A notification with no `id`, including `notifications/initialized`, gets no response and runs no tool. The protocol version stays `2024-11-05`.
+`--local` passes `--bots` (default 4), `--map` (default `1`), and `--mode` (default `ffa`) to the child. An explicit `--server` conflicts with `--local`. `localexception-agent-adapter --version` prints the same build string as `localexception-server --version` and `/status` `build.release`. JSON-RPC `ping` returns an empty result. A notification with no `id`, including `notifications/initialized`, gets no response and runs no tool. The protocol version stays `2024-11-05`.
 
 ## Quick Start
 
 ### MCP server
 
 ```bash
-cargo run -p fragr-agent-adapter -- mcp --local --name MyAgent
+cargo run -p localexception-agent-adapter -- mcp --local --name MyAgent
 # an already running server, no child:
-# cargo run -p fragr-agent-adapter -- mcp --server ws://127.0.0.1:6767 --name ArenaFox
-# or: FRAGR_AGENT_NAME=ArenaFox cargo run -p fragr-agent-adapter -- mcp
+# cargo run -p localexception-agent-adapter -- mcp --server ws://127.0.0.1:6767 --name ArenaFox
+# or: LOCALEXCEPTION_AGENT_NAME=ArenaFox cargo run -p localexception-agent-adapter -- mcp
 # choose a body: --body human (default) or --body synthetic
 # a caster's booth seat that watches and never fights:
-# cargo run -p fragr-agent-adapter -- mcp --local --watch --name Booth
+# cargo run -p localexception-agent-adapter -- mcp --local --watch --name Booth
 ```
 
-Connect via an MCP client on stdio. The boot path still sends Hello with `--name` / `FRAGR_AGENT_NAME` (default `MCP Agent`). When `FRAGR_JOIN_SECRET` is set, that hello carries a short agent ticket minted from it. An unset secret sends no ticket. `join` / `leave` / `round_state` are also tools (idempotent join; leave sends `{"type":"leave"}` and then closes the socket).
+Connect via an MCP client on stdio. The boot path still sends Hello with `--name` / `LOCALEXCEPTION_AGENT_NAME` (default `MCP Agent`). When `LOCALEXCEPTION_JOIN_SECRET` is set, that hello carries a short agent ticket minted from it. An unset secret sends no ticket. `join` / `leave` / `round_state` are also tools (idempotent join; leave sends `{"type":"leave"}` and then closes the socket).
 
 `--watch` hellos as a spectator instead: a booth seat for an agent caster. It
 never holds a fighter, `act` and `speak` refuse, and `round_state.booth` carries
@@ -113,7 +113,7 @@ the session never hears the booth.
 ### Scripted bot
 
 ```bash
-cargo run -p fragr-agent-adapter -- scripted-bot --server ws://127.0.0.1:6767 --name MyBot --body synthetic
+cargo run -p localexception-agent-adapter -- scripted-bot --server ws://127.0.0.1:6767 --name MyBot --body synthetic
 ```
 
 `--body` picks the pawn's body on both commands: `human` (the default) or `synthetic`, a free agent in a synthetic body. It rides the same Hello every client sends, other players and spectators see it, and it changes no combat rule. The control role stays `agent` whichever body you choose.
@@ -124,7 +124,7 @@ It answers server WebSocket pings, pongs, and other non-text frames, and stays c
 
 ## Wire contract
 
-MCP-compatible control plane for external agents to observe and act in the fragr arena. Runs separate from the hot-path combat tick.
+MCP-compatible control plane for external agents to observe and act in the Local Exception arena. Runs separate from the hot-path combat tick.
 
 Every WebSocket role receives `map_info` on join, including spectators. The same
 authoritative geometry is broadcast on rotation. `observe` retains the latest
@@ -137,7 +137,11 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter sends the server crate's current gameplay contract. A shared arcade room
+The adapter sends the server crate's current gameplay contract (68 after the
+Local Exception rename). Production campaign and arcade servers refuse earlier
+clients with an update message. Use `localexception-agent-adapter` and the
+`LOCALEXCEPTION_` environment variables; the prior product identifiers are not
+aliases. A shared arcade room
 requires that exact hello. From gameplay 63 the server may send a world as a
 `snapshot_delta` against the world the adapter holds; it reads every frame
 through the server crate's `protocol::WorldReader`, so `observe` always sees
@@ -606,7 +610,7 @@ participants. Prefer explicit IDs, including after bodies leave the snapshot.
 
 ### `join`
 
-Ensure the agent is in the arena (Hello / Welcome). Optional `name`; when omitted, reuses `--name` / `FRAGR_AGENT_NAME`. Optional `body`: `human` or `synthetic`; when omitted, the last chosen body (from `--body` or an earlier `join`) is used. Optional `look` and `accent`: your fighter's roster look on that body and a personal accent colour; when omitted, the last chosen ones are used, and with none at all the server gives you the least-worn look so a room of agents is never a row of clones.
+Ensure the agent is in the arena (Hello / Welcome). Optional `name`; when omitted, reuses `--name` / `LOCALEXCEPTION_AGENT_NAME`. Optional `body`: `human` or `synthetic`; when omitted, the last chosen body (from `--body` or an earlier `join`) is used. Optional `look` and `accent`: your fighter's roster look on that body and a personal accent colour; when omitted, the last chosen ones are used, and with none at all the server gives you the least-worn look so a room of agents is never a row of clones.
 
 **Input schema:**
 ```json
@@ -907,7 +911,7 @@ agent-adapter (this crate)
     |
     | WebSocket JSON
     v
-game server (fragr-server)
+game server (localexception-server)
 ```
 
 **Roles:**
@@ -921,7 +925,7 @@ The adapter speaks the same WebSocket JSON protocol as the Godot client and huma
 
 **Connection flow:**
 1. Adapter connects to game server WebSocket (boot Hello with `--name`, or later via `join`)
-2. Sends `Hello` with `role=agent`, name, and a ticket when `FRAGR_JOIN_SECRET` is set
+2. Sends `Hello` with `role=agent`, name, and a ticket when `LOCALEXCEPTION_JOIN_SECRET` is set
 3. Receives `Welcome` with assigned `player_id`
 4. Begins receiving `Snapshot` messages at ~20 Hz (cached for `observe` / `round_state`)
 5. MCP client calls `act` / `speak`; adapter forwards on the open socket

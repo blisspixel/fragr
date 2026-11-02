@@ -5,7 +5,7 @@
 
 ## Goal
 
-Let `fragr-brain` take its intent from an open-weights decision model running on the player's own machine, at no cost, through the same loop, latency budget and local-rules fallback the paid Jev path uses. Two providers:
+Let `localexception-brain` take its intent from an open-weights decision model running on the player's own machine, at no cost, through the same loop, latency budget and local-rules fallback the paid Jev path uses. Two providers:
 
 - `--provider ollama` asks APUS-OpenJev-v1-4B through a local Ollama server.
 - `--provider openjev` posts the TypeSafe `systemone` body to an openjev server the user runs themselves.
@@ -15,7 +15,7 @@ Let `fragr-brain` take its intent from an open-weights decision model running on
 ## Non-goals
 
 - Bundling, downloading or defaulting to any weights. The user pulls them.
-- A Python runtime. APUS ships a Python reference runtime; fragr talks to Ollama's HTTP API instead.
+- A Python runtime. APUS ships a Python reference runtime; Local Exception talks to Ollama's HTTP API instead.
 - Calibrated confidence from APUS. Its letter probabilities are relative preferences, so the answers carry no `confidence` and only the margin gate can accept them.
 - Beating local rules. This rung makes the model reachable and measured; tuning the questions for it is later work.
 
@@ -31,11 +31,11 @@ Let `fragr-brain` take its intent from an open-weights decision model running on
 
 APUS facts that shaped the code, all from its model card, `RUNTIME.md`, `openjev_contracts.py` and `examples/openjev_local.py`:
 
-- The prompt is `Shared state:\n{state}\n\n{task}\nReturn only the selected letter: A, B, C.\nAnswer:` where `{task}` is `json.dumps({"primitive", "instructions", "criteria": [{"label", "description"}]}, ensure_ascii=False, sort_keys=True)`. fragr renders it byte for byte (Python separators, sorted keys) and a unit test pins the card's own example.
+- The prompt is `Shared state:\n{state}\n\n{task}\nReturn only the selected letter: A, B, C.\nAnswer:` where `{task}` is `json.dumps({"primitive", "instructions", "criteria": [{"label", "description"}]}, ensure_ascii=False, sort_keys=True)`. Local Exception renders it byte for byte (Python separators, sorted keys) and a unit test pins the card's own example.
 - It is wrapped in the trained no-thinking turn (`<|im_start|>user ... <|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n`) and sent with `"raw": true`, because Ollama renders this architecture with its built-in Qwen3.5 renderer and opens a thinking block otherwise (the card measured 49/80 matching labels with thinking left on). `"think": false` is sent as well.
 - Ollama returns at most 20 `top_logprobs` per position. A letter missing from them is given the lowest returned log probability, an upper bound, which can only shrink the margin the gate reads.
-- `score_level` judges one proposition and is not an ordinal scale, so fragr asks its danger score as a `choice` over the five levels and reports the expectation and the argmax, as it does for Jev.
-- `noul` uses the canonical yes and no candidates; fragr's yes and no descriptions go into the instructions.
+- `score_level` judges one proposition and is not an ordinal scale, so Local Exception asks its danger score as a `choice` over the five levels and reports the expectation and the argmax, as it does for Jev.
+- `noul` uses the canonical yes and no candidates; Local Exception's yes and no descriptions go into the instructions.
 - Choice candidates are described as `id: text` because the model sees only descriptions and the state names weapons and stances by id.
 
 Ollama facts, checked against `docs/openapi.yaml` on `main` on 2026-09-26: `/api/generate` takes `raw`, `think`, `logprobs`, `top_logprobs` and `options`, and returns `logprobs[].top_logprobs[]` with `token` and `logprob`. The installed Ollama is 0.34.2; the newest release is 0.34.4 (2026-09-23), not installed for this work.
@@ -61,7 +61,7 @@ Fake transports only in CI, in `local_model.rs`, `provider.rs`, `bot.rs` and `ma
 
 ## Local measurement (2026-09-26)
 
-Hardware and runtime: AMD Ryzen 7 7840U (8 cores, 16 threads), Radeon 780M integrated graphics (Ollama reports the model 100% on GPU through Vulkan), 61.8 GB RAM, Windows 11 Pro 10.0.26200, Ollama 0.34.2. Model: the Q8_0 file above, created in Ollama as `apus-openjev-v1-4b:q8_0` from the published Modelfile (`ollama pull hf.co/apus-ailab/APUS-OpenJev-v1-4B-GGUF:Q8_0` failed on 0.34.2 with "blocked redirect to a different host" at the Hugging Face CDN; the direct download and `ollama create` worked). Game: `fragr-server --bind 127.0.0.1:6790 --bots 3`, arena, one fresh server per run, one `fragr-brain play` fighter for 60 seconds at `--decision-hz 1`.
+Hardware and runtime: AMD Ryzen 7 7840U (8 cores, 16 threads), Radeon 780M integrated graphics (Ollama reports the model 100% on GPU through Vulkan), 61.8 GB RAM, Windows 11 Pro 10.0.26200, Ollama 0.34.2. Model: the Q8_0 file above, created in Ollama as `apus-openjev-v1-4b:q8_0` from the published Modelfile (`ollama pull hf.co/apus-ailab/APUS-OpenJev-v1-4B-GGUF:Q8_0` failed on 0.34.2 with "blocked redirect to a different host" at the Hugging Face CDN; the direct download and `ollama create` worked). Game: `localexception-server --bind 127.0.0.1:6790 --bots 3`, arena, one fresh server per run, one `localexception-brain play` fighter for 60 seconds at `--decision-hz 1`.
 
 | Run | Budget | Model answers | Answers per second | p50 | p95 | Timeouts | Fallbacks | Kills | Deaths |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -79,7 +79,7 @@ Where the time goes, from Ollama's own timings for one arena decision on the sam
 | stance (four options) | 326 | 2,740 ms | 4,632 ms |
 | weapon (three options) | 213 | 2,502 ms | 4,092 ms |
 
-No prompt tokens were reused from the cache between the three questions even though they share the state prefix. On this integrated GPU each request also carries about 1.8 seconds beyond prompt evaluation. A separate check of the card's 118-token example forced onto the CPU (`num_gpu` 0) took 2.7 to 3.1 seconds uncached against 3.5 to 3.7 seconds on the GPU, and 0.14 seconds when the whole prompt was cached. `fragr-brain ask` answered the free example state in 12.1 and 10.0 seconds, choosing `fall_back_heal` at 0.998 for a low-health fighter with a near health pad.
+No prompt tokens were reused from the cache between the three questions even though they share the state prefix. On this integrated GPU each request also carries about 1.8 seconds beyond prompt evaluation. A separate check of the card's 118-token example forced onto the CPU (`num_gpu` 0) took 2.7 to 3.1 seconds uncached against 3.5 to 3.7 seconds on the GPU, and 0.14 seconds when the whole prompt was cached. `localexception-brain ask` answered the free example state in 12.1 and 10.0 seconds, choosing `fall_back_heal` at 0.998 for a low-health fighter with a near health pad.
 
 The answers are sensible and every reply passed validation. On this laptop the model is two orders of magnitude slower than the decision cadence the brain was designed for, so at the default two second budget every decision times out and the fighter plays on local rules.
 

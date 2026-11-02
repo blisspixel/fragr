@@ -1,11 +1,11 @@
-use fragr_server::maps::{AuthoredMap, RuntimeMap};
-use fragr_server::movement::EYE_HEIGHT;
-use fragr_server::navigation::{NavigationGoal, Navigator, RouteStatus, SEARCH_LIMIT};
-use fragr_server::protocol::{
+use localexception_server::maps::{AuthoredMap, RuntimeMap};
+use localexception_server::movement::EYE_HEIGHT;
+use localexception_server::navigation::{NavigationGoal, Navigator, RouteStatus, SEARCH_LIMIT};
+use localexception_server::protocol::{
     Action, AmmoPool, CampaignActor, EnemyPhase, LookAt, Role, WeaponType,
 };
-use fragr_server::session::GameSession;
-use fragr_server::sim::{GameState, PLAYER_FLOOR_Y};
+use localexception_server::session::GameSession;
+use localexception_server::sim::{GameState, PLAYER_FLOOR_Y};
 use serde_json::{json, Value};
 use std::collections::HashSet;
 use uuid::Uuid;
@@ -137,24 +137,25 @@ fn authored_heavy_armor_is_optional_bounded_and_never_another_enemy_field() {
 
 #[tokio::test]
 async fn arc_lesson_admits_all_roles_only_at_the_current_live_campaign_rules_floor() {
-    use fragr_server::protocol::{
+    use futures_util::{SinkExt, StreamExt};
+    use localexception_server::protocol::{
         ARC_GAMEPLAY_VERSION, ASSESSOR_GAMEPLAY_VERSION, GAMEPLAY_VERSION, GEOMETRY_VERSION,
         WATER_GAMEPLAY_VERSION,
     };
-    use futures_util::{SinkExt, StreamExt};
     use std::time::Duration;
     use tokio_tungstenite::{connect_async, tungstenite::Message};
-    let directory = std::env::temp_dir().join(format!("fragr-arc-admission-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-arc-admission-{}", Uuid::new_v4()));
     std::fs::create_dir(&directory).unwrap();
     let path = directory.join("arc.json");
     std::fs::write(&path, SOURCE).unwrap();
     let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
     let (stop_tx, stop_rx) = tokio::sync::oneshot::channel();
-    let server = tokio::spawn(fragr_server::run::run_server(
-        fragr_server::run::ServerOptions {
+    let server = tokio::spawn(localexception_server::run::run_server(
+        localexception_server::run::ServerOptions {
             bind: "127.0.0.1:0".into(),
             bots: 0,
-            authored: Some(fragr_server::maps::AuthoredSource::File(path)),
+            authored: Some(localexception_server::maps::AuthoredSource::File(path)),
             ..Default::default()
         },
         async {
@@ -263,11 +264,11 @@ fn advance(
             }
         }
         let arc_owned = loadout.owns(WeaponType::Arc);
-        let aim = |p: &fragr_server::sim::Player| [p.x, p.y - PLAYER_FLOOR_Y + 0.9, p.z];
+        let aim = |p: &localexception_server::sim::Player| [p.x, p.y - PLAYER_FLOOR_Y + 0.9, p.z];
         let eye = [from[0], from[1] + EYE_HEIGHT, from[2]];
         let target = state.players.iter().filter(|p| required.contains(&p.name.as_str()) && p.hp > 0)
             .filter(|p| matches!(p.campaign, Some(CampaignActor::Hostile { phase, .. }) if phase != EnemyPhase::Idle && phase != EnemyPhase::Dead))
-            .find(|p| fragr_server::combat::line_of_sight(eye, aim(p), &state.current_arena().solids));
+            .find(|p| localexception_server::combat::line_of_sight(eye, aim(p), &state.current_arena().solids));
         let mut action = if let Some(target) = target {
             let point = aim(target);
             Action {

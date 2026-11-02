@@ -1,14 +1,14 @@
 //! MapInfo, finite mixed-role admission and a whole match over ordinary sockets.
-use fragr_server::navigation::{Navigation, Navigator};
-use fragr_server::protocol::{
+use futures_util::{stream::SplitSink, SinkExt, StreamExt};
+use localexception_server::navigation::{Navigation, Navigator};
+use localexception_server::protocol::{
     Action, ClientMessage, GameEvent, GameMode, Role, SabotageEventKind, SabotageMap,
     SabotagePhase, SabotageReason, ServerMessage, Snapshot, Team, WeaponType,
 };
-use fragr_server::rules::{RuleSet, SabotageConfig};
-use fragr_server::run::{run_server, ServerOptions};
-use fragr_server::sim::sabotage::controller;
-use fragr_server::sim::{MapKind, MatchConfig};
-use futures_util::{stream::SplitSink, SinkExt, StreamExt};
+use localexception_server::rules::{RuleSet, SabotageConfig};
+use localexception_server::run::{run_server, ServerOptions};
+use localexception_server::sim::sabotage::controller;
+use localexception_server::sim::{MapKind, MatchConfig};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tokio::sync::watch;
@@ -111,7 +111,7 @@ async fn low_water_rejects_older_contract_before_welcome_or_roster_admission() {
         &url,
         Role::Human,
         99,
-        fragr_server::protocol::LOW_WATER_SABOTAGE_GAMEPLAY_VERSION - 1,
+        localexception_server::protocol::LOW_WATER_SABOTAGE_GAMEPLAY_VERSION - 1,
     )
     .await;
     assert!(
@@ -121,7 +121,7 @@ async fn low_water_rejects_older_contract_before_welcome_or_roster_admission() {
         &url,
         Role::Spectator,
         100,
-        fragr_server::protocol::GAMEPLAY_VERSION,
+        localexception_server::protocol::GAMEPLAY_VERSION,
     )
     .await;
     assert!(matches!(
@@ -152,7 +152,7 @@ async fn low_water_rejects_older_contract_before_welcome_or_roster_admission() {
 fn walk(point: [f32; 3]) -> Action {
     Action {
         forward: true,
-        look_at: Some(fragr_server::protocol::LookAt {
+        look_at: Some(localexception_server::protocol::LookAt {
             x: Some(point[0]),
             y: Some(point[1]),
             z: Some(point[2]),
@@ -225,7 +225,13 @@ async fn low_water_ten_mixed_sockets_plant_defuse_swap_and_finish_normal_finite_
         } else {
             Role::Agent
         };
-        let mut socket = hello(&url, role, index, fragr_server::protocol::GAMEPLAY_VERSION).await;
+        let mut socket = hello(
+            &url,
+            role,
+            index,
+            localexception_server::protocol::GAMEPLAY_VERSION,
+        )
+        .await;
         let id = match read(&mut socket).await {
             ServerMessage::Welcome {
                 player_id: Some(id),
@@ -258,7 +264,7 @@ async fn low_water_ten_mixed_sockets_plant_defuse_swap_and_finish_normal_finite_
                 assert_eq!(received.callout_at(22.0, 18.0), Some("tram_stop"));
                 if world.is_none() {
                     world = Some(
-                        Navigation::new(fragr_server::movement::Arena {
+                        Navigation::new(localexception_server::movement::Arena {
                             half: half_extent,
                             solids,
                         })
@@ -425,7 +431,7 @@ async fn low_water_ten_mixed_sockets_plant_defuse_swap_and_finish_normal_finite_
                 } => *site,
                 _ => None,
             })
-            .any(|site| site == fragr_server::protocol::SiteId::B));
+            .any(|site| site == localexception_server::protocol::SiteId::B));
         eprintln!("low_water socket normal finite10 whole match: tick{completed}, 5plants,4defuses,1detonation,1swap,0deaths,score{:?}",rounds.last().unwrap().score);
     }
     let _ = stop.send(());

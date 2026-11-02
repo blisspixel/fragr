@@ -41,7 +41,7 @@ class NamedFighter extends Node:
 var _failures: int = 0
 
 func _initialize() -> void:
-	set_meta("fragr_automated", true)
+	set_meta("localexception_automated", true)
 	_run.call_deferred()
 
 func _check(condition: bool, message: String) -> void:
@@ -152,7 +152,7 @@ func _run() -> void:
 	_check(not hud.combat_feed.get_global_rect().intersects(mission._card.get_global_rect()), "campaign notices never overlap the objective panel")
 	_check(not hud.combat_feed.get_global_rect().intersects(hud.vitals.get_global_rect()), "campaign feed reserves the actual health display below")
 	_check(hud.combat_feed.get_child(0).horizontal_alignment == HORIZONTAL_ALIGNMENT_LEFT, "existing entries follow campaign layout")
-	var capture_path: String = OS.get_environment("FRAGR_FEED_CAPTURE_PATH")
+	var capture_path: String = OS.get_environment("LOCALEXCEPTION_FEED_CAPTURE_PATH")
 	if not capture_path.is_empty() and DisplayServer.get_name() != "headless":
 		await RenderingServer.frame_post_draw
 		_check(root.get_texture().get_image().save_png(capture_path) == OK, "save campaign feed layout fixture")

@@ -13,7 +13,7 @@ The audit below describes the build before tiers.
 
 ## Goal
 
-fragr runs on NVIDIA, AMD, Intel and Apple Silicon across Windows, Linux and
+Local Exception runs on NVIDIA, AMD, Intel and Apple Silicon across Windows, Linux and
 macOS, holds a steady frame rate on a weak machine, and looks its best on a
 strong one, without the player touching a menu. Before 1.0:
 
@@ -143,7 +143,7 @@ knobs the tuner may quietly spend.
 ### Renderer coverage in practice
 
 - `tools/qa_tour.sh` renders Forward+ (Vulkan on Linux), what shipped
-  players run, since #537; `FRAGR_QA_RENDERER=compatibility` is the labelled
+  players run, since #537; `LOCALEXCEPTION_QA_RENDERER=compatibility` is the labelled
   fallback pass, and `--publish` runs one beside the published stills. Each
   manifest records the renderer, driver and preset that drew it, and the
   wrapper reports a fallback. `qa_watch.sh`, `capture_tip_screenshots.sh` and
@@ -184,7 +184,7 @@ Verified against the 4.7.2-stable class reference and 4.7 manual (Sources).
   `get_current_rendering_driver_name()`.
 - **Drivers.** Linux: Vulkan only. macOS: Metal on Apple Silicon (native
   since 4.4; Metal 4 on macOS 26+), Vulkan through MoltenVK on Intel Macs.
-  Windows: Vulkan or D3D12; new 4.6+ projects default to D3D12, but fragr's
+  Windows: Vulkan or D3D12; new 4.6+ projects default to D3D12, but Local Exception's
   project has no key and runs Vulkan. Godot's own pages disagree on D3D12
   maturity and an open issue reports D3D12 far slower than Vulkan, so keep
   Vulkan on Windows unless measured otherwise.
@@ -196,7 +196,7 @@ Verified against the 4.7.2-stable class reference and 4.7 manual (Sources).
   PCSS, the normal-roughness buffer, CompositorEffects, MSAA 2D; it has an
   RGBA8 colour buffer and 24-bit depth, its own glow with the Screen blend
   only, multipass shadowed lights, 8 omni plus 8 spot per mesh by default
-  (fragr sets 16) and 32 renderable lights per frame, and refuses dual
+  (Local Exception sets 16) and 32 renderable lights per frame, and refuses dual
   paraboloid omni shadows (already handled). It keeps SSAO (4.6+), MSAA 3D,
   glow, depth and height fog, LightmapGI rendering, screen and depth textures
   in shaders, and nearest 3D scaling (both renderers captured in the look
@@ -238,7 +238,7 @@ Verified against the 4.7.2-stable class reference and 4.7 manual (Sources).
   `/sys/class/power_supply` with `FileAccess`; Windows and macOS have no
   GDScript-only path.
 
-## How shipped games tune (and what fragr takes)
+## How shipped games tune (and what Local Exception takes)
 
 - **Hardware lookup.** Cyberpunk 2077 suggests a preset from the detected
   GPU at first launch; NVIDIA's GeForce Experience applied database settings
@@ -257,7 +257,7 @@ Verified against the 4.7.2-stable class reference and 4.7 manual (Sources).
   Performance Mode for low-end machines. Counter-Strike 2 and Valorant
   auto-detection have no primary source we could find; Valorant's published
   floor is 30 fps on Intel HD 4000.
-- **fragr takes:** a small lookup table only as the starting guess; a short
+- **Local Exception takes:** a small lookup table only as the starting guess; a short
   measured search on the game's own replayed scene as the decision; a gentle
   in-match governor as the safety valve; every manual choice sticks.
 
@@ -488,26 +488,26 @@ only).
 - **Shader stutter.** Turn on the export shader baker for release builds
   and keep the warm-up gate on `PIPELINE_COMPILATIONS_DRAW`. Verify the export
   setting name against the 4.7 export docs before adding it.
-- **Compatibility as the weak-GPU renderer.** Feasible: every fragr shader
+- **Compatibility as the weak-GPU renderer.** Feasible: every Local Exception shader
   already draws there and the 780M measured comfortably above 60 at 720p on
   it. What breaks or changes:
   - FSR 1 and 2, MetalFX, TAA, FXAA, SMAA: unavailable (FSR already gated).
   - Ultra entirely (SSIL, SDFGI, SSR, volumetric fog).
   - Dual paraboloid omni shadows refused (already handled); shadowed lights
     draw in extra passes, so practical shadows cost more there.
-  - 16 lights per object (fragr's setting) and 32 per frame; dense practical
+  - 16 lights per object (Local Exception's setting) and 32 per frame; dense practical
     rooms may drop lights.
   - RGBA8 colour buffer and a different glow: bloom shape and banding differ,
     so glow thresholds need their own captures.
   - Adaptive and Mailbox V-Sync unavailable.
   - `get_video_adapter_type()` returns OTHER, so the seed table keys on
     names.
-  - Decals as nodes are unavailable (fragr's decals are a spatial shader,
+  - Decals as nodes are unavailable (Local Exception's decals are a spatial shader,
     unaffected).
 - **Capture parity.** The tour now defaults to Forward+ (#537); gate a tier
   on its Forward+ run and inspect the Compatibility pass beside it.
 
-### (d) What looking great means for fragr
+### (d) What looking great means for Local Exception
 
 Boltgun is the reference: pixel surfaces under modern light.
 
@@ -567,7 +567,7 @@ is measured:
   as the balance of smoothness, quality and battery (every frame is new, 25 ms
   each); 60 Hz with a 40 cap judders (frames held for 1 or 2 refreshes), so 40
   only works paired with 40 Hz; and battery tests put 40 at 40 Hz close to 30
-  fps battery life while 60 fps costs most. fragr's simulation is a 20 Hz
+  fps battery life while 60 fps costs most. Local Exception's simulation is a 20 Hz
   server tick, so 40 fps rendering does not change outcomes, only feel.
 - **60 fps profile (stretch):** offered and chosen when the measured
   uncapped 1% low is at least 66 at the Deck profile's settings, on AC power,
@@ -802,7 +802,7 @@ Shipped tuning approaches:
 - Valorant requirements: https://www.pcgamer.com/valorant-system-requirements/
 
 Not verified for 4.7 or on device: Nearest scaling's renderer coverage in
-the docs (fragr's own captures show it on Forward+ and Compatibility), Deck
+the docs (Local Exception's own captures show it on Forward+ and Compatibility), Deck
 adapter strings and environment variables, gamescope limiter interaction,
 Counter-Strike 2 and Valorant auto-detection, Ghost of Tsushima dynamic
 resolution, the current GeForce Experience pipeline, the export shader

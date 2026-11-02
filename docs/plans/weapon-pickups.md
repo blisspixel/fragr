@@ -76,7 +76,7 @@ cargo test --workspace
 cargo llvm-cov --workspace --locked --summary-only --fail-under-lines 80
 ```
 
-Play: Solo Scrap or `cargo run -p fragr-server -- --bots 4`, walk onto a pad, watch weapon change and pad vanish until respawn.
+Play: Solo Scrap or `cargo run -p localexception-server -- --bots 4`, walk onto a pad, watch weapon change and pad vanish until respawn.
 
 ## Spend / safety
 

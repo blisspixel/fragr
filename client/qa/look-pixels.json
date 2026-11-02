@@ -1,5 +1,5 @@
 {
-  "comment": "World pixel and palette dither comparison on Larak Lot at 1920x1080, where Fine is 540 world lines (2x), Medium 360 (3x). Native, Fine, Medium, then Fine and Medium with the dither, at the same three views. Run with FRAGR_QA_MAP=1 FRAGR_QA_BOTS=6 FRAGR_QA_MANIFEST=res://qa/look-pixels.json on each renderer. Judge signs, the HUD-free world, fighters at range and the held gun; the HUD stays native in every choice.",
+  "comment": "World pixel and palette dither comparison on Larak Lot at 1920x1080, where Fine is 540 world lines (2x), Medium 360 (3x). Native, Fine, Medium, then Fine and Medium with the dither, at the same three views. Run with LOCALEXCEPTION_QA_MAP=1 LOCALEXCEPTION_QA_BOTS=6 LOCALEXCEPTION_QA_MANIFEST=res://qa/look-pixels.json on each renderer. Judge signs, the HUD-free world, fighters at range and the held gun; the HUD stays native in every choice.",
   "width": 1920,
   "height": 1080,
   "states": [

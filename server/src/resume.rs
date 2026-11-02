@@ -215,7 +215,7 @@ fn open(key: &[u8], token: &str) -> Option<(Uuid, Role, u64)> {
 }
 
 fn payload(player: Uuid, role: &str, nonce: u64) -> String {
-    format!("fragr-resume-v1\n{player}\n{role}\n{nonce}")
+    format!("localexception-resume-v1\n{player}\n{role}\n{nonce}")
 }
 
 fn role_name(role: Role) -> &'static str {

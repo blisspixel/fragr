@@ -86,7 +86,7 @@ godot --headless --path client --import --quit-after 120
 
 ## How to see MVP
 
-1. `cargo run -p fragr-server -- --bots 4` (port 6767).
+1. `cargo run -p localexception-server -- --bots 4` (port 6767).
 2. Open Godot client, spectate or Join.
 3. Wait for frag limit or time limit. Round-end Host bumper names the MVP and frag count; brief podium lists top scrap scores.
 4. Mid-join during Ended: Snapshot `host_line` still carries the MVP bumper.

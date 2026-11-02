@@ -62,7 +62,8 @@ fn saved_run() -> (GameState, Player) {
 /// Write `document` to a fresh run directory and read it back as a local
 /// child would: the bytes on disk are the only thing that crosses.
 fn through_disk(document: &RunDocument) -> RunDocument {
-    let directory = std::env::temp_dir().join(format!("fragr-checkpoint-{}", Uuid::new_v4()));
+    let directory =
+        std::env::temp_dir().join(format!("localexception-checkpoint-{}", Uuid::new_v4()));
     let hash = fresh().map.content_sha256().unwrap();
     let store = RunStore::open(&directory, hash).unwrap();
     store.save(document).unwrap();

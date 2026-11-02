@@ -13,7 +13,7 @@ func _check(condition: bool, message: String) -> void:
 ## The five tiers as data: Low, Medium and High stay exactly the earlier
 ## Performance, Balanced and High; Potato and Ultra add their own; the
 ## renderer gates what it lacks; the governor's steps and render scale.
-func _tiers(viewport: SubViewport, loaded: FragrSettings, environment: Environment, practical: OmniLight3D, renderer: String) -> void:
+func _tiers(viewport: SubViewport, loaded: LocalExceptionSettings, environment: Environment, practical: OmniLight3D, renderer: String) -> void:
 	var earlier: Array[Dictionary] = [{"msaa": 0, "atlas": 1024, "fixtures": false, "ao": 0, "glow": false, "water": 0},
 		{"msaa": 2, "atlas": 2048, "fixtures": true, "ao": 1, "glow": true, "water": 1},
 		{"msaa": 4, "atlas": 4096, "fixtures": true, "ao": 2, "glow": true, "water": 2}]
@@ -37,8 +37,8 @@ func _tiers(viewport: SubViewport, loaded: FragrSettings, environment: Environme
 	practical.distance_fade_begin = 40.0
 	practical.distance_fade_length = 10.0
 	practical.distance_fade_shadow = 30.0
-	if practical.has_meta(&"fragr_authored_fade"):
-		practical.remove_meta(&"fragr_authored_fade")
+	if practical.has_meta(&"localexception_authored_fade"):
+		practical.remove_meta(&"localexception_authored_fade")
 	loaded.set_value("video", "quality", RenderQuality.POTATO)
 	loaded.set_value("video", "pixel_scale", 0)
 	RenderQuality.apply(viewport, loaded, environment)
@@ -93,7 +93,7 @@ func _tiers(viewport: SubViewport, loaded: FragrSettings, environment: Environme
 
 func _run() -> void:
 	var path: String = "user://test-render-quality-%d.cfg" % OS.get_process_id()
-	var preferences: FragrSettings = FragrSettings.new(path)
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	_check(preferences.get_value("video", "display_mode") == 2, "fresh settings default to fullscreen")
 	_check(RenderQuality.render_size(0, Vector2i(3440, 1440)) == Vector2i(3440, 1440), "native keeps ultrawide dimensions")
 	_check(RenderQuality.render_size(720, Vector2i(3440, 1440)) == Vector2i(1720, 720), "lower world resolution preserves ultrawide aspect")
@@ -111,7 +111,7 @@ func _run() -> void:
 	for key: String in ["quality", "upscaling", "resolution_height", "pixel_scale"]:
 		for invalid: Variant in [true, "2", [], 99, -1, 1.5]:
 			preferences.set_value("video", key, invalid)
-			_check(preferences.get_value("video", key) == FragrSettings.DEFAULTS["video"][key], "invalid choice rejected: " + key)
+			_check(preferences.get_value("video", key) == LocalExceptionSettings.DEFAULTS["video"][key], "invalid choice rejected: " + key)
 	for invalid: Variant in [5, -1, "3", 1.0]:
 		preferences.set_value("video", "quality", invalid)
 		_check(preferences.get_value("video", "quality") == RenderQuality.MEDIUM, "an out-of-range tier falls back to Medium: %s" % str(invalid))
@@ -122,10 +122,10 @@ func _run() -> void:
 	preferences.set_value("video", "quality", RenderQuality.HIGH)
 	preferences.set_value("video", "upscaling", 2)
 	_check(preferences.save_to_disk() == OK, "graphics preferences save")
-	var loaded: FragrSettings = FragrSettings.new(path)
+	var loaded: LocalExceptionSettings = LocalExceptionSettings.new(path)
 	loaded.load_from_disk()
 	_check(loaded.get_value("video", "quality") == RenderQuality.HIGH and loaded.get_value("video", "upscaling") == 2 and loaded.get_value("video", "resolution_height") == 720, "graphics choices survive restart")
-	_check(FragrSettings.new("user://unused").get_value("video", "pixel_scale") == 1 and not FragrSettings.new("user://unused").get_value("video", "dither"),
+	_check(LocalExceptionSettings.new("user://unused").get_value("video", "pixel_scale") == 1 and not LocalExceptionSettings.new("user://unused").get_value("video", "dither"),
 		"a fresh settings file starts on Fine world pixels with the dither off")
 	_check(RenderQuality.pixel_factor(1, Vector2i(1280, 720)) == 1, "the Fine default stays native at 720p")
 	# Reconstruction and resolution below are checked with the pixel look off.

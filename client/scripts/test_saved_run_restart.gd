@@ -22,11 +22,11 @@ func _state() -> Dictionary:
 
 func _run() -> void:
 	_run_directory = ProjectSettings.globalize_path("res://../.agents/saved-run-restart-%d" % OS.get_process_id())
-	OS.set_environment("FRAGR_RUN_DIR", _run_directory)
+	OS.set_environment("LOCALEXCEPTION_RUN_DIR", _run_directory)
 	var settings_path: String = "user://test-saved-run-%d.cfg" % OS.get_process_id()
-	set_meta("fragr_settings_path", settings_path)
-	set_meta("fragr_records_path", ProjectSettings.globalize_path("res://../.agents/saved-run-records-%d" % OS.get_process_id()))
-	var preferences: FragrSettings = FragrSettings.new(settings_path)
+	set_meta("localexception_settings_path", settings_path)
+	set_meta("localexception_records_path", ProjectSettings.globalize_path("res://../.agents/saved-run-records-%d" % OS.get_process_id()))
+	var preferences: LocalExceptionSettings = LocalExceptionSettings.new(settings_path)
 	preferences.set_value("video", "display_mode", 0)
 	_expect_saved(preferences.save_to_disk() == OK, "isolated preferences saved")
 	change_scene_to_file("res://scenes/boot_menu.tscn")
@@ -73,7 +73,7 @@ func _run() -> void:
 	_game_manager()._on_leave_requested()
 	await _until_saved(func() -> bool: return current_scene != null and current_scene.has_method("_start_campaign_resume") and LocalMatch.for_tree(self).state == LocalMatch.State.IDLE, "final child stops")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(settings_path))
-	OS.unset_environment("FRAGR_RUN_DIR")
+	OS.unset_environment("LOCALEXCEPTION_RUN_DIR")
 	await _retire_scene()
 	if not _failed:
 		print("test_saved_run_restart: PASS pending death and spent continue survive process restarts")

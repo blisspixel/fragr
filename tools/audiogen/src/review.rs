@@ -1316,7 +1316,10 @@ mod tests {
     /// Two stations. rock ships 01-a and 02-b; candidates hold 05-new-song
     /// (with provenance in the round manifest) and stray (none).
     fn fixture(name: &str) -> Fixture {
-        let root = std::env::temp_dir().join(format!("fragr-review-{name}-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!(
+            "localexception-review-{name}-{}",
+            std::process::id()
+        ));
         let _ = fs::remove_dir_all(&root);
         let audio = root.join("client/assets/audio");
         let radio = audio.join("radio");
@@ -1837,7 +1840,10 @@ mod tests {
 
     #[test]
     fn score_review_scans_slots_and_promote_keeps_one_take() {
-        let root = std::env::temp_dir().join(format!("fragr-review-score-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!(
+            "localexception-review-score-{}",
+            std::process::id()
+        ));
         let _ = fs::remove_dir_all(&root);
         let audio = root.join("client/assets/audio");
         let score = audio.join("score");

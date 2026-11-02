@@ -1,6 +1,6 @@
 # Tip screenshots
 
-Plan for capturing genuine tip-of-tree screenshots of the fragr Godot client.
+Plan for capturing genuine tip-of-tree screenshots of the Local Exception Godot client.
 
 ## Goal
 
@@ -39,7 +39,7 @@ Produce automated screenshot captures of the running Godot 4.7.2-stable client s
 
 ## Thin-client hazards requiring spike
 
-The fragr client is a thin presenter. The following conditions may produce misleading or empty screenshots if not handled:
+The Local Exception client is a thin presenter. The following conditions may produce misleading or empty screenshots if not handled:
 
 1. **Empty world until network seed:** Bots, arena geometry, and game state arrive over WebSocket. A screenshot taken before the first `Spawn` and `WorldState` messages will show an empty scene.
 2. **SubViewport vs root composite:** If using a SubViewport for the 3D scene, ensure the capture targets the correct node (root or SubViewport texture).
@@ -58,7 +58,7 @@ The fragr client is a thin presenter. The following conditions may produce misle
 - [x] Bot intent chips and names visible
   - Evidence: scoreboard `[DEF]/` `[AGG]`/`[FLK]`/`[BAL]`; FOLLOWING lines with role chips; floating nameplates
 - [x] Server logs confirm bots spawned and fighting before capture
-  - Evidence: `/tmp/fragr-server.log` Spawned bot x4, Round 1 started, multiple FRAG lines, Compliance ping fired
+  - Evidence: `/tmp/localexception-server.log` Spawned bot x4, Round 1 started, multiple FRAG lines, Compliance ping fired
 - [x] Contested Frequency mode title + Host bumper + compliance pressure chip
   - Evidence: `02_spectator_hud_16x9.png` shows `CONTESTED FREQUENCY // ARENA DUEL`, `HOST: CONTINUANCE COMPLIANCE PING. APPROVED LANES ONLY.`, `PRESSURE: CONTINUANCE COMPLIANCE`, `APPROVED LANES ONLY`
 
@@ -104,7 +104,7 @@ Live tip PNGs landed under `docs/screenshots/` and README tip gallery updated. C
 
 ```bash
 export PATH=/path/to/godot-4.7.2:$PATH   # binary named godot or Godot_v4.7.2-stable_linux.x86_64
-cargo run -p fragr-server --release -- --bots 4 --bind 127.0.0.1:6767
+cargo run -p localexception-server --release -- --bots 4 --bind 127.0.0.1:6767
 tools/capture_tip_screenshots.sh
 ```
 

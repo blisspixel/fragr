@@ -483,13 +483,13 @@ mod tests {
             .join("..")
             .join(GOLDEN_PATH);
         let generated = serde_json::to_string_pretty(&golden_cases()).unwrap() + "\n";
-        if std::env::var_os("FRAGR_UPDATE_JETPACK_VECTORS").is_some() {
+        if std::env::var_os("LOCALEXCEPTION_UPDATE_JETPACK_VECTORS").is_some() {
             std::fs::write(&path, &generated).unwrap();
         }
         assert_eq!(
             std::fs::read_to_string(&path).unwrap(),
             generated,
-            "regenerate with FRAGR_UPDATE_JETPACK_VECTORS=1"
+            "regenerate with LOCALEXCEPTION_UPDATE_JETPACK_VECTORS=1"
         );
         let file = golden_cases();
         let flight = &file.cases[2];

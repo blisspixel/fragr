@@ -408,16 +408,16 @@ async fn live_jammer_admission_rejects_old_roles_and_sends_geometry_before_snaps
                         continue;
                     };
                     let value: serde_json::Value = frames.read_value(&text).unwrap();
-                    if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
+                    if version < crate::protocol::GAMEPLAY_VERSION {
                         assert_eq!(
                             value["type"], "error",
                             "old actor reader received a game message"
                         );
                         assert_eq!(value["code"], "unsupported_gameplay");
-                        assert!(value["message"].as_str().unwrap().contains(&format!(
-                            "version {}",
-                            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
-                        )));
+                        assert!(value["message"]
+                            .as_str()
+                            .unwrap()
+                            .contains(&format!("version {}", crate::protocol::GAMEPLAY_VERSION)));
                         break;
                     }
                     match value["type"].as_str().unwrap() {

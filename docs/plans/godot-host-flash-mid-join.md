@@ -43,7 +43,7 @@ Sticky `host_line` on Snapshot shipped in #63 and Casino-cleared on MCP observe.
 /workspace/godot/Godot_v4.7.2-stable_linux.x86_64 --path client --headless --import --quit-after 60
 
 # Optional tip proof (server with bots + Xvfb capture)
-cargo run -p fragr-server -- --bots 4
+cargo run -p localexception-server -- --bots 4
 tools/capture_tip_screenshots.sh
 # Inspect docs/screenshots/08_tip_host_flash_midjoin_16x9.png for HOST: RoundMessage chrome
 ```

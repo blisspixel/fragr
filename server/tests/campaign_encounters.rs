@@ -1,6 +1,8 @@
-use fragr_server::protocol::{CampaignActor, ClientMessage, EnemyKind, Role, ServerMessage};
-use fragr_server::run::{run_server, ServerOptions};
 use futures_util::{SinkExt, StreamExt};
+use localexception_server::protocol::{
+    CampaignActor, ClientMessage, EnemyKind, Role, ServerMessage,
+};
+use localexception_server::run::{run_server, ServerOptions};
 use serde_json::json;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -29,7 +31,10 @@ async fn message(socket: &mut Socket) -> ServerMessage {
 
 #[tokio::test]
 async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
-    let path = std::env::temp_dir().join(format!("fragr-encounter-{}.json", uuid::Uuid::new_v4()));
+    let path = std::env::temp_dir().join(format!(
+        "localexception-encounter-{}.json",
+        uuid::Uuid::new_v4()
+    ));
     let file = MapFile(path);
     std::fs::write(
         &file.0,
@@ -50,7 +55,9 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
         ServerOptions {
             bind: "127.0.0.1:0".into(),
             bots: 0,
-            authored: Some(fragr_server::maps::AuthoredSource::File(file.0.clone())),
+            authored: Some(localexception_server::maps::AuthoredSource::File(
+                file.0.clone(),
+            )),
             ..Default::default()
         },
         async {
@@ -61,10 +68,10 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
     let url = format!("ws://{}", ready_rx.await.unwrap());
     for role in [Role::Human, Role::Agent, Role::Spectator] {
         for version in [
-            fragr_server::protocol::CAMPAIGN_GAMEPLAY_VERSION,
-            fragr_server::protocol::M05_GAMEPLAY_VERSION - 1,
-            fragr_server::protocol::M05_GAMEPLAY_VERSION,
-            fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION - 1,
+            localexception_server::protocol::CAMPAIGN_GAMEPLAY_VERSION,
+            localexception_server::protocol::M05_GAMEPLAY_VERSION - 1,
+            localexception_server::protocol::M05_GAMEPLAY_VERSION,
+            localexception_server::protocol::ASSESSOR_GAMEPLAY_VERSION - 1,
         ] {
             let (mut old, _) = connect_async(&url).await.unwrap();
             old.send(Message::Text(
@@ -87,15 +94,15 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
             .await
             .unwrap();
             assert!(
-                matches!(message(&mut old).await, ServerMessage::Error { code, message } if code == "unsupported_gameplay" && message.contains(&format!("version {}", fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION)))
+                matches!(message(&mut old).await, ServerMessage::Error { code, message } if code == "unsupported_gameplay" && message.contains(&format!("version {}", localexception_server::protocol::ASSESSOR_GAMEPLAY_VERSION)))
             );
         }
     }
     let mut sockets = Vec::new();
     for role in [Role::Human, Role::Agent, Role::Spectator] {
         for gameplay_version in [
-            fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION,
-            fragr_server::protocol::GAMEPLAY_VERSION,
+            localexception_server::protocol::ASSESSOR_GAMEPLAY_VERSION,
+            localexception_server::protocol::GAMEPLAY_VERSION,
         ] {
             let (mut socket, _) = connect_async(&url).await.unwrap();
             socket

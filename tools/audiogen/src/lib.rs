@@ -1,4 +1,4 @@
-//! Developer-only audio generation for fragr through the ElevenLabs HTTP API.
+//! Developer-only audio generation for localexception through the ElevenLabs HTTP API.
 //!
 //! Everything that can be checked without a network lives here: request shapes,
 //! response handling, WAV wrapping, batch specs, the provenance manifest, and the
@@ -1956,7 +1956,8 @@ mod tests {
     }
 
     fn temp_dir(tag: &str) -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("fragr-audiogen-{tag}-{}", now_unix()));
+        let dir =
+            std::env::temp_dir().join(format!("localexception-audiogen-{tag}-{}", now_unix()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         dir

@@ -1,4 +1,4 @@
-# Plan: fragr exceptional full game (finish line)
+# Plan: Local Exception exceptional full game (finish line)
 
 **Repo:** https://github.com/blisspixel/fragr
 **Spend:** $0 until Nick/Chief approve any cloud or paid asset. Hard cap $50 if approved.
@@ -16,7 +16,7 @@ Exceptional, max-fun, full-enough game people would play and watch:
 6. Docs with screenshots when there is something to show.
 7. Do not brand as Doom.
 
-Working name: **fragr** (may change).
+Working name: **Local Exception** (may change).
 
 ## Tip reality (2026-09-17 PT)
 

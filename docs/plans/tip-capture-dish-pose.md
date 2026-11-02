@@ -51,7 +51,7 @@ Mesh absence is not the bug (#129 orange gate already fails empty hangar).
 ```bash
 bash tools/godot_check.sh
 # tip_capture against --solo-broadcast: 20/22/23 orange floors PASS; dish fills frame
-cargo run -p fragr-tip-gate --release --locked -- docs/screenshots
+cargo run -p localexception-tip-gate --release --locked -- docs/screenshots
 ```
 
 ## Success

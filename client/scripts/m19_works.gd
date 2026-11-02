@@ -116,7 +116,7 @@ func clear_map() -> void:
 		_caption.visible = false
 	if _gauge != null:
 		_gauge.present({}, false)
-	for pack: Variant in get_tree().get_nodes_in_group(&"fragr_m19_pack") if is_inside_tree() else []:
+	for pack: Variant in get_tree().get_nodes_in_group(&"localexception_m19_pack") if is_inside_tree() else []:
 		(pack as Node).queue_free()
 	if _root != null:
 		_root.queue_free()
@@ -231,7 +231,7 @@ func apply_snapshot(snapshot: Dictionary) -> void:
 		if pack == null or not is_instance_valid(pack):
 			pack = JetpackRig.new()
 			pack.position.y = -CAMERA.FP_SERVER_REFERENCE_Y
-			pack.add_to_group(&"fragr_m19_pack")
+			pack.add_to_group(&"localexception_m19_pack")
 			pawn.add_child(pack)
 			_packs[id] = pack
 		pack.apply(fact, float(JetMovement.FUEL_MAX))

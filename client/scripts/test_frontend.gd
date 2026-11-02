@@ -19,7 +19,7 @@ func _menu_text(column: VBoxContainer) -> String:
 func _run() -> void:
 	var test_path: String = "user://test-profile-%d.cfg" % OS.get_process_id()
 	var menu: Control = load("res://scenes/boot_menu.tscn").instantiate()
-	menu.set("_settings", FragrSettings.new(test_path))
+	menu.set("_settings", LocalExceptionSettings.new(test_path))
 	root.add_child(menu)
 	await process_frame
 	await menu._show("profile")
@@ -55,7 +55,7 @@ func _run() -> void:
 	bob.button_pressed = false
 	menu._save_profile()
 	await process_frame
-	var saved: FragrSettings = FragrSettings.new(test_path)
+	var saved: LocalExceptionSettings = LocalExceptionSettings.new(test_path)
 	saved.load_from_disk()
 	_check(saved.player_name() == "Patch 67", "profile save must persist the chosen callsign")
 	_check(saved.reticle_colour() == Color("8ee9df"), "profile selection must persist the chosen reticle")
