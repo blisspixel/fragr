@@ -165,10 +165,11 @@ incomplete: investigate the hall approach and movement around the berth crew
 next (#527), then validate resume and the continue rule with human play.
 The implementation and release work for this wave is complete; those route
 blockers and acceptance checks remain open, rather than unfinished local work.
-Fighter models follow the November 3 model credit refresh,
-alongside a recolour of the pale base agent (#530), the contrast target decision
-(#528), hardware matrix runs for the graphics gate, then call-ins and
-friendly fire (#535). Then the measured fun night and the first human LAN night.
+Alongside human acceptance, fighter models follow the November 3 model credit
+refresh, with a recolour of the pale base agent (#530), the contrast target
+decision (#528) and hardware matrix runs for the graphics gate. Call-ins and
+friendly fire (#535) remain later work. These follow-ups do not postpone the
+early LAN and fresh-player round in the build order.
 
 Close the multiplayer work with a measured fun night of bots and agents across
 every map, then a human LAN night:
