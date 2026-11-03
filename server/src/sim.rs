@@ -93,6 +93,16 @@ struct ResolvedShot {
     origin: [f32; 3],
     pellets: Vec<ResolvedPellet>,
 }
+
+/// Body facts copied out before the movement cone asks about seats and water.
+struct AimBody {
+    id: Uuid,
+    feet: f32,
+    x: f32,
+    z: f32,
+    vy: f32,
+    speed: f32,
+}
 /// Ticks after a respawn during which a fighter cannot be hit (one second).
 pub const SPAWN_SHIELD_TICKS: u32 = 20;
 const HITSCAN_RANGE: f32 = 100.0;
@@ -835,8 +845,10 @@ pub struct Player {
     remote_cooldown: u32,
     pub fire_cooldown: u32,
     pub(crate) repeater_cycle: repeater::RepeaterCycle,
-    /// Share of the weapon's dispersion cone the next participant shot uses.
-    /// Zero after a pause, so the first shot is exact.
+    /// Share of the weapon's dispersion cone a held trigger has opened.
+    /// Zero after a pause, so a stopped first shot is exact. A run or a jump
+    /// opens the cone through `movement_cone_share` even while this is zero.
+    /// A mounted gun does not, and treading water counts as ground.
     pub(crate) bloom: f32,
     /// Ticks since this fighter's last hitscan shot, saturating.
     pub(crate) since_shot: u32,
@@ -3846,6 +3858,23 @@ impl GameState {
         (hp_damage, armor_damage, died)
     }
 
+    /// Floor under an aim check. Dry support, or the buoyant surface when the
+    /// feet are on the water. The movement step stands on that surface too;
+    /// without it a tread is a jump and the whole cone opens.
+    fn aim_floor(&self, arena: &crate::movement::Arena, x: f32, z: f32, feet: f32) -> f32 {
+        let mut floor = arena.support_height(x, z, feet);
+        for region in self.map.water_regions() {
+            if !region.contains(x, z) {
+                continue;
+            }
+            let surface = region.level - crate::movement::water::SWIM_DRAFT;
+            if surface > floor && surface <= feet + crate::movement::CONTACT_EPSILON {
+                floor = surface;
+            }
+        }
+        floor
+    }
+
     /// Seeded 3D rays for both cover and targets, one per pellet. No height
     /// auto-aim or forgiveness cone: a ray must intersect the finite fighter volume.
     fn check_hitscan(
@@ -3855,18 +3884,54 @@ impl GameState {
         civilians: &[crate::movement::contact::ContactBody],
         tableau: &[crate::movement::Solid],
     ) -> ResolvedShot {
-        let shooter = &self.players[shooter_idx];
-        let origin = [
-            shooter.x,
-            shooter.y - PLAYER_FLOOR_Y
-                + crate::combat::stance_eye(shooter.campaign, shooter.ducking),
-            shooter.z,
-        ];
-        let (yaw, pitch, weapon) = (shooter.yaw, shooter.pitch, shooter.weapon);
-        let spread = if crate::combat::is_notary(shooter.campaign) {
+        let (origin, yaw, pitch, weapon, bloom, campaign, fighter, body) = {
+            let shooter = &self.players[shooter_idx];
+            (
+                [
+                    shooter.x,
+                    shooter.y - PLAYER_FLOOR_Y
+                        + crate::combat::stance_eye(shooter.campaign, shooter.ducking),
+                    shooter.z,
+                ],
+                shooter.yaw,
+                shooter.pitch,
+                shooter.weapon,
+                shooter.bloom,
+                shooter.campaign,
+                shooter.fighter_model(self.arena_feel()),
+                AimBody {
+                    id: shooter.id,
+                    feet: shooter.y - PLAYER_FLOOR_Y,
+                    x: shooter.x,
+                    z: shooter.z,
+                    vy: shooter.vy,
+                    speed: shooter.vx.hypot(shooter.vz),
+                },
+            )
+        };
+        // The seat is above every floor, and boarding does not clear the
+        // speed the body arrived with. The mounted gun is not that jump.
+        let seated = self.vehicle_seat(body.id).is_some();
+        let moving = if seated || !fighter {
             0.0
-        } else if shooter.fighter_model(self.arena_feel()) && weapon != WeaponType::Scatter {
-            weapon.spread_radians() * shooter.bloom.clamp(0.0, 1.0)
+        } else {
+            let on_ground = crate::movement::grounded(
+                body.feet,
+                self.aim_floor(arena, body.x, body.z, body.feet),
+                body.vy,
+            );
+            crate::movement::movement_cone_share(body.speed, on_ground)
+        };
+        let spread = if crate::combat::is_notary(campaign) {
+            0.0
+        } else if fighter && weapon != WeaponType::Scatter {
+            // Bloom opens the cone across a held trigger. Movement opens it
+            // at once: a full run or a jump uses the whole cone, and a
+            // counter-strafe back into the accurate band puts the next fresh
+            // shot on the aim ray again. Bloom still has to recover on its own.
+            weapon.spread_radians() * bloom.clamp(0.0, 1.0).max(moving)
+        } else if fighter {
+            weapon.spread_radians() * (1.0 + moving)
         } else {
             weapon.spread_radians()
         };

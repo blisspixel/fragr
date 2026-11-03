@@ -2953,28 +2953,41 @@ in Sabotage.
   - **Flechette** (default): Mid workhorse
     - Damage: 25 HP, four hits to kill
     - Cooldown: 4 ticks (0.20 s), so 0.60 s to kill
-    - Dispersion: none on the first shot, growing 0.2 of the full cone a
-      shot to 0.045 radians (2.6 degrees)
+    - Dispersion: 0.045 radians (2.6 degrees). A rested shot inside the
+      accurate band is exact. Bloom and movement open it, as below.
     - Range: 40 units
   - **Rail**: Long precision
     - Damage: 80 HP, two hits to kill
     - Cooldown: 20 ticks (1.00 s), so 1.00 s to kill
-    - Dispersion: none for a participant
+    - Dispersion: 0.012 radians. No bloom. Movement opens it in the arena.
     - Range: 60 units
   - **Scatter**: Close shred
     - Cooldown: 12 ticks (0.60 s)
-    - Dispersion: a 0.095 radian (5.4 degree) pellet cone on every shot
+    - Dispersion: a 0.095 radian (5.4 degree) pellet cone on every shot,
+      plus the arena movement share
     - Range: 12 units
     - Falloff: full damage to 4 units, then linearly down to 35 percent at 12
-- **First shot exact, bloom on sustained fire**: a participant's shot flies
-  along the exact aim ray unless it follows the last one within the weapon's
-  cadence plus two ticks. Each shot adds a share of the full cone
+- **Bloom on sustained fire, and a movement cone in the arena**: a
+  participant's rested shot flies along the aim ray on the ground at or
+  below 0.40 of top speed (`movement::ACCURATE_SPEED_SCALE`). A full run
+  uses the weapon's whole cone, linearly between that band and top speed.
+  Any airborne shot uses the whole cone, including a jump that has not yet
+  gained horizontal speed. One tick of opposite movement from a full run
+  lands inside the band, so that fresh shot is exact once bloom has
+  recovered. Bloom is separate. A shot that follows the last one within
+  the weapon's cadence plus two ticks adds a share of the full cone
   (`WeaponType::bloom_per_shot`: Tack 0.25, Flechette 0.2, Repeater 0.1, Arc
-  0.15) up to the full table value, and the cone recovers over 0.35 s once the
-  trigger rests longer than that. Rail, Sniper and Rocket are always exact;
-  the Scatter keeps its pellet cone. Selecting another weapon starts it exact.
-  This is arena play: in a campaign mission every shot, the participant's
-  included, uses the full table cone its encounters were tuned against.
+  0.15) up to the table value, and the cone recovers over 0.35 s once the
+  trigger rests longer than that. Non-scatter weapons use the worse of
+  bloom and the movement share. The Scatter keeps its pellet cone and adds
+  the movement share on top. A vehicle seat forces the movement share to
+  zero: the seat sits above the floor and boarding does not clear the
+  speed the body arrived with. Treading water counts as ground on the
+  buoyant surface. Rail and Sniper have no bloom, so only movement opens
+  them. The Rocket is not hitscan. Selecting another weapon clears bloom.
+  The movement share applies only when `fighter_model` is on. In a
+  campaign mission every shot uses the full table cone its encounters
+  were tuned against.
 - **Hitscan**: One unit 3D ray from the shooter's eye, 1.6 units above its feet.
   Two seeded samples select a uniform disk perpendicular to aim, projected inside
   the weapon's dispersion cone. The nearest finite fighter cylinder wins
