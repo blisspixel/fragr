@@ -273,6 +273,8 @@ impl GameState {
             player.armor = 0;
             player.respawn_timer = None;
             player.fire_cooldown = 0;
+            player.weapon_ready_at = None;
+            player.bloom = 0.0;
             player.repeater_cycle.reset();
             if let Some(weapon) = player.inventory.only() {
                 player.weapon = weapon;

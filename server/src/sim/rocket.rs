@@ -60,6 +60,7 @@ impl GameState {
         };
         let player = &self.players[index];
         if player.weapon != WeaponType::Rocket
+            || player.weapon_ready_at.is_some()
             || !player.yaw.is_finite()
             || !player.pitch.is_finite()
         {
@@ -102,6 +103,10 @@ impl GameState {
         if !self.players[index].inventory.try_fire(WeaponType::Rocket) {
             if self.players[index].inventory.dry_fire_count() > dry_before {
                 self.players[index].statistics.dry_trigger();
+                self.events.push(
+                    self.players[index]
+                        .handling_event(self.tick, crate::protocol::WeaponHandlingKind::DryFire),
+                );
             }
             return false;
         }

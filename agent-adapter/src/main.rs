@@ -171,6 +171,7 @@ async fn mcp_connect_and_hello(
         state.last_snapshot = None;
         state.map = None;
         state.loadout = None;
+        state.aim = None;
         state.record = None;
         state.mission = Default::default();
         state.recent_events.clear();

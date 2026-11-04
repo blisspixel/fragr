@@ -99,7 +99,11 @@ fn a_fragged_rocket_holder_leaves_the_launcher_and_the_winner_takes_it() {
     let p = fighter(&mut state, killer);
     assert!(p.inventory.owns(WeaponType::Rocket));
     assert_eq!(p.weapon, WeaponType::Rocket, "a found gun comes to hand");
+    let ready = p
+        .weapon_ready_at
+        .expect("the found launcher must be raised");
     assert_eq!(p.inventory.carried(AmmoPool::Rockets), 4);
+    assert_eq!(ready, state.tick + 7);
     let claimed = state.take_events().into_iter().any(|event| {
         matches!(event, crate::protocol::GameEvent::Pickup { pickup_id, weapon, amount, .. }
             if pickup_id == "drop_1" && weapon == "Rocket" && amount == Some(4))

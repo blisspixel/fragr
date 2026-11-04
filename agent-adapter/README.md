@@ -137,8 +137,8 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter sends the server crate's current gameplay contract (68 after the
-Local Exception rename). Production campaign and arcade servers refuse earlier
+The adapter sends the server crate's current gameplay contract (69 for private
+aim, arena weapon raise timing and spatial handling events). Production campaign and arcade servers refuse earlier
 clients with an update message. Use `localexception-agent-adapter` and the
 `LOCALEXCEPTION_` environment variables; the prior product identifiers are not
 aliases. A shared arcade room
@@ -173,6 +173,21 @@ human receives the magazine guns and a finite bag: 80 bullets, 24 shells and
 16 cells, including the rounds in the guns. A weapon-only mutator still sends
 three zero pool counts.
 
+`get_events` includes transient `weapon_handling` events with `player_id`, `tick`,
+`kind` (`reload_start` or `dry_fire`) and feet `position`. Reload cues require an
+accepted reload; empty-trigger cues occur once per press. They follow the
+24-metre listening range and coarse hidden-source projection, and do not replay
+in later snapshots. Private inventory remains the authority for ammunition.
+
+`observe.aim` contains only this participant's latest server-owned weapon,
+`tick`, `cone_microradians` (the half cone, 0 to 190000), and an optional
+`raise_ready_at` deadline. It is available even with an infinite kit. A change
+of arena weapon cannot fire until its raise finishes; campaign selection stays
+immediate. The server sends initial aim and changed facts, not duplicate idle
+ticks. Invalid owners, cones or backward ticks are refused. Watching receives
+no private aim. This is a slow observation of authoritative facts, not a second
+combat controller.
+
 `observe.mission.rules` reports the host's fixed difficulty (`assisted`, `standard`
 or `severe`) and tuning `revision` (currently 3). Humans, agents and spectators
 share these rules. Unknown revisions or changing rules fail validation, including
@@ -183,7 +198,10 @@ agent control frequency. Use matching builds when connecting to campaign servers
 island movement. Vehicle occupancy comes from each record's `driver` and
 `gunner`, not a separate player field. `act.interact` enters or exits a nearby
 stopped craft; release it before pressing again. `act.seat` accepts `driver`
-or `gunner` in a stopped jeep or boat. Forward/back control throttle, left/right
+or `gunner` in a stopped jeep or boat. On foot, combining `act.seat` with the
+interaction press requests only that seat; an occupied or unsupported seat
+refuses boarding without fallback. Omitting it preserves driver-first boarding.
+Forward/back control throttle, left/right
 steer, and jump brakes ground or surface vehicles. In the single-seat light
 aircraft, jump climbs and duck descends; the aircraft has no weapon. Vehicle
 controls stay on the same Action channel. MCP remains a slow decision tool;

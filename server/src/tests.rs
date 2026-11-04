@@ -7959,6 +7959,7 @@ mod sniper;
 mod surveyor;
 mod tick_trace;
 mod traveling_shot;
+mod weapon_handling;
 mod zones;
 
 #[test]

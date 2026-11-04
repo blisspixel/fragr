@@ -1125,7 +1125,7 @@ mod tests {
         }
         assert_eq!(
             crate::protocol::GAMEPLAY_VERSION,
-            crate::protocol::IDENTITY_GAMEPLAY_VERSION
+            crate::protocol::AIM_GAMEPLAY_VERSION
         );
         // M09 and M10 carry the single-schema campaign receipts (contract 55,
         // below the Local Exception contract this binary now tops out at).

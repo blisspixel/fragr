@@ -206,6 +206,10 @@ fn a_seated_gun_keeps_the_aim_ray() {
     let cos = delta[0] / length;
     let angle = cos.clamp(-1.0, 1.0).acos();
     assert!(angle < 1e-3, "a mounted gun stays on the aim ray: {angle}");
+    let aim = state.aim_state(id).unwrap();
+    assert_eq!(aim.weapon, WeaponType::Flechette);
+    assert_eq!(aim.cone_microradians, 0);
+    assert_eq!(aim.raise_ready_at, None);
 }
 
 #[test]

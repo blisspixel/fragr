@@ -103,6 +103,8 @@ impl GameState {
             fresh.arm_magazines();
         }
         player.inventory.restore_entry(&fresh);
+        player.weapon_ready_at = None;
+        player.bloom = 0.0;
         player.weapon = weapon;
         player.last_non_blade_weapon = weapon;
         player.pending_action.weapon_swap = None;

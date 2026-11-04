@@ -161,6 +161,7 @@ impl GameState {
     /// fighter standing on it who can use it.
     pub(super) fn tick_dropped_guns(&mut self) {
         let tick = self.tick;
+        let arena_feel = self.arena_feel();
         self.dropped_guns.retain(|gun| gun.expires_at > tick);
         let mut index = 0;
         while index < self.dropped_guns.len() {
@@ -184,8 +185,7 @@ impl GameState {
             let discovered = !player.inventory.owns(gun.weapon);
             player.inventory.grant_weapon_rounds(gun.weapon, gun.rounds);
             if discovered {
-                player.inventory.release_trigger();
-                player.weapon = gun.weapon;
+                player.select_weapon(gun.weapon, arena_feel, tick);
             }
             let (name, player_id) = (player.name.clone(), player.id);
             tracing::info!(target: crate::logging::FEED_TARGET, "PICKUP: {} claimed a dropped {} ({})", name, gun.weapon.name(), gun.id());

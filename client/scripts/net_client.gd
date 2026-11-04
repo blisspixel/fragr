@@ -46,7 +46,7 @@ extends Node
 # 52 connects Freedom of Movement and its connected ceremonial avenue;
 # 51 connects Civic Pressure Valve and its connected stadium bout;
 # 50 understands Article Blade melee, plinth lifecycle, eleven-column records and range contract;
-const GAMEPLAY_VERSION: int = 68
+const GAMEPLAY_VERSION: int = 69
 ## Desktop builds and SHA256SUMS.txt. Join does not fetch this URL.
 ## The join page can fetch a published archive after the player asks.
 const RELEASES_URL: String = "https://github.com/blisspixel/fragr/releases/latest"
@@ -60,12 +60,14 @@ signal event_received(data)
 ## Per-tick acknowledgement of the newest input the server applied to us.
 signal ack_received(data)
 signal loadout_received(data: Dictionary)
+signal aim_received(data: Dictionary)
 signal mission_received(data: Dictionary)
 signal record_received(data: Dictionary)
 ## The booth's facts, typed by `SpectatorFacts.parse`. Only a watcher hears them.
 signal spectator_facts_received(facts: Dictionary)
 
 var equipment: Dictionary = {}
+var aim: Dictionary = {}
 var record: Dictionary = {}
 var mission_geometry: Dictionary = {}
 var _m14_intact_geometry: Dictionary = {}
@@ -162,6 +164,7 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 	_version_told = false
 	record.clear()
 	equipment.clear()
+	aim.clear()
 	mission.clear()
 	mission_geometry.clear()
 	_m14_intact_geometry.clear()
@@ -209,6 +212,7 @@ func disconnect_from_server():
 	queue_of = 0
 	record.clear()
 	equipment.clear()
+	aim.clear()
 	mission.clear()
 	mission_geometry.clear()
 	_m14_intact_geometry.clear()
@@ -635,6 +639,7 @@ func _handle_message(text: String):
 				_resume_token = str(data["resume"])
 			_resume_used = false
 			equipment.clear()
+			aim.clear()
 			mission.clear()
 			mission_geometry.clear()
 			_m14_intact_geometry.clear()
@@ -782,6 +787,7 @@ func _handle_message(text: String):
 			walker_geometry = data.duplicate(true) if data.get("walker") is Dictionary else {}
 			_movement_ack_previous.clear()
 			_world.clear()
+			aim.clear()
 			map_info_received.emit(data)
 			mission_received.emit({})
 		"mission":
@@ -794,6 +800,14 @@ func _handle_message(text: String):
 			mission = data
 			_mission_previous = data.duplicate(true)
 			mission_received.emit(data["state"])
+		"aim":
+			var problem: String = AimState.validation_error(data, player_id, aim)
+			if not problem.is_empty():
+				disconnect_from_server()
+				server_error.emit(problem)
+				return
+			aim = data
+			aim_received.emit(data)
 		"loadout":
 			var problem: String = EquipmentState.validation_error(data, player_id, equipment)
 			if not problem.is_empty():

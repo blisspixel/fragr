@@ -6,9 +6,11 @@ WebSocket JSON protocol between clients and the authoritative server.
 **Format:** JSON text messages
 **Tick rate:** ~20 Hz (50ms per tick)
 
-Current contract: matching readers advertise gameplay 68 and geometry 2.
-Contract 68 is the Local Exception identity boundary. Every production door
-requires it, including campaign sessions. Earlier clients receive an update
+Current contract: matching readers advertise gameplay 69 and geometry 2.
+Contract 69 adds private authoritative aim, arena weapon raise timing and spatial
+weapon handling events.
+Contract 68 introduced the Local Exception identity boundary. Every production door
+requires the current contract, including campaign sessions. Earlier clients receive an update
 refusal. Join-ticket HMAC domains are `localexception-join-v1` and
 `localexception-join-v2`; LAN discovery is `LOCALEXCEPTION/1 <tcp-port>\n`.
 Both ticket formats retain their existing roles and replay policies.
@@ -408,17 +410,17 @@ message and then a policy close whose reason is the same code:
 **Protocol version.** There is no single `protocol_version` in `Hello`.
 `gameplay_version` and `geometry_version` are the two contracts. A shared
 arcade room, including free-for-all, team play, capture the flag, Sabotage,
-and the night list, requires the current gameplay contract (`68`) and geometry `2`. An older hello
+and the night list, requires the current gameplay contract (`69`) and geometry `2`. An older hello
 and a newer hello are both refused before `Welcome`, with
 `unsupported_gameplay` or `unsupported_geometry`. The message names version
-68 or geometry 2. An older hello is also sent to
+69 or geometry 2. An older hello is also sent to
 `https://github.com/blisspixel/fragr/releases/latest` and told to check the
 archive against `SHA256SUMS.txt` on that page. Join does not fetch the page.
 The join page can offer to download that archive after the player asks.
 That offer is not a status field, and a host that omits its version is not
 fetched. A newer hello is told which version this process speaks. A campaign or
-local mission also requires gameplay 68 at the identity boundary. A hello above
-68 or geometry above 2 is refused there too. The envelope itself
+local mission also requires gameplay 69. A hello above
+69 or geometry above 2 is refused there too. The envelope itself
 (JSON text frames tagged by `type`) has not changed. A breaking envelope
 change would add that field then, with its own rejection. `GET /status` may
 include both versions. A missing field does not make the host unreadable,
@@ -1013,7 +1015,10 @@ World-point aim:
 
 Vehicle maps use the existing `Action` and snapshot channel. Optional `seat`
 accepts `driver` or `gunner`, selecting a free seat in the currently occupied
-stopped jeep. Its request survives an intervening Action that omits it until
+stopped jeep. With a rising `interact` while on foot, it instead requests that
+specific boarding seat. An occupied or unsupported requested seat refuses the
+press, with no fallback on that or a later held tick. Without `seat`, boarding
+retains driver-first automatic selection. Its request survives an intervening Action that omits it until
 the next active tick consumes it. A rising `interact` enters the nearest free
 seat within 2 m horizontally and 2 m vertically with a clear standing-body sweep,
 driver first, or exits the current jeep to clear reachable ground. Entry,
@@ -2541,8 +2546,24 @@ MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_
 }
 ```
 
+**Weapon handling:**
+```json
+{"type":"event","event":"weapon_handling","player_id":"00000000-0000-0000-0000-000000000001","tick":120,"kind":"reload_start","position":[4,0,8]}
+```
+
+`kind` is `reload_start` for an accepted reload or `dry_fire` for the first
+empty trigger press. Held fire does not repeat the click; refused reloads emit
+nothing. `position` is the actor's feet. These transient cues are not snapshot
+facts and are not replayed to late arrivals. Fighters receive cues within 24
+metres of their listening position; cover-hidden actors use the same coarse
+heard-position projection as other sensory evidence. Watchers receive the
+spatial event and apply their listening distance. Consumers reject equal or
+older ticks per actor and kind, and clear that cache at map/disconnect boundaries.
+Private inventory still owns magazine, reload completion and dry-trigger count;
+it must not play a second start/click sound alongside this public event.
+
 **Fields:**
-- `event`: Event type (`frag`, `hit`, `crawler_scrabble`, `respawn`, `round_start`, `round_end`, `flag`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `venue_notice`, `pickup`, `host_reaction`, `enemy_bark`, `companion_bark`)
+- `event`: Event type (`frag`, `hit`, `crawler_scrabble`, `weapon_handling`, `respawn`, `round_start`, `round_end`, `flag`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `venue_notice`, `pickup`, `host_reaction`, `enemy_bark`, `companion_bark`)
 - `position`: (`crawler_scrabble`, `enemy_bark` and `companion_bark`) three finite world coordinates for the spatial sound source
 - `kind`: (pickup only) Pad kind: `"weapon"` / `"health"` / `"armor"` / `"plate"` / `"golden_rail"` (default `"weapon"`). Weapon and golden pads also carry `weapon`; health, armor and plate pads carry `amount` (the armour actually gained).
 - `rules`: (round_start, optional) the arena's rule set, repeated each round for event readers
@@ -2984,10 +3005,29 @@ in Sabotage.
   zero: the seat sits above the floor and boarding does not clear the
   speed the body arrived with. Treading water counts as ground on the
   buoyant surface. Rail and Sniper have no bloom, so only movement opens
-  them. The Rocket is not hitscan. Selecting another weapon clears bloom.
+  them. The Rocket is not hitscan. Selecting a different owned arena weapon
+  starts its raise: 5 ticks for Flechette, Repeater and Arc; 7 for Rail,
+  Sniper and Rocket; 4 for the other weapons. Neither old nor new gun fires
+  before the deadline. Bloom stays held during the raise and clears only when
+  it finishes. Re-selecting the same gun or an unowned gun does not restart it;
+  another owned gun starts its own full raise. Reload presses during a raise
+  are refused. Fresh kits and respawns clear the raise; disconnect/resume and
+  entering or leaving a vehicle do not shorten its deadline. A mounted gun is
+  independent of the carried gun's raise. Campaign selection stays immediate.
   The movement share applies only when `fighter_model` is on. In a
   campaign mission every shot uses the full table cone its encounters
   were tuned against.
+- **Private aim (gameplay 69):** `{"type":"aim","player_id":"...","tick":42,"weapon":"flechette","cone_microradians":45000,"raise_ready_at":47}`.
+  Sent only to the owning participant, including agents and infinite kits,
+  initially and when the weapon, resolved cone or raise deadline changes.
+  `raise_ready_at` is omitted when ready, otherwise a future tick no further
+  than that weapon's raise duration. The integer cone is the half-angle in
+  millionths of a radian, from 0 to 190000, computed by the same function as
+  the shot. Clients retain the latest value and reject foreign owners,
+  backward ticks and invalid values. It is separate from inventory because
+  it describes physical aim even on a pawn with no finite loadout. It never
+  appears in another fighter's snapshot. The HUD projects this angle; it
+  does not derive accuracy from a tracer or invent a movement rule.
 - **Hitscan**: One unit 3D ray from the shooter's eye, 1.6 units above its feet.
   Two seeded samples select a uniform disk perpendicular to aim, projected inside
   the weapon's dispersion cone. The nearest finite fighter cylinder wins

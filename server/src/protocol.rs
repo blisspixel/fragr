@@ -14,8 +14,10 @@ mod conquest;
 mod decoration;
 pub mod delta;
 pub use delta::WorldReader;
+mod aim;
 mod explosive;
 mod loadout;
+pub use aim::AimState;
 mod m04;
 mod m05;
 mod m06;
@@ -625,6 +627,16 @@ impl WeaponType {
         }
     }
 
+    /// Arena raise time after a different carried weapon is selected, at 20 Hz.
+    /// Campaign actors keep their authored immediate selection.
+    pub const fn raise_ticks(self) -> u32 {
+        match self {
+            Self::Rail | Self::Sniper | Self::Rocket => 7,
+            Self::Flechette | Self::Repeater | Self::Arc => 5,
+            Self::Fists | Self::Shiv | Self::Tack | Self::Scatter | Self::ArticleBlade => 4,
+        }
+    }
+
     /// How much of the dispersion cone one participant shot adds, as a share
     /// of `spread_radians`. Sustained fire grows the cone by this much a shot
     /// up to the full table value (about a second of holding the trigger), and
@@ -896,7 +908,9 @@ pub const SHOT_SENSE_GAMEPLAY_VERSION: u32 = 67;
 /// Local Exception identity: renamed join-ticket domains and LAN beacon.
 /// Earlier clients must update rather than silently joining another product.
 pub const IDENTITY_GAMEPLAY_VERSION: u32 = 68;
-pub const GAMEPLAY_VERSION: u32 = IDENTITY_GAMEPLAY_VERSION;
+/// Private resolved aim cone, arena raise deadlines and spatial handling cues.
+pub const AIM_GAMEPLAY_VERSION: u32 = 69;
+pub const GAMEPLAY_VERSION: u32 = AIM_GAMEPLAY_VERSION;
 const _: () = assert!(
     GAMEPLAY_VERSION >= ZONES_GAMEPLAY_VERSION
         && GAMEPLAY_VERSION >= MAP_VOTE_GAMEPLAY_VERSION
@@ -1286,6 +1300,7 @@ pub enum ServerMessage {
     },
     Snapshot(Snapshot),
     Loadout(LoadoutState),
+    Aim(AimState),
     Record(PlayerRecord),
     Event(GameEvent),
     /// Unicast acknowledgement of the newest input applied to this client's
@@ -2029,9 +2044,27 @@ pub struct PlayerScore {
     pub score: u32,
 }
 
+/// Handling travels about as far as a footstep, below the gunfire reach.
+pub const HANDLING_REACH: f32 = 24.0;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum WeaponHandlingKind {
+    ReloadStart,
+    DryFire,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "event", rename_all = "snake_case")]
 pub enum GameEvent {
+    /// One accepted handling action, never reconstructed from private inventory.
+    /// Shared-room readers receive only audible cues, coarsened when unseen.
+    WeaponHandling {
+        player_id: Uuid,
+        tick: u64,
+        kind: WeaponHandlingKind,
+        position: [f32; 3],
+    },
     /// The solo run saved a checkpoint at a quiet moment. A death with a
     /// continue left returns the run here instead of to the level entry.
     /// `resumed`: a reopened run has just returned here. Sent only when true
