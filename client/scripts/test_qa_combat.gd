@@ -505,6 +505,21 @@ func _run() -> void:
 	history._observe(snapshot)
 	_check(history.confirmed(["early_guard"]).has("early_guard"), "a verified earlier death survives corpse cleanup")
 	_check(history.defeated.is_empty(), "between-fight history cannot inflate per-fight defeats")
+	snapshot["tick"] = 6
+	guard["hp"] = 50
+	snapshot["players"] = [me, guard]
+	history._observe(snapshot)
+	_check(not history.confirmed(["early_guard"]).has("early_guard"), "an Auditor repair invalidates the body's historical death")
+	snapshot["tick"] = 4
+	guard["hp"] = 0
+	history._observe(snapshot)
+	_check(not history.confirmed(["early_guard"]).has("early_guard"), "a stale corpse snapshot cannot undo an observed repair")
+	snapshot["tick"] = 7
+	guard["hp"] = 0
+	history._observe(snapshot)
+	_check(history.confirmed(["early_guard"])["early_guard"] == 7, "a repaired body needs a fresh confirmed defeat")
+	snapshot["players"] = [me]
+	snapshot["tick"] = 5
 	var absence: QaCombat = QaCombat.new()
 	absence.set("_player_id", "player")
 	absence._observe(snapshot)

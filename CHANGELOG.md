@@ -4,6 +4,16 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.7 - 2026-11-04
+
+- Introduce the Auditor's bounded machine repair with one Sweeper in Level 8's
+  upper gallery, before the mixed machinery-bridge encounter. A player can
+  interrupt the repair, observe reactivation, or kill the Auditor first.
+- Deploy Holdfast TDM fighters inside its screened airfield hangars, bringing
+  the first fight closer while preserving the current issued kit and other modes.
+- Refuse old saves currently in Level 8 because its authored encounter changed.
+  The save schema remains 27; other missions retain their current content.
+
 ## v0.99.6 - 2026-11-04
 
 - Keep a fixed aim pip and draw the server's actual weapon cone around it.

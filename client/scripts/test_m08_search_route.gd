@@ -42,11 +42,25 @@ func _run() -> void:
 			"m08_exit_arrival": arrival=capture.walk_to
 	_check(cleanup.required==["post_sweeper_a","post_sweeper_b"] and cleanup.approach_route==[[-16.0,3.0,17.0],[-13.0,3.0,17.5],[-10.0,3.0,17.0],[-10.0,3.0,10.0]] and cleanup.search_route==[[10.0,3.0,9.0],[16.0,3.0,1.0],[16.0,3.0,-6.0]],"mine corridor retains its original physical points and both required guards while ordinary fire resumes outside")
 	_check(bridge.required==["well_auditor","well_sweeper_west","well_sweeper_east","well_sweeper_north","bridge_clerk_near","bridge_clerk_far"],"all six bridge guards retain actual required deaths")
-	_check(bridge_weapon=="Rail","bridge retains the intended ranged weapon selection")
+	_check(bridge_weapon=="Flechette","bridge uses the earned Rifle for the mixed clear")
 	var bridge_points: Array=bridge.search_route
-	_check(bridge_points.slice(0,4)==[[1.0,6.0,8.5],[-10.0,6.0,9.0],[12.0,6.0,8.0],[1.0,6.0,8.5]],"original bridge search prefix remains physical and unchanged")
+	var platform: Dictionary={}
+	for solid: Dictionary in source.solids:
+		if solid.id=="machinery_bridge":
+			platform=solid
+	var left: float=INF
+	var right: float=-INF
+	for point: Array in bridge_points:
+		left=minf(left,float(point[0]))
+		right=maxf(right,float(point[0]))
+		_check(float(point[0])>=float(platform.min[0])+MoveStep.RADIUS and float(point[0])<=float(platform.max[0])-MoveStep.RADIUS and \
+			is_equal_approx(float(point[1]),float(platform.max[1])) and \
+			float(point[2])>=float(platform.min[2])+MoveStep.RADIUS and float(point[2])<=(float(platform.min[2])+float(platform.max[2]))*0.5,
+			"bridge search stays on the supported southern half of the central platform")
+	var center: float=(float(platform.min[0])+float(platform.max[0]))*0.5
+	_check(left<center and right>center,"central search covers both sides of the well opening")
 	var bridge_walk: Dictionary=_walk(Vector3(1.211782,6,8.490375),bridge_points)
-	_check(bridge_points.size()==7 and bridge_walk.reached and bridge_walk.ticks<500,"supported existing bridge vantages fit the original deadline")
+	_check(bridge_walk.reached and bridge_walk.ticks<500,"supported central bridge vantages fit the original deadline")
 	# Actual surviving positions from the retained ordinary bridge failure.
 	var guards: Array[Dictionary]=[
 		{"x":27.499998,"y":7.5,"z":1.9779463,"campaign":{"kind":"auditor"}},
@@ -56,9 +70,9 @@ func _run() -> void:
 	for guard: Dictionary in guards:
 		_check(not QaCombat.exposed_point(guard,Vector3(1.211782,7.6,8.490375),solids).is_finite(),"original final point retains the actual late-guard occlusion negative")
 		var visible: bool=false
-		for point: Array in bridge_points.slice(4):
+		for point: Array in bridge_points:
 			visible=visible or QaCombat.exposed_point(guard,Vector3(point[0],point[1]+1.6,point[2]),solids).is_finite()
-		_check(visible,"actual added bridge vantage exposes a retained survivor")
+		_check(visible,"actual central bridge vantage exposes a retained survivor")
 	var neutral_info: Dictionary=_layout_info(source,solids)
 	var neutral_layout: Dictionary=M08NeutralBodies.layout(neutral_info)
 	_check(not neutral_layout.is_empty(),"canonical archive panels bind all released civilian contact")
@@ -108,7 +122,7 @@ func _run() -> void:
 	for failure: String in _failures:
 		push_error("test_m08_search_route: "+failure)
 	if _failures.is_empty():
-		print("test_m08_search_route: PASS (required guards, retained bridge occlusion,7point bridge/11point freight loops,10 contact-aware no-fire returns,released-lane and wall negatives)")
+		print("test_m08_search_route: PASS (required guards, retained bridge occlusion,central bridge/11point freight loops,10 contact-aware no-fire returns,released-lane and wall negatives)")
 	quit(0 if _failures.is_empty() else 1)
 
 func _walk(start: Vector3,route: Array) -> Dictionary:

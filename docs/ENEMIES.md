@@ -233,9 +233,15 @@ posts until the first volley and the vented recovery after it are over, and
 only then pushes down the floor. The squad lets go early if the Assessor
 falls, if one of them is hit or approached within 8 m, or after 20 s, so the
 lesson never becomes a free room. The Auditor's first fight is the level 8
-upper gallery, an Auditor and three Sweepers behind the gallery seal: its
-repair channel is first seen on a Sweeper the player has just dropped, a
-two-role room, before the machinery bridge tests it beside Clerks. Later fights
+upper gallery, an Auditor and one Sweeper behind the gallery seal: its
+repair channel reaches the Sweeper the player has just dropped, without two
+more machines competing for attention. The player can interrupt the channel,
+watch the bounded reactivation, or kill the Auditor first to prevent it.
+The [channel](screenshots/m08_auditor_channel_16x9.png),
+[reactivation](screenshots/m08_auditor_reactivation_16x9.png) and
+[interruption sequence](screenshots/m08_auditor_interruption_strip.png)
+show the authored lesson; the first two use inspection viewpoints.
+The machinery bridge then tests the support role beside Sweepers and Clerks. Later fights
 can mix these established roles. During the level 18 wipe, the Inheritance can
 seize surviving Notaries as infrastructure; their issued shape remains, while
 their targets and timing change. These placements follow the accepted
@@ -320,7 +326,7 @@ then mix it with an established role. Proposed progression:
 | Notary + Sweeper | Look up to break the flash or keep pressure on the ground burst; take the roof to meet the drone level | Level 4 Low Water prototype, acceptance open |
 | Assessor + human security | Leave the canister splash while the squad pushes, or spend Arc charge on the vents | Connected level 12 Martian habitat, in flight |
 | Ranged Sweeper + Jammer | Break the precision sightline while dodging clearly traveling interference shots | Lunar galleries with side routes, planned |
-| Auditor + disabled bodies | Interrupt a bounded repair channel or finish an immediate attacker | Level 8 lunar custody archive, planned |
+| Auditor + disabled bodies | Interrupt a bounded repair channel or finish an immediate attacker | Level 8 upper-gallery pair, then the mixed machinery bridge |
 | Absorbed bot + restoration machine | Apply the learned weapon counter while responding to newly marked work zones | Levels 19 and 20 connected with absorbed bots, Pavers and Surveyors, acceptance open; level 18 planned |
 
 Each pairing needs routes that allow both answers, readable attack overlap and

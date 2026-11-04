@@ -52,6 +52,17 @@ fn occupied(others: &[Occupant], (sx, sz, _, floor): Spawn) -> bool {
 mod tests;
 
 impl GameState {
+    /// The current mode's authored bays, shared by placement and map knowledge.
+    pub(super) fn spawn_at_angle(&self, angle: f32) -> Spawn {
+        if self.map == MapKind::HoldfastAtoll
+            && self.config.rules.mode() == crate::protocol::GameMode::Tdm
+        {
+            crate::maps::holdfast::tdm_spawn(angle)
+        } else {
+            self.map.spawn(angle)
+        }
+    }
+
     /// Prefer unoccupied slots, then fewer exposed firing lanes, then clearance.
     /// Cover matters even when the widest gap is inside another fighter's range.
     /// A lane only counts inside `SPAWN_THREAT_RANGE`: one longer than any
@@ -69,7 +80,7 @@ impl GameState {
             .map(|vehicle| crate::vehicles::hull(&vehicle.state))
             .collect();
         world.solids.extend(hulls.iter().copied());
-        if let Some(spawn) = initial_angle.map(|angle| self.map.spawn(angle)) {
+        if let Some(spawn) = initial_angle.map(|angle| self.spawn_at_angle(angle)) {
             if fixed_fits(&world, &hulls, spawn) {
                 return Some(spawn);
             }
@@ -104,7 +115,7 @@ impl GameState {
                     .iter()
                     .copied()
                     .filter(|angle| {
-                        crate::rules::spawn_side(self.map.spawn(*angle).0) == Some(team)
+                        crate::rules::spawn_side(self.spawn_at_angle(*angle).0) == Some(team)
                     })
                     .collect()
             })
@@ -112,7 +123,7 @@ impl GameState {
         let own_half = !own.is_empty();
         let bases: Vec<Spawn> = if own_half { own } else { angles }
             .into_iter()
-            .map(|angle| self.map.spawn(angle))
+            .map(|angle| self.spawn_at_angle(angle))
             .collect();
         let mut candidates: Vec<Spawn> = bases
             .iter()

@@ -205,6 +205,10 @@ func _observe(snapshot: Dictionary) -> void:
 	for actor: Dictionary in snapshot.get("players", []):
 		if not ActorState.is_hostile(actor):
 			continue
+		# An Auditor can reactivate this same body. A historical death must
+		# not satisfy a later clear while its repaired owner fights again.
+		if int(actor["hp"]) > 0 and actor.has("name"):
+			confirmed_deaths.erase(str(actor["name"]))
 		if int(actor["hp"]) <= 0 and actor.has("name") and not confirmed_deaths.has(str(actor["name"])):
 			confirmed_deaths[str(actor["name"])] = tick
 		if not _recording:

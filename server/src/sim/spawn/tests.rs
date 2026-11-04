@@ -3,6 +3,149 @@ use crate::protocol::{GameMode, VehicleKind};
 use crate::vehicles::Jeep;
 
 #[test]
+fn holdfast_tdm_hangars_have_screened_supported_and_fair_walked_exits() {
+    use crate::combat::line_of_sight;
+    use crate::navigation::{NavigationGoal, Navigator};
+    let mut game = GameState::with_map(MapKind::HoldfastAtoll, false);
+    game.config.rules = crate::rules::RuleSet::new(GameMode::Tdm, &[], false).unwrap();
+    let arena = world(&game);
+    let spawns: Vec<_> = (0..16)
+        .map(|slot| game.spawn_at_angle(slot as f32 * 2.0 * PI / 16.0))
+        .collect();
+    let mut times = Vec::new();
+    for spawn in &spawns {
+        let from = [spawn.0, spawn.3, spawn.1];
+        assert!(fixed_fits(&arena, &[], *spawn), "{spawn:?}");
+        for dx in [-RADIUS, RADIUS] {
+            for dz in [-RADIUS, RADIUS] {
+                assert!(
+                    (arena.support_height(from[0] + dx, from[2] + dz, from[1] + STEP_UP) - from[1])
+                        .abs()
+                        < CONTACT_EPSILON
+                );
+            }
+        }
+        let eye = [from[0], from[1] + crate::movement::EYE_HEIGHT, from[2]];
+        for other in spawns
+            .iter()
+            .filter(|other| other.0.signum() != spawn.0.signum())
+        {
+            for step in [0.0, 3.0] {
+                assert!(
+                    !line_of_sight(
+                        [eye[0], eye[1], eye[2] + step],
+                        [other.0, other.3 + crate::movement::EYE_HEIGHT, other.1],
+                        &arena.solids
+                    ),
+                    "spawn or first steps exposed: {spawn:?} to {other:?}"
+                );
+            }
+        }
+        let to = [0.0, 3.0, -60.0];
+        let mut state = GameState::with_map(MapKind::HoldfastAtoll, false);
+        let id = Uuid::from_u128(999);
+        state.add_player(id, "Route probe".into(), Role::Human);
+        state.start_round();
+        state.config.time_limit_ticks = None;
+        state.players[0].x = from[0];
+        state.players[0].z = from[2];
+        state.players[0].y = from[1] + PLAYER_FLOOR_Y;
+        let mut navigator = Navigator::default();
+        let mut arrived = None;
+        for tick in 0..300 {
+            let p = &state.players[0];
+            let here = [p.x, p.y - PLAYER_FLOOR_Y, p.z];
+            if (here[0] - to[0]).hypot(here[2] - to[2]) < 0.6 && (here[1] - to[1]).abs() < 0.2 {
+                arrived = Some(tick as f32 * 0.05);
+                break;
+            }
+            let walking = state.walking_arena(&arena);
+            let action = navigator.steer_with_visibility(
+                crate::maps::navigation(MapKind::HoldfastAtoll),
+                here,
+                NavigationGoal {
+                    feet: to,
+                    combat: false,
+                },
+                crate::protocol::Action {
+                    forward: true,
+                    ..Default::default()
+                },
+                tick,
+                true,
+                &walking.solids,
+            );
+            state.set_action(id, action);
+            state.tick(0.05);
+            state.take_events();
+            assert_eq!(state.players[0].hp, 100, "the route remains on safe land");
+        }
+        times.push(arrived.expect("walk from hangar to shared Rail within fifteen seconds"));
+    }
+    for slot in 0..8 {
+        assert!(
+            (times[slot] - times[slot + 8]).abs() <= 0.05,
+            "mirrored route {slot}: {times:?}"
+        );
+    }
+}
+
+#[test]
+fn holdfast_forward_deployment_is_tdm_only_and_keeps_crowded_admission_safe() {
+    for mode in [
+        GameMode::Ffa,
+        GameMode::Duel,
+        GameMode::Ctf,
+        GameMode::Conquest,
+        GameMode::Sabotage,
+    ] {
+        let mut state = GameState::with_map(MapKind::HoldfastAtoll, false);
+        state.config.rules = crate::rules::RuleSet::new(mode, &[], false).unwrap();
+        for slot in 0..16 {
+            let angle = slot as f32 * 2.0 * PI / 16.0;
+            assert_eq!(
+                state.spawn_at_angle(angle),
+                state.map.spawn(angle),
+                "{mode:?}"
+            );
+        }
+    }
+    for mutators in [
+        vec![],
+        vec![crate::protocol::Mutator::GoldenRail],
+        vec![crate::protocol::Mutator::RailOnly],
+    ] {
+        let mut state = GameState::with_map(MapKind::HoldfastAtoll, false);
+        state.seed(17);
+        state.apply_config(crate::sim::MatchConfig {
+            rules: crate::rules::RuleSet::new(GameMode::Tdm, &mutators, false).unwrap(),
+            ..Default::default()
+        });
+        for id in 1..=16 {
+            state.add_player(Uuid::from_u128(id), format!("Fighter {id}"), Role::Human);
+        }
+        state.start_round();
+        let arena = world(&state);
+        for (index, player) in state.players.iter().enumerate() {
+            assert_eq!(player.respawn_timer, None);
+            assert_eq!(crate::rules::spawn_side(player.x), player.team);
+            assert!(player.x.abs() <= 52.0 && player.z >= -88.0 && player.z <= -80.0);
+            assert!(fixed_fits(&arena, &[], point(&state, player.id)));
+            for other in &state.players[index + 1..] {
+                assert!((player.x - other.x).hypot(player.z - other.z) >= RADIUS * 2.0);
+            }
+        }
+        let id = state.players[0].id;
+        state.players[0].hp = 0;
+        state.players[0].respawn_timer = Some(1);
+        state.tick(0.05);
+        assert_eq!(state.players[0].respawn_timer, None);
+        assert!(state.players[0].x.abs() <= 52.0);
+        assert!(fixed_fits(&world(&state), &[], point(&state, id)));
+    }
+}
+
+#[test]
 fn established_stair_edge_bays_keep_their_step_clearance() {
     let game = GameState::with_map(MapKind::Directive17, false);
     for index in 0..game.map.spawn_slots() {
