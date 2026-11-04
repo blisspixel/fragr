@@ -1018,6 +1018,18 @@ fn late_campaign_routes_finish_and_keep_checkpoint_gaps_bounded() {
     }
 }
 
+/// The focused Auditor lesson preserves the earned full-level route.
+#[test]
+fn custodian_of_record_lesson_routes_depart_across_seeds() {
+    for seed in 40..44 {
+        let row = play(MissionId::CustodianOfRecord, seed);
+        eprintln!("Auditor lesson seed {seed}: {row:?}");
+        assert_eq!(row.outcome, "departed", "seed {seed}: {row:?}");
+        assert_eq!(row.deaths, 0, "seed {seed}: {row:?}");
+        assert!(row.longest_gap_seconds <= 180.0, "seed {seed}: {row:?}");
+    }
+}
+
 /// Every level's first checkpoint, encoded as the run file carries it and read
 /// back into a fresh session of the same mission, resumes the same world: the
 /// same map facts, the owner where and as they were, the same hostiles, and

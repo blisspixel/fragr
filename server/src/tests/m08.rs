@@ -161,7 +161,7 @@ fn bundled_custodian_of_record_prepares_three_stages() {
         .iter()
         .map(|group| group.enemies.len())
         .sum();
-    assert_eq!(required, 25);
+    assert_eq!(required, 23);
     assert_eq!(runtime.encounters()[6].enemies.len(), 3, "optional ambush");
 }
 
@@ -528,6 +528,187 @@ fn m08_gallery_auditor_reaches_a_disabled_custody_sweeper() {
         Some(sweeper),
         "the gallery Auditor reaches its own Sweeper"
     );
+    assert!(!s.state.encounters.is_complete(3));
+    assert!(!s.state.players.iter().any(|p| p.name == "well_auditor"));
+    for _ in 0..60 {
+        advance(&mut s, 1);
+        if s.state.players.iter().any(|p| p.id == sweeper && p.hp > 0) {
+            break;
+        }
+    }
+    assert!(s.state.players.iter().any(|p| p.id == sweeper && p.hp > 0));
+    assert_eq!(s.state.snapshot().auditors[0].repairs_left, 1);
+    assert!(!s.state.encounters.is_complete(3));
+    assert!(!s.state.players.iter().any(|p| p.name == "well_auditor"));
+}
+
+#[test]
+fn m08_auditor_lesson_interrupts_without_unlocking_the_bridge() {
+    for broken_sight in [false, true] {
+        let (mut s, id) = fixture();
+        let g = s.state.map.m08_geometry().unwrap();
+        for group in 0..3 {
+            clear(&mut s, id, group, Some(arrival_feet(&g.objectives[group])));
+        }
+        place(&mut s, id, [18.0, 6.0, 2.0]);
+        advance(&mut s, 2);
+        let auditor = s
+            .state
+            .players
+            .iter()
+            .find(|p| p.name == "gallery_auditor")
+            .unwrap()
+            .id;
+        let sweeper = s
+            .state
+            .players
+            .iter()
+            .find(|p| p.name == "upper_sweeper_middle")
+            .unwrap()
+            .id;
+        let body = s
+            .state
+            .players
+            .iter_mut()
+            .find(|p| p.id == sweeper)
+            .unwrap();
+        body.hp = 0;
+        let feet = [body.x, body.y - PLAYER_FLOOR_Y, body.z];
+        s.state.encounters.hit(sweeper, feet, s.state.tick, true);
+        place(&mut s, id, [28.0, 3.0, -6.0]);
+        for _ in 0..60 {
+            advance(&mut s, 1);
+            if s.state.snapshot().auditors[0].channel_target == Some(sweeper) {
+                break;
+            }
+        }
+        assert_eq!(s.state.snapshot().auditors[0].channel_target, Some(sweeper));
+        if broken_sight {
+            let p = s
+                .state
+                .players
+                .iter_mut()
+                .find(|p| p.id == auditor)
+                .unwrap();
+            // The existing gallery deck occludes a body directly below it;
+            // horizontal range remains zero, so this proves sight, not range.
+            p.x = feet[0];
+            p.y = feet[1] - 3.0 + PLAYER_FLOOR_Y;
+            p.z = feet[2];
+            assert!(!crate::combat::line_of_sight(
+                [feet[0], feet[1] - 1.6, feet[2]],
+                [feet[0], feet[1] + 0.5, feet[2]],
+                &s.state.current_arena().solids
+            ));
+        } else {
+            let p = s
+                .state
+                .players
+                .iter_mut()
+                .find(|p| p.id == auditor)
+                .unwrap();
+            p.hp -= 1;
+            let feet = [p.x, p.y - PLAYER_FLOOR_Y, p.z];
+            s.state.encounters.hit(auditor, feet, s.state.tick, false);
+        }
+        advance(&mut s, 1);
+        let fact = s.state.snapshot().auditors[0];
+        assert_eq!(fact.channel_target, None);
+        assert_eq!(fact.repairs_left, 2, "a snapped channel spends no repair");
+        assert!(s.state.players.iter().any(|p| p.id == sweeper && p.hp <= 0));
+        assert!(!s.state.encounters.is_complete(3));
+        assert!(!s.state.players.iter().any(|p| p.name == "well_auditor"));
+    }
+}
+
+#[test]
+fn m08_auditor_can_fall_first_without_forcing_a_repair() {
+    let (mut s, id) = fixture();
+    let g = s.state.map.m08_geometry().unwrap();
+    for group in 0..3 {
+        clear(&mut s, id, group, Some(arrival_feet(&g.objectives[group])));
+    }
+    place(&mut s, id, [18.0, 6.0, 2.0]);
+    advance(&mut s, 2);
+    for name in ["gallery_auditor", "upper_sweeper_middle"] {
+        let p = s.state.players.iter_mut().find(|p| p.name == name).unwrap();
+        p.hp = 0;
+        let (enemy, feet) = (p.id, [p.x, p.y - PLAYER_FLOOR_Y, p.z]);
+        s.state.encounters.hit(enemy, feet, s.state.tick, true);
+        advance(&mut s, 2);
+        if name == "gallery_auditor" {
+            assert!(!s.state.encounters.is_complete(3));
+            assert!(!facts(&s).seal_open);
+        }
+    }
+    place(&mut s, id, arrival_feet(&g.objectives[3]));
+    advance(&mut s, 2);
+    assert!(s.state.encounters.is_complete(3));
+    assert!(facts(&s).seal_open);
+    assert!(!s.state.encounters.is_complete(4));
+}
+
+#[test]
+fn m08_current_checkpoint_restores_the_focused_lesson_roster() {
+    let mut s = GameSession::with_authored_map(map());
+    s.state.seed(42);
+    s.state.enable_campaign_run().unwrap();
+    let id = Uuid::from_u128(8008);
+    s.state.add_player(id, "Visitor".into(), Role::Human);
+    assert!(s.state.acknowledge_mission(
+        id,
+        MissionReady {
+            id: MissionId::CustodianOfRecord,
+            attempt: 1,
+        }
+    ));
+    advance(&mut s, 1);
+    let g = s.state.map.m08_geometry().unwrap();
+    for group in 0..3 {
+        clear(&mut s, id, group, Some(arrival_feet(&g.objectives[group])));
+    }
+    place(&mut s, id, [28.0, 3.0, -6.0]);
+    let after_lessons = s.state.tick;
+    for _ in 0..1300 {
+        advance(&mut s, 1);
+        if s.state
+            .campaign_checkpoint_ticks()
+            .last()
+            .is_some_and(|tick| *tick > after_lessons)
+        {
+            break;
+        }
+    }
+    let document = s.state.campaign_run_document().unwrap().unwrap();
+    assert!(document
+        .checkpoint
+        .as_ref()
+        .is_some_and(|checkpoint| checkpoint.tick > after_lessons));
+    let bytes = serde_json::to_vec(&document).unwrap();
+    let loaded = serde_json::from_slice(&bytes).unwrap();
+    let mut resumed = GameSession::with_authored_map(map());
+    resumed.state.load_campaign_run(&loaded).unwrap();
+    resumed.state.add_player(id, "Visitor".into(), Role::Human);
+    assert!(resumed.state.acknowledge_mission(
+        id,
+        MissionReady {
+            id: MissionId::CustodianOfRecord,
+            attempt: 1,
+        }
+    ));
+    advance(&mut resumed, 2);
+    assert_eq!(facts(&resumed).completed, facts(&s).completed);
+    place(&mut resumed, id, [18.0, 6.0, 2.0]);
+    advance(&mut resumed, 2);
+    let upper: Vec<_> = resumed
+        .state
+        .players
+        .iter()
+        .filter(|p| p.name == "gallery_auditor" || p.name.starts_with("upper_sweeper_"))
+        .map(|p| p.name.as_str())
+        .collect();
+    assert_eq!(upper.len(), 2);
+    assert!(upper.contains(&"gallery_auditor") && upper.contains(&"upper_sweeper_middle"));
 }
 
 #[test]
@@ -538,6 +719,8 @@ fn m08_strict_authoring_rejects_roster_binding_seal_and_control_failures() {
         "unknown",
         "order",
         "auditor",
+        "lesson_extra",
+        "lesson_wrong_body",
         "mines",
         "unsealed",
         "machine",
@@ -551,6 +734,17 @@ fn m08_strict_authoring_rejects_roster_binding_seal_and_control_failures() {
             "unknown" => d["m08"]["phantom"] = serde_json::json!(true),
             "order" => d["m08"]["objectives"][0]["id"] = serde_json::json!("exit_cleared"),
             "auditor" => d["encounters"][3]["enemies"][0]["kind"] = serde_json::json!("clerk"),
+            "lesson_extra" => {
+                let mut extra = d["encounters"][3]["enemies"][1].clone();
+                extra["id"] = serde_json::json!("extra_lesson_sweeper");
+                d["encounters"][3]["enemies"]
+                    .as_array_mut()
+                    .unwrap()
+                    .push(extra);
+            }
+            "lesson_wrong_body" => {
+                d["encounters"][3]["enemies"][1]["kind"] = serde_json::json!("heavy_sweeper")
+            }
             "mines" => d["encounters"][2]["enemies"][0]["kind"] = serde_json::json!("clerk"),
             // A seal that never lifts leaves nothing to prepare.
             "unsealed" => {

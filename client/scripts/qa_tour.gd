@@ -720,6 +720,72 @@ func _run() -> void:
 							enemy_name, actual_phases.get(enemy_name, "missing"), expected_phases[enemy_name], state_name])
 						_failed = true
 
+		var auditor_evidence: Dictionary = {}
+		if state.has("expect_auditor"):
+			var auditor_deadline: int = Time.get_ticks_msec() + 10000
+			while Time.get_ticks_msec() < auditor_deadline:
+				auditor_evidence = auditor_observation(_game_manager().get("latest_snapshot"), state["expect_auditor"])
+				if not auditor_evidence.is_empty():
+					break
+				await create_timer(0.025).timeout
+			if auditor_evidence.is_empty():
+				var failed_snapshot: Dictionary = _game_manager().get("latest_snapshot")
+				var subjects: Array[Dictionary] = []
+				for actor: Dictionary in failed_snapshot.get("players", []):
+					if actor.get("name", "") in [state["expect_auditor"]["name"], state["expect_auditor"]["target"]]:
+						subjects.append(actor)
+				push_error("qa_tour: %s did not observe the required Auditor channel/repair: %s" % [state_name,
+					JSON.stringify({"tick": failed_snapshot.get("tick", 0), "subjects": subjects,
+						"auditors": failed_snapshot.get("auditors", []), "combat_confirmed": combat.get("confirmed", {})})])
+				_failed = true
+			elif state.get("interrupt_auditor", false):
+				var auditor_actor: Dictionary = QaCombat.actor_by_id(_game_manager().get("latest_snapshot"), str(auditor_evidence["id"]))
+				var exposed: Vector3 = QaCombat.exposed_point(auditor_actor,
+					_local_feet() + Vector3.UP * MoveStep.EYE_HEIGHT,
+					_game_manager().get("current_map_info").get("solids", []))
+				if exposed == Vector3.INF or not bool(auditor_evidence.get("channel", false)):
+					push_error("qa_tour: %s requires an exposed, actively channeling Auditor" % state_name)
+					_failed = true
+					_write_manifest(tour)
+					await _retire_scene()
+					quit(1)
+					return
+				await _aim_at([exposed.x, exposed.y, exposed.z])
+				var interrupted_expected: Dictionary = state["expect_auditor"].duplicate(true)
+				interrupted_expected["channel"] = false
+				var interrupted: Dictionary = {}
+				var shot_deadline: int = Time.get_ticks_msec() + 1500
+				Input.action_press("fire")
+				while Time.get_ticks_msec() < shot_deadline:
+					await create_timer(0.025).timeout
+					interrupted = auditor_observation(_game_manager().get("latest_snapshot"), interrupted_expected)
+					if not interrupted.is_empty():
+						break
+				Input.action_release("fire")
+				var after_shot: Dictionary = QaCombat.actor_by_id(_game_manager().get("latest_snapshot"), str(auditor_evidence["id"]))
+				if interrupted.is_empty() or int(after_shot.get("hp", 0)) >= int(auditor_actor["hp"]):
+					push_error("qa_tour: %s did not interrupt the live channel with a damaging shot: %s" % [state_name,
+						JSON.stringify({"before": auditor_actor, "after": after_shot, "channel": interrupted,
+							"equipment": _equipment()})])
+					_failed = true
+				else:
+					interrupted["hp_before"] = int(auditor_actor["hp"])
+					interrupted["hp_after"] = int(after_shot["hp"])
+					auditor_evidence["interrupted"] = interrupted
+			elif state.get("camera", "") == "first_person":
+				var channel_snapshot: Dictionary = _game_manager().get("latest_snapshot")
+				var officer: Dictionary = QaCombat.actor_by_id(channel_snapshot, str(auditor_evidence["id"]))
+				var machine: Dictionary = QaCombat.actor_by_id(channel_snapshot, str(auditor_evidence["target"]))
+				await _aim_at([(float(officer["x"]) + float(machine["x"])) * 0.5,
+					(float(officer["y"]) + float(machine["y"])) * 0.5 + 0.2,
+					(float(officer["z"]) + float(machine["z"])) * 0.5])
+			if _failed:
+				_write_manifest(tour)
+				_write_contact_sheet()
+				await _retire_scene()
+				quit(1)
+				return
+
 		# An effect that lasts sixty milliseconds is never in a still taken at a
 		# fixed second. A state can instead pull the trigger and keep a strip of
 		# consecutive frames, which is the only way the muzzle flash, the tracer
@@ -1009,6 +1075,7 @@ func _run() -> void:
 			"movement_samples": _movement_samples.duplicate(true),
 			"walks": _walk_results.duplicate(true),
 			"combat": combat,
+			"auditor": auditor_evidence,
 			"walker_combat": walker_combat,
 			"m14_combat": m14_combat,
 			"audio": audio_capture,
@@ -2527,6 +2594,7 @@ func _prepare_static_capture(state: Dictionary) -> bool:
 	if not _joined or not (state.has("weapon") or state.has("aim_pitch")):
 		return true
 	var state_name: String = str(state.get("name", "static pose"))
+	var pose_attempts: Array[Dictionary] = []
 	for _attempt: int in range(2):
 		if not await _wait_live_joined_fighter(state_name):
 			return false
@@ -2537,6 +2605,18 @@ func _prepare_static_capture(state: Dictionary) -> bool:
 		# Camera reconciliation must render the accepted aim, not just receive it.
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
+		var pose_camera: Node3D = _spectator_camera()
+		var punch: Vector2 = pose_camera.call("view_punch")
+		var pressed: Array[StringName] = []
+		for action: StringName in InputMap.get_actions():
+			if Input.is_action_pressed(action):
+				pressed.append(action)
+		pose_attempts.append({"tick": gm.latest_snapshot.get("tick", 0),
+			"round": gm.latest_snapshot.get("round_state", ""), "alive": _local_human_alive(gm),
+			"expected_pitch": state.get("aim_pitch"), "server_pitch": _local_server_pitch(gm),
+			"aim_pitch": pose_camera.get("fp_pitch"), "rendered_pitch": pose_camera.rotation.x,
+			"punch": [punch.x, punch.y], "fp_mode": pose_camera.get("fp_mode"),
+			"look_source": InputDevice.look_source, "pressed": pressed, "paused": paused})
 		if not _local_human_can_act(gm):
 			continue
 		if state.has("weapon") and str(gm.call("_local_weapon_name")) != str(state["weapon"]):
@@ -2547,7 +2627,7 @@ func _prepare_static_capture(state: Dictionary) -> bool:
 			if absf(_local_server_pitch(gm) - pitch) > 0.001 or absf(camera.rotation.x - pitch) > 0.001:
 				continue
 		return true
-	push_error("qa_tour: could not retain a living requested pose before freezing " + state_name)
+	push_error("qa_tour: could not retain a living requested pose before freezing %s: %s" % [state_name, JSON.stringify(pose_attempts)])
 	_failed = true
 	return false
 
@@ -3289,6 +3369,30 @@ func _hunt(seconds: float, until: String) -> void:
 			Input.action_release("fire")
 		await process_frame
 	Input.action_release("fire")
+
+static func auditor_observation(snapshot: Dictionary, expected: Dictionary) -> Dictionary:
+	var auditor_id: String = ""
+	var target_id: String = ""
+	var target_alive: bool = false
+	for player: Dictionary in snapshot.get("players", []):
+		if str(player.get("name", "")) == str(expected.get("name", "")) and int(player.get("hp", 0)) > 0:
+			auditor_id = str(player.get("id", ""))
+		if str(player.get("name", "")) == str(expected.get("target", "")):
+			target_id = str(player.get("id", ""))
+			target_alive = int(player.get("hp", 0)) > 0
+	if auditor_id.is_empty() or target_id.is_empty():
+		return {}
+	for fact: Dictionary in snapshot.get("auditors", []):
+		if str(fact.get("id", "")) != auditor_id or int(fact.get("repairs_left", -1)) != int(expected.get("repairs_left", -2)):
+			continue
+		var channel: bool = str(fact.get("channel_target", "")) == target_id
+		if not bool(expected.get("channel", false)) and not str(fact.get("channel_target", "")).is_empty():
+			continue
+		if channel != bool(expected.get("channel", false)) or target_alive != bool(expected.get("target_alive", false)):
+			continue
+		return {"tick": snapshot.get("tick", 0), "id": auditor_id, "target": target_id,
+			"channel": channel, "target_alive": target_alive, "repairs_left": fact["repairs_left"]}
+	return {}
 
 func _aim_at(target: Array, allow_interruption: bool = false) -> bool:
 	var camera: Node3D = _spectator_camera()

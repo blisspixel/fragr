@@ -10,6 +10,43 @@ const HASHES: ContentHashes = [
     [111; 32], [250; 32],
 ];
 
+#[test]
+fn m08_old_three_sweeper_content_is_refused_before_checkpoint_restore() {
+    let current = AuthoredSource::bundled_content_sha256(MissionId::CustodianOfRecord);
+    // The released three-Sweeper upper gallery, before the focused lesson.
+    let old = [
+        0x97, 0x71, 0x5a, 0x06, 0x27, 0x2b, 0x98, 0x4a, 0x68, 0xa0, 0x11, 0xf9, 0xaf, 0xdf, 0x9b,
+        0x18, 0xd3, 0xc7, 0xcf, 0x59, 0xad, 0xc1, 0xb5, 0x38, 0x18, 0x1c, 0xcd, 0xb1, 0xe9, 0xb9,
+        0xbf, 0xdb,
+    ];
+    assert_ne!(current, old);
+    let mut hashes = HASHES;
+    hashes[7] = current;
+    let mut document = completed_town()
+        .promote_next(MissionId::CustodianOfRecord, current)
+        .unwrap();
+    assert!(matches!(
+        RunStore::inspect_bytes(&serde_json::to_vec(&document).unwrap(), hashes),
+        RunProbe::Compatible(_)
+    ));
+    document.content_sha256 = old;
+    assert!(matches!(
+        RunStore::inspect_bytes(&serde_json::to_vec(&document).unwrap(), hashes),
+        RunProbe::Incompatible
+    ));
+    document.checkpoint = Some(crate::mission::run_file::SavedCheckpoint {
+        build: crate::mission::run_file::checkpoint_build(),
+        mission: MissionId::CustodianOfRecord,
+        tick: 800,
+        state: std::sync::Arc::from(serde_json::value::RawValue::from_string(
+            "{\"players\":[{\"name\":\"upper_sweeper_east\"},{\"name\":\"upper_sweeper_south\"}]}".into()).unwrap()),
+    });
+    assert!(matches!(
+        RunStore::inspect_bytes(&serde_json::to_vec(&document).unwrap(), hashes),
+        RunProbe::Incompatible
+    ));
+}
+
 fn completed_town() -> RunDocument {
     let mut document = super::m07_tests::completed_port()
         .promote_next(MissionId::DeclaredGoods, HASHES[6])
