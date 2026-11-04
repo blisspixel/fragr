@@ -36,6 +36,10 @@ pub struct Navigator {
     avoidance_tick: u64,
     avoidance_stalled: u32,
     avoidance_motion: Option<[bool; 4]>,
+    reanchor_after_escape: bool,
+    crowd_obstacles: Vec<Solid>,
+    crowd_keys: Vec<String>,
+    crowd_obstacles_until: u64,
 }
 
 impl Navigator {
@@ -238,8 +242,8 @@ impl Navigator {
     }
 
     /// Local ordinary input around occupied routes and observed static corners.
-    /// Topology/search memory stays unchanged; every candidate uses map
-    /// integration and the shared contact solver with immutable current bodies.
+    /// Every candidate uses map integration and the shared contact solver with
+    /// immutable current bodies. A stalled retreat can request a bounded detour.
     pub fn avoid_bodies(
         &mut self,
         arena: &crate::movement::Arena,
@@ -252,6 +256,28 @@ impl Navigator {
         let Some(me) = bodies.iter().find(|b| b.key == key) else {
             return action;
         };
+        if tick >= self.crowd_obstacles_until {
+            self.crowd_keys.clear();
+            self.crowd_obstacles.clear();
+        } else {
+            self.crowd_keys.retain(|key| {
+                bodies.iter().any(|body| {
+                    body.key == *key
+                        && body.from.y + body.height > me.from.y
+                        && me.from.y + me.height > body.from.y
+                        && line_of_sight(
+                            [me.from.x, me.from.y + EYE_HEIGHT, me.from.z],
+                            [body.from.x, body.from.y + body.height * 0.5, body.from.z],
+                            &arena.solids,
+                        )
+                })
+            });
+            self.crowd_obstacles = bodies
+                .iter()
+                .filter(|body| self.crowd_keys.contains(&body.key))
+                .map(body_obstacle)
+                .collect();
+        }
         // Cached grid waypoints can lie inside an occupied body. Keep the final
         // goal, but advance intermediate occupied points within this local
         // neighbourhood so a successful pass does not turn back into its peer.
@@ -320,6 +346,11 @@ impl Navigator {
         let recovering_static = self.avoidance_motion.is_some() && tick < self.avoidance_until;
         if !recovering_static {
             self.avoidance_motion = None;
+            if self.reanchor_after_escape {
+                self.points.clear();
+                self.next_search_tick = tick;
+                self.reanchor_after_escape = false;
+            }
         }
         if tick != self.avoidance_tick {
             // Wire readers can receive a newer snapshot after intervening ones
@@ -505,6 +536,13 @@ impl Navigator {
         // ordinary movers cancel each other. Real consecutive immobility must
         // permit a supported lateral escape rather than reusing that forecast.
         let mut best_score = if stalled { 0.0 } else { progress };
+        // Leave a touching earlier body's tie-break to the established yield
+        // lease. Starting a crowd escape first would postpone that decision.
+        let awaiting_yield = neighbours.iter().any(|body| {
+            body.key < key
+                && (body.from.x - me.from.x).hypot(body.from.z - me.from.z) < me.radius * 2.0 + 0.3
+        });
+        let escaping = stalled && (static_obstructed || (progress < 0.08 && !awaiting_yield));
         for (forward, back, left, right) in [
             (true, false, false, true),
             (false, false, false, true),
@@ -529,10 +567,9 @@ impl Navigator {
             } else {
                 0.0
             };
-            let static_recovery = neighbours.is_empty() && static_obstructed && stalled;
-            let score = if static_recovery {
-                // An inflated stair corner can require an outward diagonal
-                // before retreat resumes. Reward actual supported escape,
+            let score = if escaping {
+                // A corner or a gap between stationary people can require
+                // stepping back before passing. Reward supported escape,
                 // while preserving combat aim and the finite recovery lease.
                 along * 0.15
                     + lateral.abs() * 0.35
@@ -553,8 +590,35 @@ impl Navigator {
         {
             self.avoidance_side = if best.right { 1 } else { -1 };
             self.avoidance_until = tick.saturating_add(12);
-            if neighbours.is_empty() && static_obstructed && stalled {
+            if escaping {
                 self.avoidance_motion = Some([best.forward, best.back, best.left, best.right]);
+                if !neighbours.is_empty() {
+                    // Re-anchor after retreating from a crowded waypoint;
+                    // retaining the point beyond the bodies repeats the pinch.
+                    self.reanchor_after_escape = true;
+                    self.crowd_keys = bodies
+                        .iter()
+                        .filter(|body| {
+                            body.key != key
+                                && (body.from.x - me.from.x).hypot(body.from.z - me.from.z) < 6.0
+                                && body.from.y + body.height > me.from.y
+                                && me.from.y + me.height > body.from.y
+                                && line_of_sight(
+                                    [me.from.x, me.from.y + EYE_HEIGHT, me.from.z],
+                                    [body.from.x, body.from.y + body.height * 0.5, body.from.z],
+                                    &arena.solids,
+                                )
+                        })
+                        .take(16)
+                        .map(|body| body.key.clone())
+                        .collect();
+                    self.crowd_obstacles = bodies
+                        .iter()
+                        .filter(|body| self.crowd_keys.contains(&body.key))
+                        .map(body_obstacle)
+                        .collect();
+                    self.crowd_obstacles_until = tick.saturating_add(100);
+                }
             }
         }
         best
@@ -593,9 +657,16 @@ impl Navigator {
         allow_search: bool,
         visibility: &[Solid],
     ) -> Action {
+        if tick < self.last_tick
+            || self
+                .last_position
+                .is_some_and(|last| distance(last, from) > 8.0)
+        {
+            self.clear();
+        }
         // Runtime cover appends vehicle hulls to the immutable map. Moving
         // campaign worlds may replace solids, so retain a safe fallback there.
-        let obstacles: std::borrow::Cow<'_, [Solid]> =
+        let mut obstacles: std::borrow::Cow<'_, [Solid]> =
             if visibility.starts_with(&world.arena.solids) {
                 std::borrow::Cow::Borrowed(&visibility[world.arena.solids.len()..])
             } else {
@@ -607,12 +678,20 @@ impl Navigator {
                         .collect(),
                 )
             };
-        if tick < self.last_tick
-            || self
-                .last_position
-                .is_some_and(|last| distance(last, from) > 8.0)
-        {
-            self.clear();
+        if tick >= self.crowd_obstacles_until {
+            self.crowd_obstacles.clear();
+        } else if !goal.combat {
+            // A supported retreat is only useful if the next route goes around
+            // the bodies that caused it. Reuse bounded obstacle filtering on
+            // cached topology, retaining close contacts for at most five seconds.
+            obstacles.to_mut().extend(
+                self.crowd_obstacles
+                    .iter()
+                    .filter(|body| {
+                        !body.blocks(goal.feet[0], goal.feet[2], crate::movement::RADIUS + 0.2)
+                    })
+                    .copied(),
+            );
         }
         if tick > self.last_tick {
             self.stalled_ticks = if self
@@ -721,6 +800,17 @@ impl Navigator {
 
 fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
     (a[0] - b[0]).hypot(a[2] - b[2])
+}
+
+fn body_obstacle(body: &crate::movement::contact::ContactBody) -> Solid {
+    Solid {
+        min_x: body.from.x - body.radius,
+        max_x: body.from.x + body.radius,
+        min_z: body.from.z - body.radius,
+        max_z: body.from.z + body.radius,
+        bottom: body.from.y,
+        top: body.from.y + body.height,
+    }
 }
 
 #[cfg(test)]
