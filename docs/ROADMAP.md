@@ -173,8 +173,8 @@ continues and pacing still need people (#527).
 Wave 27 also gives the default free agent olive-grey field plates and copper
 wear, including the AUTO preview (#530). The broader roster, Renn's own model,
 the contrast target decision (#528) and hardware matrix remain open. The
-funded Meshy balance has been checked; this palette uses no generated assets
-or credits. Call-ins and friendly fire (#535) remain later work. Engineering
+funded Meshy balance has been checked; this palette is baked from the existing
+model texture and spends no credits. Call-ins and friendly fire (#535) remain later work. Engineering
 continues while the LAN and fresh-player gates stay separately open.
 
 Close the multiplayer work with a measured fun night of bots and agents across

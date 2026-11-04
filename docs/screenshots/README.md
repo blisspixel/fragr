@@ -13,6 +13,12 @@ when its presentation changes; the remaining files stay as dated tour evidence.
 The project tour runs the engine binary. Packaged desktop games use the original
 game icon checked by the release workflow; these stills do not prove taskbar icons.
 
+The profile still now shows the default free agent's field-plate palette in
+the AUTO preview, captured November 4, 2026 on Linux with Forward+. The full
+34-state tour, both team views, Recall Notice arrival and the Compatibility
+pass were inspected, including effect frame sequences. Other published
+surfaces retain their earlier images because their presentation did not change.
+
 ## November 1, 2026 Local Exception rename
 
 The full publish tour passed 34 main states, two team states and Recall Notice
