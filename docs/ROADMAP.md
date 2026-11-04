@@ -169,6 +169,10 @@ vertically separate contacts; Level 8 now supplies its actual neutral bodies
 to that controller. No authored encounter or gate was removed.
 This is full-state authoring evidence, not fresh-player acceptance; resume,
 continues and pacing still need people (#527).
+The Auditor's Level 8 repair/revive teaching encounter also remains an
+engineering follow-up before its mixed fight; the Assessor's solo teaching
+encounter is already implemented. Constrained profile failures remain useful
+evidence for supply and encounter craft rather than a reason to stop work.
 
 Wave 27 also gives the default free agent olive-grey field plates and copper
 wear, including the AUTO preview (#530). The broader roster, Renn's own model,

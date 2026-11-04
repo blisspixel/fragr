@@ -362,9 +362,10 @@ moral penalty for using the shooter's core mechanics.
   (`"brawl": true` in the map; the loader refuses an unmarked group of four).
   The wave 21 audit (#527) marked the five climaxes in levels 12, 13, 16, 17
   and 20 and reduced the level 10 aft boarders and level 13 machine hall to
-  three kinds. Every new enemy except two meets the party alone first: the
-  Auditor (level 8) arrives with three Sweepers and the Assessor (level 12)
-  with three Clerks, both still open.
+  three kinds. The Assessor now teaches alone in Level 12's greenhouse
+  defense before the mixed pressure. The Auditor's Level 8 introduction
+  still arrives with three Sweepers; its repair/revive lesson remains open
+  before that combination (#527).
   [ENEMIES.md](ENEMIES.md) owns the roster.
 - Secrets reward observation with supplies, tactical access, or early weapons.
   Essential motive, objectives, and rescue warnings are never secret-only.
@@ -459,9 +460,11 @@ so the hold keeps its clock and its climax while every stretch has a safe
 moment to save. The per-level gap survey
 (`cargo test -p localexception-server --release --lib checkpoint_gap_survey -- --ignored
 --nocapture`) measures the longest stretch between saves on the route
-controller; on 2026-11-01 every level stayed at or under 86 s, Level 20's
-whole hold included (367 s before), with Levels 2, 7, 8, 9, 13, 14, 15 and 19
-measured only up to where the controller stalls.
+controller. On 2026-11-04 all twenty full-state authoring routes departed on
+seed 41 without deaths; the longest gap was 159.75 s in Level 14. Levels 8
+and 9 also departed across seeds 40 to 43. These accurate-aim authoring runs
+do not establish constrained-player pacing, fresh-player acceptance or
+human resume acceptance; constrained profile surveys still retain failures.
 
 Open decision for Nick: the earlier contract said a continue restarts the level
 from its beginning. Returning to the checkpoint is the smallest change that
