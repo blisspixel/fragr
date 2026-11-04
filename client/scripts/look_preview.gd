@@ -54,7 +54,7 @@ func _init() -> void:
 	camera.current = true
 
 
-## Show `next_body` in `next_look` (AUTO shows the body's own art) with
+## Show `next_body` in `next_look` (AUTO previews look 0 until assignment) with
 ## `next_accent` (AUTO shows a neutral callsign colour on the tape only).
 func show_look(next_body: String, next_look: int, next_accent: int) -> void:
 	next_body = PlayerBody.preference(next_body)
@@ -75,7 +75,7 @@ func show_look(next_body: String, next_look: int, next_accent: int) -> void:
 	body = next_body
 	look = next_look if FighterLooks.valid_look(body, next_look) else FighterLooks.AUTO
 	accent = next_accent if FighterLooks.valid_accent(next_accent) else FighterLooks.AUTO
-	FighterLooks.wear(view, FighterLooks.texture(body, look))
+	FighterLooks.wear(view, FighterLooks.texture(body, 0 if look == FighterLooks.AUTO else look))
 	var personal: Color = FighterLooks.accent_color(accent)
 	var tape: Color = personal if personal.a > 0.0 else FactionPalette.callsign_color("preview")
 	view.dress("free", tape)

@@ -2005,7 +2005,7 @@ func _await_clear_frame(min_fighters: int, timeout_seconds: float, face_within: 
 						nearest = pawn
 				if nearest != null:
 					var chest: Vector3 = nearest.global_position + Vector3.UP * 1.2
-					await _aim_at([chest.x, chest.y, chest.z])
+					await _aim_at([chest.x, chest.y, chest.z], true)
 		await create_timer(0.05).timeout
 	return false
 
@@ -3290,7 +3290,7 @@ func _hunt(seconds: float, until: String) -> void:
 		await process_frame
 	Input.action_release("fire")
 
-func _aim_at(target: Array) -> void:
+func _aim_at(target: Array, allow_interruption: bool = false) -> bool:
 	var camera: Node3D = _spectator_camera()
 	# Camera reconciliation can still trail the last combat sidestep.
 	# Ordinary input must aim from the current authoritative eye.
@@ -3301,28 +3301,34 @@ func _aim_at(target: Array) -> void:
 		origin = _local_feet() + Vector3.UP * (MoveStep.DUCK_EYE_HEIGHT if me.get("ducking", false) else MoveStep.EYE_HEIGHT)
 	var direction: Vector3 = Vector3(float(target[0]), float(target[1]), float(target[2])) - origin
 	camera.set("fp_yaw", atan2(direction.z, direction.x))
-	await _set_aim_pitch(atan2(direction.y, Vector2(direction.x, direction.z).length()))
+	return await _set_aim_pitch(atan2(direction.y, Vector2(direction.x, direction.z).length()), allow_interruption)
 
-func _set_aim_pitch(pitch: float) -> void:
+func _set_aim_pitch(pitch: float, allow_interruption: bool = false) -> bool:
 	pitch = clampf(pitch, -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT)
 	var gm: Node = _game_manager()
 	var cam: Node = _spectator_camera()
 	if gm == null or cam == null or not bool(gm.get("is_human_player")):
 		push_error("qa_tour: pitch capture requires a joined human")
 		_failed = true
-		return
+		return false
 	var deadline: int = Time.get_ticks_msec() + 5000
 	# A live arcade opponent can kill this participant during the request.
 	# Respawn restores facing, so keep sending the requested ordinary input
 	# until a living snapshot and camera agree. Never accept a dead pose.
 	while Time.get_ticks_msec() < deadline:
+		# Adaptive fight framing may lose its live round while turning. Its
+		# outer bounded wait must still find a clear live frame; a dead or
+		# results pose cannot acknowledge this attempt or poison a later one.
+		if allow_interruption and not _local_human_can_act(gm):
+			return false
 		if _self_alive(gm, gm.latest_snapshot):
 			cam.set("fp_pitch", pitch)
 			if absf(_local_server_pitch(gm) - pitch) <= 0.001:
-				return
+				return true
 		await process_frame
 	push_error("qa_tour: living pitch did not reach the authoritative snapshot (expected %.6f, server %.6f)" % [pitch, _local_server_pitch(gm)])
 	_failed = true
+	return false
 
 static func _ctf_matches(expected: Dictionary, observed: Dictionary) -> bool:
 	if expected.has("status"):

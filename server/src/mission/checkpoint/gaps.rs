@@ -46,7 +46,7 @@ pub(super) struct Row {
 /// the encounter's remaining actors. Each objective starts a fresh search.
 #[derive(Default)]
 struct RouteRecovery {
-    changed_at: u64,
+    objective: Option<(u32, MissionPhase, String)>,
     progressed_at: u64,
     damage: u32,
     position: Option<[f32; 2]>,
@@ -54,9 +54,20 @@ struct RouteRecovery {
 }
 
 impl RouteRecovery {
-    fn observe(&mut self, tick: u64, changed_at: u64, position: [f32; 3], damage: u32) -> bool {
-        if self.changed_at != changed_at {
-            self.changed_at = changed_at;
+    fn observe(
+        &mut self,
+        tick: u64,
+        objective: (u32, MissionPhase, &str),
+        position: [f32; 3],
+        damage: u32,
+    ) -> bool {
+        if self
+            .objective
+            .as_ref()
+            .map(|(attempt, phase, id)| (*attempt, *phase, id.as_str()))
+            != Some(objective)
+        {
+            self.objective = Some((objective.0, objective.1, objective.2.into()));
             self.progressed_at = tick;
             self.position = None;
             self.searching = false;
@@ -73,6 +84,35 @@ impl RouteRecovery {
         self.searching |= tick.saturating_sub(self.progressed_at) >= 100;
         self.searching
     }
+}
+
+fn route_objective(
+    state: &crate::protocol::MissionState,
+) -> Option<&crate::protocol::MissionObjective> {
+    [
+        state.m02.as_ref().and_then(|f| f.current.as_ref()),
+        state.m03.as_ref().and_then(|f| f.current.as_ref()),
+        state.m04.as_ref().and_then(|f| f.current.as_ref()),
+        state.m05.as_ref().and_then(|f| f.current.as_ref()),
+        state.m06.as_ref().and_then(|f| f.current.as_ref()),
+        state.m07.as_ref().and_then(|f| f.current.as_ref()),
+        state.m08.as_ref().and_then(|f| f.current.as_ref()),
+        state.m09.as_ref().and_then(|f| f.current.as_ref()),
+        state.m10.as_ref().and_then(|f| f.current.as_ref()),
+        state.m11.as_ref().and_then(|f| f.current.as_ref()),
+        state.m12.as_ref().and_then(|f| f.current.as_ref()),
+        state.m13.as_ref().and_then(|f| f.current.as_ref()),
+        state.m14.as_ref().and_then(|f| f.current.as_ref()),
+        state.m15.as_ref().and_then(|f| f.current.as_ref()),
+        state.m16.as_ref().and_then(|f| f.current.as_ref()),
+        state.m17.as_ref().and_then(|f| f.current.as_ref()),
+        state.m18.as_ref().and_then(|f| f.current.as_ref()),
+        state.m19.as_ref().and_then(|f| f.current.as_ref()),
+        state.m20.as_ref().and_then(|f| f.current.as_ref()),
+    ]
+    .into_iter()
+    .flatten()
+    .next()
 }
 
 fn configure(client: &mut MissionClient, message: &ServerMessage) -> Result<(), &'static str> {
@@ -206,6 +246,7 @@ fn play_until(
     let mut saved_at: Option<(u64, u32)> = None;
     let mut seen_checkpoints = 0;
     let mut recovery = RouteRecovery::default();
+    let mut supply_target = SupplyDetour::default();
     while session.state.tick < MAX_TICKS {
         if stop(&session) {
             break;
@@ -274,9 +315,15 @@ fn play_until(
         let snapshot = session.state.snapshot();
         let arena = session.state.map.arena();
         let me = snapshot.players.iter().find(|p| p.id == id).unwrap();
+        let objective = route_objective(&state);
+        let departing = objective.is_some_and(|o| o.id == "party_departed");
         let exploring = recovery.observe(
             session.state.tick,
-            state.changed_at,
+            (
+                state.attempt,
+                state.phase,
+                objective.map_or("", |o| o.id.as_str()),
+            ),
             [player.x, player.y, player.z],
             me.damage,
         );
@@ -287,68 +334,72 @@ fn play_until(
             .filter(|weapon| loadout.shots(*weapon).is_none_or(|shots| shots > 0))
             .map(WeaponType::range_units)
             .fold(20.0_f32, f32::max);
-        let mut combat = control_action_with_target_filter(
-            id,
-            &snapshot,
-            Some(&loadout),
-            Action::default(),
-            false,
-            |me, other| {
-                let awake = matches!(other.campaign, Some(CampaignActor::Hostile { phase, .. }) if !matches!(phase, EnemyPhase::Idle | EnemyPhase::Dead));
-                !futile.skips(other.id, session.state.tick)
-                    && (other.x - me.x).hypot(other.z - me.z)
-                        <= if exploring {
-                            search_range
-                        } else if awake {
-                            AWAKE_RANGE
-                        } else {
-                            20.0
-                        }
-                    && (exploring
-                        || crate::combat::line_of_sight(
-                            [
-                                me.x,
-                                me.y - crate::sim::PLAYER_FLOOR_Y + crate::movement::EYE_HEIGHT,
-                                me.z,
-                            ],
-                            [
-                                other.x,
-                                other.y - crate::sim::PLAYER_FLOOR_Y
-                                    + crate::combat::aim_height(other.campaign),
-                                other.z,
-                            ],
-                            &arena.solids,
-                        ))
-            },
-        );
-        if player.hp < 70 {
-            if let Some(health) = snapshot
-                .pickups
-                .iter()
-                .filter(|p| p.available && p.kind == "health")
-                .min_by(|a, b| {
-                    (a.x - player.x)
-                        .hypot(a.z - player.z)
-                        .total_cmp(&(b.x - player.x).hypot(b.z - player.z))
-                })
-            {
-                combat = Action {
-                    forward: true,
-                    look_at: Some(crate::protocol::LookAt {
-                        x: Some(health.x),
-                        y: Some(health.y),
-                        z: Some(health.z),
-                        player_id: None,
-                    }),
-                    ..Default::default()
-                };
+        let choose = |snapshot: &crate::protocol::Snapshot| {
+            let mut combat = control_action_with_target_filter(
+                id,
+                snapshot,
+                Some(&loadout),
+                Action::default(),
+                departing,
+                |me, other| {
+                    let awake = matches!(other.campaign, Some(CampaignActor::Hostile { phase, .. }) if !matches!(phase, EnemyPhase::Idle | EnemyPhase::Dead));
+                    !futile.skips(other.id, session.state.tick)
+                        && (other.x - me.x).hypot(other.z - me.z)
+                            <= if exploring {
+                                search_range
+                            } else if awake {
+                                AWAKE_RANGE
+                            } else {
+                                20.0
+                            }
+                        && (exploring
+                            || crate::combat::line_of_sight(
+                                [
+                                    me.x,
+                                    me.y - crate::sim::PLAYER_FLOOR_Y + crate::movement::EYE_HEIGHT,
+                                    me.z,
+                                ],
+                                [
+                                    other.x,
+                                    other.y - crate::sim::PLAYER_FLOOR_Y
+                                        + crate::combat::aim_height(other.campaign),
+                                    other.z,
+                                ],
+                                &arena.solids,
+                            ))
+                },
+            );
+            if player.hp < 70 && !departing {
+                if let Some(health) = snapshot
+                    .pickups
+                    .iter()
+                    .filter(|p| p.available && p.kind == "health")
+                    .min_by(|a, b| {
+                        (a.x - player.x)
+                            .hypot(a.z - player.z)
+                            .total_cmp(&(b.x - player.x).hypot(b.z - player.z))
+                    })
+                {
+                    combat = Action {
+                        forward: true,
+                        look_at: Some(crate::protocol::LookAt {
+                            x: Some(health.x),
+                            y: Some(health.y),
+                            z: Some(health.z),
+                            player_id: None,
+                        }),
+                        ..Default::default()
+                    };
+                }
             }
-        }
-        combat = reachable_supply(
+            combat
+        };
+        let combat = reachable_choice(
             navigation.as_ref().unwrap(),
             [player.x, player.y - crate::sim::PLAYER_FLOOR_Y, player.z],
-            &snapshot.pickups,
-            combat,
+            &snapshot,
+            &mut supply_target,
+            choose,
         );
         let visible_target = combat
             .look_at
@@ -413,7 +464,8 @@ fn play_until(
 }
 
 /// A supply behind a closed gate must not hold the survey off the objective
-/// that opens it. Keep reachable detours, including ones around cover; a
+/// that opens it. Optional detours must also permit returning: a one-way
+/// drop to ammunition must not strand the route outside a sealed arena. A
 /// search that runs out of budget is inconclusive and retains its intent.
 /// This only filters pickup intent, never a shot at a world control or actor.
 fn reachable_supply(
@@ -443,6 +495,9 @@ fn reachable_supply(
         matches!(
             world.route(feet, [x, floor, z], SEARCH_LIMIT).status,
             RouteStatus::Unreachable | RouteStatus::InvalidPoint
+        ) || matches!(
+            world.route([x, floor, z], feet, SEARCH_LIMIT).status,
+            RouteStatus::Unreachable | RouteStatus::InvalidPoint
         )
     });
     if unreachable {
@@ -452,6 +507,96 @@ fn reachable_supply(
     action
 }
 
+#[derive(Default)]
+struct SupplyDetour {
+    target: Option<String>,
+    previous: Option<String>,
+    changed_at: u64,
+    committed: bool,
+}
+
+/// Keep choosing through the same inventory policy after a proven-unreachable
+/// supply is rejected. Otherwise a nearer locked supply can cancel a useful
+/// detour halfway round its cover and trap the route in a movement loop.
+fn reachable_choice(
+    world: &Navigation,
+    feet: [f32; 3],
+    snapshot: &crate::protocol::Snapshot,
+    retained: &mut SupplyDetour,
+    choose: impl Fn(&crate::protocol::Snapshot) -> Action,
+) -> Action {
+    let pickup_for = |action: &Action| {
+        let look = action
+            .look_at
+            .as_ref()
+            .filter(|look| look.player_id.is_none())?;
+        snapshot.pickups.iter().find(|pickup| {
+            pickup.available
+                && [Some(pickup.x), Some(pickup.y), Some(pickup.z)] == [look.x, look.y, look.z]
+        })
+    };
+    let fresh = choose(snapshot);
+    let Some(selected) = pickup_for(&fresh) else {
+        *retained = SupplyDetour::default();
+        return fresh;
+    };
+    if !retained.committed && snapshot.tick.saturating_sub(retained.changed_at) > 200 {
+        *retained = SupplyDetour::default();
+    }
+    if let Some(previous) = retained
+        .target
+        .as_ref()
+        .filter(|_| retained.committed)
+        .and_then(|id| snapshot.pickups.iter().find(|p| p.id == *id && p.available))
+    {
+        // A needed health pickup can interrupt an ammunition detour. Otherwise
+        // keep a still-useful destination while its route goes around cover;
+        // Euclidean nearest-supply selection can alternate forever on that walk.
+        if selected.kind != "health" || previous.kind == "health" {
+            let mut committed = snapshot.clone();
+            for pickup in &mut committed.pickups {
+                pickup.available &= pickup.id == previous.id;
+            }
+            let action = choose(&committed);
+            if pickup_for(&action).is_some_and(|p| p.id == previous.id)
+                && reachable_supply(world, feet, &committed.pickups, action.clone()).look_at
+                    == action.look_at
+            {
+                return action;
+            }
+        }
+    }
+    if retained.committed {
+        *retained = SupplyDetour::default();
+    }
+    let mut observed = std::borrow::Cow::Borrowed(snapshot);
+    loop {
+        let action = choose(&observed);
+        let filtered = reachable_supply(world, feet, &observed.pickups, action.clone());
+        if filtered.look_at == action.look_at {
+            let next = pickup_for(&action).map(|p| p.id.clone());
+            if next.is_none() {
+                *retained = SupplyDetour::default();
+            } else if next != retained.target {
+                // Preserve ordinary inventory choices until a recent A-B-A
+                // reversal proves oscillation. Committing every first choice
+                // changes healthy combat/resupply paths in other levels.
+                retained.committed = next == retained.previous;
+                retained.previous = retained.target.take();
+                retained.target = next;
+                retained.changed_at = snapshot.tick;
+            }
+            return action;
+        }
+        let look = action.look_at.unwrap();
+        for pickup in &mut observed.to_mut().pickups {
+            if [Some(pickup.x), Some(pickup.y), Some(pickup.z)] == [look.x, look.y, look.z] {
+                pickup.available = false;
+            }
+        }
+    }
+}
+
 #[test]
 fn persons_unknown_supply_detours_finish_across_seeds() {
     for seed in [40, 41, 42, 43] {
@@ -459,6 +604,164 @@ fn persons_unknown_supply_detours_finish_across_seeds() {
         assert_eq!(row.outcome, "departed", "seed {seed}: {row:?}");
         assert!(row.longest_gap_seconds <= 180.0, "seed {seed}: {row:?}");
     }
+}
+
+#[test]
+fn supply_detours_keep_their_destination_and_release_obsolete_targets() {
+    use crate::movement::{Arena, Solid};
+    use crate::protocol::{LookAt, PickupState, Snapshot, SupplyClaim};
+    fn nearest(snapshot: &Snapshot, feet: [f32; 3]) -> Action {
+        let pickup = snapshot
+            .pickups
+            .iter()
+            .filter(|p| p.available)
+            .min_by(|a, b| {
+                (a.x - feet[0])
+                    .hypot(a.z - feet[2])
+                    .total_cmp(&(b.x - feet[0]).hypot(b.z - feet[2]))
+            });
+        Action {
+            forward: pickup.is_some(),
+            look_at: pickup.map(|p| LookAt {
+                x: Some(p.x),
+                y: Some(p.y),
+                z: Some(p.z),
+                player_id: None,
+            }),
+            ..Default::default()
+        }
+    }
+    let world = Navigation::new(Arena {
+        half: 8.0,
+        solids: vec![Solid {
+            min_x: 0.0,
+            max_x: 0.5,
+            min_z: -8.0,
+            max_z: 8.0,
+            bottom: 0.0,
+            top: 3.0,
+        }],
+    })
+    .unwrap();
+    let pickup = |id: &str, x, z| PickupState {
+        id: id.into(),
+        x,
+        y: 0.4,
+        z,
+        available: true,
+        claim: SupplyClaim::Contested,
+        pool: None,
+        kind: "ammo".into(),
+        weapon: String::new(),
+        amount: None,
+        dropped: false,
+    };
+    let mut snapshot = crate::sim::GameState::default().snapshot();
+    snapshot.pickups = vec![
+        pickup("closed", 1.5, 0.0),
+        pickup("north", -6.0, 6.0),
+        pickup("south", -6.0, -6.0),
+    ];
+    let mut retained = SupplyDetour::default();
+    let start = [-1.0, 0.0, 0.0];
+    let first = reachable_choice(&world, start, &snapshot, &mut retained, |s| {
+        nearest(s, start)
+    });
+    assert_eq!(
+        first.look_at.unwrap().z,
+        Some(6.0),
+        "skip the nearer closed supply"
+    );
+    assert_eq!(retained.target.as_deref(), Some("north"));
+    assert!(
+        snapshot.pickups.iter().all(|p| p.available),
+        "selection never claims or hides real supplies"
+    );
+    let detour = [-4.0, 0.0, -2.0];
+    assert_eq!(nearest(&snapshot, detour).look_at.unwrap().z, Some(-6.0));
+    let switched = reachable_choice(&world, detour, &snapshot, &mut retained, |s| {
+        nearest(s, detour)
+    });
+    assert_eq!(
+        switched.look_at.unwrap().z,
+        Some(-6.0),
+        "ordinary fresh supply choices stay unchanged"
+    );
+    assert!(!retained.committed);
+    reachable_choice(&world, start, &snapshot, &mut retained, |s| {
+        nearest(s, start)
+    });
+    assert!(
+        retained.committed,
+        "a recent north-south-north reversal establishes oscillation"
+    );
+    let kept = reachable_choice(&world, detour, &snapshot, &mut retained, |s| {
+        nearest(s, detour)
+    });
+    assert_eq!(
+        kept.look_at.unwrap().z,
+        Some(6.0),
+        "continue around cover instead of reversing destinations"
+    );
+    let mut delayed = SupplyDetour::default();
+    let mut later = snapshot.clone();
+    for (tick, feet) in [(0, start), (1, detour), (202, start)] {
+        later.tick = tick;
+        reachable_choice(&world, feet, &later, &mut delayed, |s| nearest(s, feet));
+    }
+    assert!(
+        !delayed.committed,
+        "old reversals do not establish current oscillation"
+    );
+    // A new combat action interrupts the detour without changing its aim.
+    let shot = Action {
+        fire: true,
+        look_at: Some(LookAt {
+            player_id: Some(Uuid::from_u128(50)),
+            ..Default::default()
+        }),
+        ..Default::default()
+    };
+    let actual = reachable_choice(&world, detour, &snapshot, &mut retained, |_| shot.clone());
+    assert_eq!(actual.look_at, shot.look_at);
+    assert!(actual.fire);
+    assert!(
+        retained.target.is_none(),
+        "combat clears prior supply history"
+    );
+    for feet in [start, detour, start] {
+        reachable_choice(&world, feet, &snapshot, &mut retained, |s| nearest(s, feet));
+    }
+    assert!(retained.committed);
+    snapshot.pickups[2].kind = "health".into();
+    let health = reachable_choice(&world, detour, &snapshot, &mut retained, |s| {
+        nearest(s, detour)
+    });
+    assert_eq!(
+        health.look_at.unwrap().z,
+        Some(-6.0),
+        "urgent health may interrupt ammunition collection"
+    );
+    snapshot.pickups[2].available = false;
+    let replacement = reachable_choice(&world, detour, &snapshot, &mut retained, |s| {
+        nearest(s, detour)
+    });
+    assert_eq!(
+        replacement.look_at.unwrap().z,
+        Some(6.0),
+        "a claimed target releases the commitment"
+    );
+    // Still present but no longer useful: the chooser stops requesting it.
+    let finished = reachable_choice(&world, detour, &snapshot, &mut retained, |_| {
+        Action::default()
+    });
+    assert!(finished.look_at.is_none());
+    snapshot.pickups[1].available = false;
+    let closed_only = reachable_choice(&world, detour, &snapshot, &mut retained, |s| {
+        nearest(s, detour)
+    });
+    assert!(closed_only.look_at.is_none());
+    assert!(retained.target.is_none());
 }
 
 /// Globally preferring objectives over supplies strands this route at arrival.
@@ -488,14 +791,29 @@ fn civic_pressure_valve_departs_with_the_temporary_blade() {
 #[test]
 fn route_recovery_waits_for_quiet_and_resets_when_the_objective_advances() {
     let mut recovery = RouteRecovery::default();
-    assert!(!recovery.observe(1, 1, [0.0; 3], 0));
-    assert!(!recovery.observe(80, 1, [3.0, 0.0, 0.0], 0));
-    assert!(!recovery.observe(150, 1, [3.0, 0.0, 0.0], 10));
-    assert!(!recovery.observe(249, 1, [3.0, 0.0, 0.0], 10));
-    assert!(recovery.observe(250, 1, [3.0, 0.0, 0.0], 10));
-    assert!(recovery.observe(251, 1, [6.0, 0.0, 0.0], 20));
-    assert!(!recovery.observe(252, 252, [6.0, 0.0, 0.0], 20));
-    assert!(!recovery.observe(351, 252, [6.0, 0.0, 0.0], 20));
+    let first = (1, MissionPhase::InProgress, "hall");
+    let next = (1, MissionPhase::InProgress, "gallery");
+    assert!(!recovery.observe(1, first, [0.0; 3], 0));
+    assert!(!recovery.observe(80, first, [3.0, 0.0, 0.0], 0));
+    assert!(!recovery.observe(150, first, [3.0, 0.0, 0.0], 10));
+    assert!(!recovery.observe(249, first, [3.0, 0.0, 0.0], 10));
+    assert!(recovery.observe(250, first, [3.0, 0.0, 0.0], 10));
+    assert!(recovery.observe(251, first, [6.0, 0.0, 0.0], 20));
+    assert!(!recovery.observe(252, next, [6.0, 0.0, 0.0], 20));
+    assert!(!recovery.observe(351, next, [6.0, 0.0, 0.0], 20));
+    assert!(recovery.observe(352, next, [6.0, 0.0, 0.0], 20));
+    assert!(!recovery.observe(353, (2, next.1, next.2), [6.0, 0.0, 0.0], 20));
+}
+
+#[test]
+fn archive_and_berth_routes_depart_across_seeds() {
+    for seed in [40, 41, 42, 43] {
+        for mission in [MissionId::CustodianOfRecord, MissionId::PassengerManifest] {
+            let row = play(mission, seed);
+            assert_eq!(row.outcome, "departed", "seed {seed}: {row:?}");
+            assert!(row.longest_gap_seconds <= 180.0, "seed {seed}: {row:?}");
+        }
+    }
 }
 
 #[test]
@@ -568,6 +886,32 @@ fn supply_filter_rejects_closed_routes_but_keeps_detours_and_other_intent() {
     assert!(!blocked.forward);
     assert!(blocked.reload);
     assert_eq!(blocked.weapon_swap, action.weapon_swap);
+
+    let ledge = Navigation::new(Arena {
+        half: 8.0,
+        solids: vec![Solid {
+            min_x: -8.0,
+            max_x: 0.0,
+            min_z: -8.0,
+            max_z: 8.0,
+            bottom: 0.0,
+            top: 3.0,
+        }],
+    })
+    .unwrap();
+    let above = [-4.0, 3.0, 0.0];
+    assert_eq!(
+        ledge
+            .route(above, [4.0, 0.0, 0.0], crate::navigation::SEARCH_LIMIT)
+            .status,
+        crate::navigation::RouteStatus::Complete
+    );
+    let stranded = reachable_supply(&ledge, above, &pickups, action.clone());
+    assert!(
+        stranded.look_at.is_none(),
+        "optional supplies cannot strand the route below a one-way drop"
+    );
+    assert!(stranded.reload);
 
     let open = Navigation::new(Arena {
         half: 8.0,

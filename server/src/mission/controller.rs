@@ -51,6 +51,7 @@ pub struct MissionClient {
     m06_point: Option<[f32; 3]>,
     m06_pending: bool,
     m08_map: Option<crate::protocol::M08MapGeometry>,
+    m08_neutrals: Option<crate::protocol::M08NeutralLayout>,
     m08_point: Option<[f32; 3]>,
     m08_pending: bool,
     m07_map: Option<crate::protocol::M07MapGeometry>,
@@ -937,6 +938,11 @@ impl MissionClient {
             if let Some(f) = &state.m05 {
                 for captive in &f.captives {
                     append(format!("m05/{}", captive.id), captive.feet);
+                }
+            }
+            if let Some((facts, layout)) = state.m08.as_ref().zip(self.m08_neutrals.as_ref()) {
+                for (key, feet) in layout.people(facts.custodian_joined, facts.custody_released) {
+                    append(key.into(), feet);
                 }
             }
             if let Some(g) = &self.m11_map {

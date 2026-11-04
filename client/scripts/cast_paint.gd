@@ -119,6 +119,8 @@ const HUMAN_LOOK_PAINT: Dictionary[String, Array] = {
 ## own paint, the pale plates in a second colour so no free agent stands on
 ## a bone base. The dark frame and the screen face stay.
 const SYNTHETIC_LOOK_PAINT: Dictionary[String, Array] = {
+	# Field plate: olive-grey work plates and copper-coloured repairs.
+	"look_synthetic_0": [Color("657064"), Color("a46740")],
 	"look_synthetic_1": [Color("5d7a34"), Color("b0883a")],
 	"look_synthetic_2": [Color("a8892c"), Color("5a4030")],
 	"look_synthetic_3": [Color("3e4e96"), Color("c0703a")],

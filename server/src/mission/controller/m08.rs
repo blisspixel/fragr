@@ -11,6 +11,7 @@ impl MissionClient {
     ) -> Result<(), &'static str> {
         let Some(g) = geometry else {
             self.m08_map = None;
+            self.m08_neutrals = None;
             self.m08_point = None;
             self.m08_pending = false;
             return Ok(());
@@ -38,9 +39,10 @@ impl MissionClient {
                 return Err("M08 static map contract changed");
             }
         }
-        self.m08_point = g
-            .departure
-            .point(presentation.ok_or("M08 presentation missing")?, solids);
+        let presentation = presentation.ok_or("M08 presentation missing")?;
+        let neutrals = crate::protocol::M08NeutralLayout::read(half, solids, presentation)?;
+        self.m08_point = g.departure.point(presentation, solids);
+        self.m08_neutrals = Some(neutrals);
         self.m08_map = Some(g.clone());
         self.m08_pending = true;
         self.press_down = false;
@@ -194,5 +196,56 @@ impl MissionClient {
                 self.steer_m02_use(navigator, world, id, snapshot, action, feet, &target, point)
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn archive_controller_validates_and_clears_its_neutral_layout() {
+        let state = crate::sim::GameState::with_authored_map(
+            crate::maps::AuthoredSource::Mission(MissionId::CustodianOfRecord)
+                .load()
+                .unwrap(),
+        );
+        let crate::protocol::ServerMessage::MapInfo {
+            half_extent,
+            solids,
+            presentation,
+            m08,
+            ..
+        } = state.map_info()
+        else {
+            panic!("authored map info");
+        };
+        let presentation = presentation.unwrap();
+        let expected =
+            crate::protocol::M08NeutralLayout::read(half_extent, &solids, &presentation).unwrap();
+        let mut reader = MissionClient::default();
+        reader
+            .replace_map_with_m08(m08.as_ref(), half_extent, &solids, Some(&presentation))
+            .unwrap();
+        assert_eq!(reader.m08_neutrals.as_ref(), Some(&expected));
+        let mut missing = presentation.clone();
+        missing
+            .decorations
+            .retain(|p| p.kind != crate::protocol::MapDecorationKind::M08BayRelease);
+        assert!(reader
+            .replace_map_with_m08(m08.as_ref(), half_extent, &solids, Some(&missing))
+            .is_err());
+        assert_eq!(
+            reader.m08_neutrals.as_ref(),
+            Some(&expected),
+            "invalid input cannot replace accepted contacts"
+        );
+        reader
+            .replace_map_with_m08(None, half_extent, &solids, Some(&presentation))
+            .unwrap();
+        assert!(
+            reader.m08_neutrals.is_none(),
+            "leaving the archive drops its people"
+        );
     }
 }
