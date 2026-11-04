@@ -39,9 +39,10 @@ func _roster() -> void:
 	_expect(FighterLooks.count(PlayerBody.HUMAN) >= 6 and FighterLooks.count(PlayerBody.SYNTHETIC) >= 3,
 		"at least six human and three synthetic looks")
 	var textures: Array[Texture2D] = []
+	_expect(FighterLooks.person(PlayerBody.HUMAN, 0).is_empty() and FighterLooks.texture(PlayerBody.HUMAN, 0) == null,
+		"human workwear keeps its own art")
 	for body: String in PlayerBody.KINDS:
-		_expect(FighterLooks.person(body, 0).is_empty() and FighterLooks.texture(body, 0) == null, "look 0 is the body's own art: " + body)
-		for look: int in range(1, FighterLooks.count(body)):
+		for look: int in range(0 if body == PlayerBody.SYNTHETIC else 1, FighterLooks.count(body)):
 			var person: String = FighterLooks.person(body, look)
 			var texture: Texture2D = FighterLooks.texture(body, look)
 			_expect(texture != null, "look %s %d is baked" % [body, look])
@@ -68,7 +69,7 @@ func _faction_rules() -> void:
 		var color: Color = entry["color"]
 		_expect(FactionPalette.free_accent_allowed(color), "accent %s stays off red, cyan and off-white" % entry["label"])
 	for body: String in PlayerBody.KINDS:
-		for look: int in range(1, FighterLooks.count(body)):
+		for look: int in range(0 if body == PlayerBody.SYNTHETIC else 1, FighterLooks.count(body)):
 			var image: Image = FighterLooks.texture(body, look).get_image()
 			if image.is_compressed():
 				image.decompress()
@@ -145,6 +146,9 @@ func _settings() -> void:
 
 func _pawns() -> void:
 	var cases: Array[Dictionary] = [
+		{"team": "", "body": PlayerBody.SYNTHETIC, "look": 0, "accent": 3},
+		{"team": "coalition", "body": PlayerBody.SYNTHETIC, "look": 0, "accent": 1},
+		{"team": "union", "body": PlayerBody.SYNTHETIC, "look": 0, "accent": 0},
 		{"team": "", "body": PlayerBody.HUMAN, "look": 3, "accent": 4},
 		{"team": "coalition", "body": PlayerBody.SYNTHETIC, "look": 2, "accent": 1},
 		{"team": "union", "body": PlayerBody.HUMAN, "look": 4, "accent": 3},
@@ -207,8 +211,12 @@ func _preview() -> void:
 	await process_frame
 	_expect(preview.view != null and FighterLooks.worn(preview.view) == FighterLooks.texture(PlayerBody.HUMAN, 5), "preview wears the look")
 	preview.show_look(PlayerBody.SYNTHETIC, 7, FighterLooks.AUTO)
-	_expect(preview.view.kind == PlayerBody.SYNTHETIC and preview.look == FighterLooks.AUTO and FighterLooks.worn(preview.view) == null,
-		"preview narrows a look the body lacks to its own art")
+	_expect(preview.view.kind == PlayerBody.SYNTHETIC and preview.look == FighterLooks.AUTO
+		and FighterLooks.worn(preview.view) == FighterLooks.texture(PlayerBody.SYNTHETIC, 0),
+		"AUTO previews painted field plate while keeping server assignment")
+	preview.show_look(PlayerBody.SYNTHETIC, 0, 3)
+	_expect(preview.look == 0 and FighterLooks.worn(preview.view) == FighterLooks.texture(PlayerBody.SYNTHETIC, 0),
+		"selected field plate wears its own paint in the preview")
 	preview.free()
 
 

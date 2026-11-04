@@ -13,7 +13,8 @@ extends RefCounted
 ## of a team match wears the issued livery instead, told apart by rank seals,
 ## never by personal taste; the Inheritance has no player looks.
 
-## Look 0 is each body's own art. Labels are menu words.
+## Look 0 is workwear for humans and painted field plate for agents.
+## Labels are menu words.
 const LOOKS: Dictionary[String, Array] = {
 	PlayerBody.HUMAN: [
 		{"label": "WORKWEAR", "person": ""},
@@ -26,7 +27,7 @@ const LOOKS: Dictionary[String, Array] = {
 		{"label": "BOMBER", "person": "look_human_7"},
 	],
 	PlayerBody.SYNTHETIC: [
-		{"label": "FIELD PLATE", "person": ""},
+		{"label": "FIELD PLATE", "person": "look_synthetic_0"},
 		{"label": "MOSS", "person": "look_synthetic_1"},
 		{"label": "MUSTARD", "person": "look_synthetic_2"},
 		{"label": "COBALT", "person": "look_synthetic_3"},

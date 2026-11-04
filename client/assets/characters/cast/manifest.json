@@ -1042,6 +1042,39 @@
 			"source_sha256": "94f09896185df36697307e990ebce85fa7871c356be96394cac0a3dd83cd5dff"
 		},
 		{
+			"file": "look_synthetic_0.png",
+			"person": "look_synthetic_0",
+			"rules": [
+				{
+					"ref": 0.45,
+					"sat": [
+						0.0,
+						0.3
+					],
+					"to": "#657064",
+					"val": [
+						0.28,
+						0.66
+					]
+				},
+				{
+					"ref": 0.82,
+					"sat": [
+						0.0,
+						0.3
+					],
+					"to": "#a46740",
+					"val": [
+						0.66,
+						1.01
+					]
+				}
+			],
+			"sha256": "94aff7575d57622b1b5a60297c0115e0933ee2e972aba506bf3c740c30f49c40",
+			"source": "res://assets/models/free_synthetic_live.glb",
+			"source_sha256": "82107fdc3b0cc17eef6237e3776ae4dfcae59be2b082f66040396175f4eea3f7"
+		},
+		{
 			"file": "look_synthetic_1.png",
 			"person": "look_synthetic_1",
 			"rules": [
@@ -1275,6 +1308,6 @@
 	],
 	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
 	"method": "Offline recolour of each person's own source atlas by CastPaint rules; no generated or external art.",
-	"painter_sha256": "5c433204491c59e2475c2b20ac16b3fff2df60a64448db2a4db465641e283988",
+	"painter_sha256": "e6548d3cb7e71e01d42fd8a2df29f1dd951b4c9721f6fcc775e1aa29db74f401",
 	"schema": 1
 }
