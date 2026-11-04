@@ -234,6 +234,109 @@ fn the_first_shot_flies_down_the_aim_ray_and_sustained_fire_blooms() {
 }
 
 #[test]
+fn a_run_opens_the_cone_and_a_counter_strafe_closes_it() {
+    let (mut state, id) = arena_with(Role::Agent);
+    {
+        let player = state.players.iter_mut().find(|p| p.id == id).unwrap();
+        player.inventory.grant_weapon(WeaponType::Flechette);
+        player.weapon = WeaponType::Flechette;
+    }
+    state.set_action(id, forward(None));
+    for _ in 0..3 {
+        state.tick(DT_LIVE);
+    }
+    let running = body(&state, id).vx.hypot(body(&state, id).vz);
+    assert!(
+        (running - TOP_SPEED).abs() < 1e-3,
+        "the shot is taken at a full run: {running}"
+    );
+    // The first two samples of this stream sit off the axis. The shot must
+    // match that dispersed ray, so a later change in who draws a number fails
+    // the test instead of a near-zero sample pretending the cone is open.
+    const SEED: u64 = 0xA11;
+    state.restart_stream(SEED);
+    state.set_action(
+        id,
+        Action {
+            forward: true,
+            fire: true,
+            yaw: Some(0.0),
+            pitch: Some(0.0),
+            ..Action::default()
+        },
+    );
+    state.tick(DT_LIVE);
+    let running_shot = shot_angle(&state, id);
+    let cone = WeaponType::Flechette.spread_radians();
+    let expected = dispersed_angle(cone, preview_samples(SEED));
+    assert!(
+        expected > 1e-2,
+        "the fixture seed leaves the ray: {expected}"
+    );
+    assert!(
+        (running_shot - expected).abs() < 1e-4,
+        "a full run uses the whole cone: shot {running_shot} expected {expected} cone {cone}"
+    );
+
+    let (mut state, id) = arena_with(Role::Agent);
+    {
+        let player = state.players.iter_mut().find(|p| p.id == id).unwrap();
+        player.inventory.grant_weapon(WeaponType::Flechette);
+        player.weapon = WeaponType::Flechette;
+    }
+    state.set_action(id, forward(None));
+    for _ in 0..3 {
+        state.tick(DT_LIVE);
+    }
+    state.set_action(
+        id,
+        Action {
+            back: true,
+            fire: true,
+            yaw: Some(0.0),
+            pitch: Some(0.0),
+            ..Action::default()
+        },
+    );
+    state.tick(DT_LIVE);
+    let stopped = body(&state, id).vx.hypot(body(&state, id).vz);
+    assert!(
+        stopped <= TOP_SPEED * crate::movement::ACCURATE_SPEED_SCALE,
+        "the opposite key is inside the accurate band: {stopped}"
+    );
+    let accurate = shot_angle(&state, id);
+    assert!(
+        accurate < 1e-3,
+        "the counter-strafe shot is back on the aim ray: {accurate}"
+    );
+}
+
+fn preview_samples(seed: u64) -> [f32; 2] {
+    let mut probe = GameState::new();
+    probe.restart_stream(seed);
+    [probe.next_f32(), probe.next_f32()]
+}
+
+fn dispersed_angle(spread: f32, samples: [f32; 2]) -> f32 {
+    let ray = crate::combat::Ray::dispersed([0.0; 3], 0.0, 0.0, spread, samples);
+    ray.direction[0].clamp(-1.0, 1.0).acos()
+}
+
+fn shot_angle(state: &GameState, id: Uuid) -> f32 {
+    let result = state
+        .shot_results
+        .iter()
+        .find(|result| result.shooter_id == id)
+        .expect("the tick fired");
+    let trace = result.trace.as_ref().unwrap();
+    let d: Vec<f32> = (0..3).map(|i| trace.end[i] - trace.origin[i]).collect();
+    let length = (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt();
+    let aim = [1.0_f32, 0.0, 0.0];
+    let cos = (d[0] * aim[0] + d[1] * aim[1] + d[2] * aim[2]) / length;
+    cos.clamp(-1.0, 1.0).acos()
+}
+
+#[test]
 fn a_rested_trigger_recovers_its_first_shot() {
     let (mut state, id) = arena_with(Role::Agent);
     {
@@ -256,6 +359,111 @@ fn a_rested_trigger_recovers_its_first_shot() {
         body(&state, id).bloom,
         0.0,
         "a rest recovers the whole cone"
+    );
+}
+
+#[test]
+fn a_jump_opens_the_cone_from_a_stand() {
+    let (mut state, id) = arena_with(Role::Agent);
+    {
+        let player = state.players.iter_mut().find(|p| p.id == id).unwrap();
+        player.inventory.grant_weapon(WeaponType::Flechette);
+        player.weapon = WeaponType::Flechette;
+    }
+    const SEED: u64 = 0xA11;
+    state.restart_stream(SEED);
+    state.set_action(
+        id,
+        Action {
+            jump: true,
+            fire: true,
+            yaw: Some(0.0),
+            pitch: Some(0.0),
+            ..Action::default()
+        },
+    );
+    state.tick(DT_LIVE);
+    let jumper = body(&state, id);
+    assert!(jumper.vy > 0.0, "the shot leaves the floor");
+    assert!(
+        jumper.vx.hypot(jumper.vz) <= TOP_SPEED * crate::movement::ACCURATE_SPEED_SCALE,
+        "horizontal speed stays in the accurate band, so only the jump opens the cone"
+    );
+    let cone = WeaponType::Flechette.spread_radians();
+    let expected = dispersed_angle(cone, preview_samples(SEED));
+    let angle = shot_angle(&state, id);
+    assert!(
+        (angle - expected).abs() < 1e-4,
+        "a jump uses the whole cone: shot {angle} expected {expected} cone {cone}"
+    );
+}
+
+#[test]
+fn a_still_swimmer_keeps_the_aim_ray() {
+    let mut state = GameState::with_map(crate::sim::MapKind::HoldfastAtoll, false);
+    state.config.boss_spawn_ticks = None;
+    state.config.compliance_ping_ticks = None;
+    state.start_round();
+    let id = Uuid::from_u128(0x5e1a);
+    state.add_player(id, "Swimmer".into(), Role::Agent);
+    let surface = 2.2 - crate::movement::water::SWIM_DRAFT;
+    {
+        let player = state.players.iter_mut().find(|p| p.id == id).unwrap();
+        player.inventory.grant_weapon(WeaponType::Flechette);
+        player.weapon = WeaponType::Flechette;
+        player.x = 0.0;
+        player.z = 80.0;
+        player.y = PLAYER_FLOOR_Y + surface;
+        player.vy = 0.0;
+        player.yaw = 0.0;
+        player.pitch = 0.0;
+    }
+    state.set_action(
+        id,
+        Action {
+            yaw: Some(0.0),
+            pitch: Some(0.0),
+            ..Action::default()
+        },
+    );
+    state.tick(DT_LIVE);
+    let swimmer = body(&state, id);
+    let feet = swimmer.y - PLAYER_FLOOR_Y;
+    let dry = state
+        .current_arena()
+        .support_height(swimmer.x, swimmer.z, feet);
+    assert!(
+        feet > dry + 0.5,
+        "the buoyant surface is not the dry floor: feet {feet} floor {dry}"
+    );
+    assert!(
+        swimmer.vx.hypot(swimmer.vz) < 0.05,
+        "the shot is a tread, not a swim"
+    );
+    const SEED: u64 = 0xA11;
+    state.restart_stream(SEED);
+    state.set_action(
+        id,
+        Action {
+            fire: true,
+            yaw: Some(0.0),
+            pitch: Some(0.0),
+            ..Action::default()
+        },
+    );
+    state.tick(DT_LIVE);
+    let angle = shot_angle(&state, id);
+    let opened = dispersed_angle(
+        WeaponType::Flechette.spread_radians(),
+        preview_samples(SEED),
+    );
+    assert!(
+        opened > 1e-2,
+        "the fixture seed would show an open cone: {opened}"
+    );
+    assert!(
+        angle < 1e-3,
+        "treading water is ground, so the first shot stays on the aim ray: {angle}"
     );
 }
 

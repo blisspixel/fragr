@@ -121,6 +121,12 @@ pub const DUCK_HEIGHT: f32 = 1.35;
 pub const DUCK_EYE_HEIGHT: f32 = 1.15;
 /// Horizontal speed while the body is short, as a fraction of the chosen speed.
 pub const DUCK_SPEED_SCALE: f32 = 0.34;
+/// Ground speed at or below which a hitscan shot gains no movement cone.
+/// Crouch pace is 0.34 of top speed. One counter-strafe tick from a full run
+/// lands near 2.1 m/s, just inside 0.40 of top speed, so the tap that kills
+/// the run is the accurate shot. Faster than this opens the cone, and top
+/// speed uses the weapon's whole cone.
+pub const ACCURATE_SPEED_SCALE: f32 = 0.40;
 pub const MAX_HALF_EXTENT: f32 = 256.0;
 pub const MAX_SOLIDS: usize = 2048;
 /// Downward acceleration in units per second squared. With the jump below,
@@ -465,6 +471,29 @@ pub fn climb_height(feet: f32, floor: f32, vy: f32) -> f32 {
 
 pub fn grounded(feet: f32, floor: f32, vy: f32) -> bool {
     feet <= floor + CONTACT_EPSILON && vy <= 0.0
+}
+
+/// Share of a weapon's dispersion cone owed to movement. Zero on the ground
+/// at or below [`ACCURATE_SPEED_SCALE`] of top speed (crouch and the one-tick
+/// counter-strafe). One at top speed, and one in the air, where a jump is not
+/// an aim platform. Linear between the accurate band and top speed.
+pub fn movement_cone_share(horizontal_speed: f32, on_ground: bool) -> f32 {
+    if !on_ground {
+        return 1.0;
+    }
+    let speed = if horizontal_speed.is_finite() {
+        horizontal_speed.abs()
+    } else {
+        TOP_SPEED
+    };
+    let accurate = TOP_SPEED * ACCURATE_SPEED_SCALE;
+    if speed <= accurate {
+        0.0
+    } else if speed >= TOP_SPEED {
+        1.0
+    } else {
+        (speed - accurate) / (TOP_SPEED - accurate)
+    }
 }
 
 /// Held key, or already short under a ceiling that will not take the standing body.
@@ -1588,6 +1617,48 @@ mod tests {
             ticks += 1;
         }
         (ticks, state.x - start)
+    }
+
+    #[test]
+    fn movement_cone_follows_the_counter_strafe() {
+        assert_eq!(movement_cone_share(0.0, true), 0.0);
+        assert_eq!(movement_cone_share(TOP_SPEED * DUCK_SPEED_SCALE, true), 0.0);
+        assert_eq!(
+            movement_cone_share(TOP_SPEED * ACCURATE_SPEED_SCALE, true),
+            0.0
+        );
+        assert_eq!(movement_cone_share(TOP_SPEED, true), 1.0);
+        assert!((movement_cone_share(TOP_SPEED * 0.7, true) - 0.5).abs() < 1e-4);
+        assert_eq!(movement_cone_share(0.0, false), 1.0);
+        assert_eq!(movement_cone_share(f32::NAN, true), 1.0);
+
+        let arena = flat();
+        let go = keys(true, false, false, false, 0.0);
+        let mut running = at(0.0, 0.0, 0.0);
+        for _ in 0..3 {
+            running = fighter_step(running, &go, TOP_SPEED, DT_LIVE, &arena);
+        }
+        assert_eq!(
+            movement_cone_share(running.vx.hypot(running.vz), true),
+            1.0,
+            "a full run uses the whole cone"
+        );
+        let countered = fighter_step(
+            running,
+            &keys(false, true, false, false, 0.0),
+            TOP_SPEED,
+            DT_LIVE,
+            &arena,
+        );
+        let countered_speed = countered.vx.hypot(countered.vz);
+        assert!(
+            countered_speed <= TOP_SPEED * ACCURATE_SPEED_SCALE,
+            "one opposite tick is inside the accurate band: {countered_speed}"
+        );
+        assert_eq!(
+            movement_cone_share(countered_speed, countered.vy <= 0.0),
+            0.0
+        );
     }
 
     #[test]

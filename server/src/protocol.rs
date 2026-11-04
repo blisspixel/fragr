@@ -626,12 +626,12 @@ impl WeaponType {
     }
 
     /// How much of the dispersion cone one participant shot adds, as a share
-    /// of `spread_radians`. A participant's first shot flies along the exact
-    /// aim ray; sustained fire grows the cone by this much a shot up to the
-    /// full table value (about a second of holding the trigger), and a pause
-    /// longer than the cadence lets it recover. Zero means always exact. The
-    /// Scatter keeps its whole pellet cone, and authored enemies always fire
-    /// the table cone.
+    /// of `spread_radians`. Sustained fire grows the cone by this much a shot
+    /// up to the full table value (about a second of holding the trigger), and
+    /// a pause longer than the cadence lets it recover. Zero bloom leaves this
+    /// share at zero. It does not close the arena movement cone. The Scatter
+    /// keeps its whole pellet cone, and authored enemies always fire the
+    /// table cone.
     pub fn bloom_per_shot(self) -> f32 {
         match self {
             WeaponType::Tack => 0.25,

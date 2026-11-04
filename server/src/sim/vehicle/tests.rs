@@ -153,6 +153,62 @@ fn gunner_resolves_mounted_shots_without_changing_the_carried_weapon() {
 }
 
 #[test]
+fn a_seated_gun_keeps_the_aim_ray() {
+    let (mut state, id) = scene();
+    state.vehicles[0].assign(VehicleSeat::Gunner, Some(id));
+    state.follow_vehicle_seats();
+    {
+        let gunner = state.players.iter_mut().find(|p| p.id == id).unwrap();
+        // Boarding leaves the speed the body arrived with, and the seat is
+        // above the floor. Both used to open the whole mounted cone.
+        gunner.vx = crate::movement::TOP_SPEED;
+        gunner.vz = 0.0;
+        gunner.yaw = 0.0;
+        gunner.pitch = 0.0;
+    }
+    let (feet, floor, vy) = {
+        let gunner = state.players.iter().find(|p| p.id == id).unwrap();
+        let feet = gunner.y - PLAYER_FLOOR_Y;
+        let floor = state
+            .current_arena()
+            .support_height(gunner.x, gunner.z, feet);
+        (feet, floor, gunner.vy)
+    };
+    assert!(
+        feet > floor + 0.5,
+        "the turret is not the floor: feet {feet} floor {floor}"
+    );
+    assert!(!crate::movement::grounded(feet, floor, vy));
+    state.restart_stream(0xA11);
+    state.set_action(
+        id,
+        Action {
+            fire: true,
+            yaw: Some(0.0),
+            pitch: Some(0.0),
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    let result = state
+        .shot_results
+        .iter()
+        .find(|shot| shot.shooter_id == id)
+        .expect("the turret fired");
+    let trace = result.trace.as_ref().unwrap();
+    assert_eq!(trace.weapon, WeaponType::Flechette);
+    let delta = [
+        trace.end[0] - trace.origin[0],
+        trace.end[1] - trace.origin[1],
+        trace.end[2] - trace.origin[2],
+    ];
+    let length = (delta[0] * delta[0] + delta[1] * delta[1] + delta[2] * delta[2]).sqrt();
+    let cos = delta[0] / length;
+    let angle = cos.clamp(-1.0, 1.0).acos();
+    assert!(angle < 1e-3, "a mounted gun stays on the aim ray: {angle}");
+}
+
+#[test]
 fn driver_cannot_fire_handheld_or_place_devices_and_dead_seats_clear() {
     let (mut state, id) = scene();
     assert_eq!(state.players[0].inventory.grant_remote_mines(1), 1);

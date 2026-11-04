@@ -46,6 +46,9 @@ const DUCK_HEIGHT: float = 1.35
 const DUCK_EYE_HEIGHT: float = 1.15
 ## Horizontal speed while the body is short, as a fraction of the chosen speed.
 const DUCK_SPEED_SCALE: float = 0.34
+## Ground speed at or below which a hitscan shot gains no movement cone.
+## Matches server/src/movement.rs: crouch pace and the one-tick counter-strafe.
+const ACCURATE_SPEED_SCALE: float = 0.40
 const GRAVITY: float = 22.0
 const JUMP_SPEED: float = 7.0
 
@@ -177,6 +180,21 @@ static func climb_height(feet: float, floor_y: float, vy: float) -> float:
 
 static func grounded(feet: float, floor_y: float, vy: float) -> bool:
 	return feet <= floor_y + CONTACT_EPSILON and vy <= 0.0
+
+
+## Share of a weapon cone owed to movement. Zero in the accurate band, one at
+## top speed or in the air. The server applies this in check_hitscan after it
+## has exempted a vehicle seat and counted the buoyant water surface as ground.
+static func movement_cone_share(horizontal_speed: float, on_ground: bool) -> float:
+	if not on_ground:
+		return 1.0
+	var speed: float = TOP_SPEED if not is_finite(horizontal_speed) else absf(horizontal_speed)
+	var accurate: float = TOP_SPEED * ACCURATE_SPEED_SCALE
+	if speed <= accurate:
+		return 0.0
+	if speed >= TOP_SPEED:
+		return 1.0
+	return (speed - accurate) / (TOP_SPEED - accurate)
 
 
 static func arena_clamp(arena: Dictionary, x: float, z: float) -> Vector2:

@@ -135,6 +135,12 @@ func _test_unit_behaviour() -> void:
 	for i in range(3):
 		s = MoveStep.fighter_step(s, go, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
 	_check(absf(float(s["vx"]) - MoveStep.TOP_SPEED) < 1e-4, "reaches top speed in three live ticks")
+	_check(MoveStep.movement_cone_share(float(s["vx"]), true) == 1.0, "a full run uses the whole cone")
+	var countered: Dictionary = MoveStep.fighter_step(s, MoveStep.make_input(false, true, false, false, 0.0), MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
+	var countered_speed: float = Vector2(float(countered["vx"]), float(countered["vz"])).length()
+	_check(countered_speed <= MoveStep.TOP_SPEED * MoveStep.ACCURATE_SPEED_SCALE, "one opposite tick is inside the accurate band")
+	_check(MoveStep.movement_cone_share(countered_speed, true) == 0.0, "the counter-strafe closes the cone")
+	_check(MoveStep.movement_cone_share(0.0, false) == 1.0, "a jump uses the whole cone")
 	var dodge := MoveStep.make_input(false, false, false, true, 0.0)
 	dodge["dodge"] = true
 	_check(MoveStep.dodge_applies(s, dodge, arena), "a standing fighter with a direction dodges")
