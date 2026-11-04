@@ -624,6 +624,17 @@ func _check_aim_pitch() -> void:
 			"real pitch helper sets the camera to the attainable target")
 		_check(is_equal_approx(float(camera.call("consume_pitch")), accepted[index]),
 			"ordinary camera action input agrees with the acknowledged target")
+	var pawn: Dictionary = {"id": network.player_id, "hp": 100, "pitch": 0.45}
+	manager.latest_snapshot = {"round_state": "Ended", "players": [pawn]}
+	_check(not await tour._set_aim_pitch(0.45, true) and not tour._failed,
+		"adaptive framing cannot accept a matching results pose or poison its later retry")
+	manager.latest_snapshot["round_state"] = "Active"
+	pawn["hp"] = 0
+	_check(not await tour._set_aim_pitch(0.45, true) and not tour._failed,
+		"adaptive framing refuses a fallen fighter without failing the outer live-frame wait")
+	pawn["hp"] = 100
+	_check(await tour._set_aim_pitch(0.45, true) and not tour._failed,
+		"adaptive framing still requires the accepted aim of a living active fighter")
 	process_frame.disconnect(relay)
 	await process_frame
 	tour.free()
