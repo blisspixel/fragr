@@ -91,6 +91,8 @@ var own_lives: int = -1
 var crosshair_hbar = null
 var crosshair_vbar = null
 var crosshair_dot = null
+var aim_reticle: AimReticle
+var own_aim: Dictionary = {}
 ## Dark rectangles sitting behind each crosshair part. A cream crosshair over a
 ## tan floor is invisible, which is how a one pixel plus disappeared exactly
 ## where a player was aiming.
@@ -357,6 +359,10 @@ func _ready():
 	crosshair_hbar = get_node_or_null("Crosshair/HBar")
 	crosshair_vbar = get_node_or_null("Crosshair/VBar")
 	crosshair_dot = get_node_or_null("Crosshair/Dot")
+	aim_reticle = AimReticle.new()
+	aim_reticle.name = "AimCone"
+	aim_reticle.visible = false
+	crosshair.add_child(aim_reticle)
 	crosshair_edges = {
 		crosshair_hbar: get_node_or_null("Crosshair/HBarEdge"),
 		crosshair_vbar: get_node_or_null("Crosshair/VBarEdge"),
@@ -2021,6 +2027,7 @@ func _process(delta):
 		if fp_muzzle_timer <= 0 and fp_muzzle:
 			fp_muzzle.visible = false
 	_update_floating_damage(delta)
+	_update_aim_reticle()
 	if fp_shot_pending_update:
 		fp_shot_pending_update = false
 	else:
@@ -2440,6 +2447,40 @@ func _sync_crosshair_edges() -> void:
 		edge.offset_top = part.offset_top - CROSSHAIR_EDGE_PAD
 		edge.offset_right = part.offset_right + CROSSHAIR_EDGE_PAD
 		edge.offset_bottom = part.offset_bottom + CROSSHAIR_EDGE_PAD
+
+func set_aim_state(data: Dictionary) -> void:
+	if fp_juice_enabled and own_aim.has("raise_ready_at") and not data.has("raise_ready_at") \
+		and own_aim.get("weapon") == data.get("weapon"):
+		# The server has raised this gun. Do not leave a short raise playing
+		# the old cosmetic holster after the weapon can actually fire.
+		fp_motion.settle()
+	own_aim = data
+	_update_aim_reticle()
+
+
+func _update_aim_reticle() -> void:
+	if aim_reticle == null:
+		return
+	var camera: Camera3D = get_viewport().get_camera_3d()
+	var weapon: String = str(own_aim.get("weapon", ""))
+	var matching_weapon: bool = weapon == "flechette" if vehicle_seat == "gunner" \
+		else weapon.replace("_", "").to_lower() == current_fp_weapon.to_lower()
+	var active: bool = fp_juice_enabled and not _scoped() and not own_aim.is_empty() \
+		and matching_weapon and camera != null
+	var was_visible: bool = aim_reticle.visible
+	aim_reticle.visible = active
+	if not active:
+		if was_visible:
+			_apply_crosshair_for_weapon(current_fp_weapon)
+		return
+	for part: Control in [crosshair_hbar, crosshair_vbar, crosshair_dot]:
+		if part != null:
+			part.visible = false
+	_sync_crosshair_edges()
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	var axis: float = viewport_size.y if camera.keep_aspect == Camera3D.KEEP_HEIGHT else viewport_size.x
+	aim_reticle.present(int(own_aim["cone_microradians"]), camera.fov, axis, reticle_colour)
+
 
 func _apply_crosshair_for_weapon(weapon_name: String) -> void:
 	if not crosshair or not fp_juice_enabled:

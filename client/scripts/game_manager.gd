@@ -244,8 +244,7 @@ var view_clock: RemotePresentation = RemotePresentation.new()
 var _adopt_local_spawn_snapshot: bool = false
 var _retired_environments: Array[Environment] = []
 
-## Feedback for the fighter this screen belongs to: what they picked up and
-## an empty trigger. Neither is positional; nobody else hears them.
+## Private pickup confirmation for the fighter this screen belongs to.
 const PICKUP_SOUND_PATHS: Dictionary[String, String] = {
 	"weapon": "res://assets/audio/pickup/weapon.wav",
 	"ammo": "res://assets/audio/pickup/ammo.wav",
@@ -254,27 +253,19 @@ const PICKUP_SOUND_PATHS: Dictionary[String, String] = {
 	"armor": "res://assets/audio/pickup/armor.wav",
 	"plate": "res://assets/audio/pickup/armor.wav",
 }
-const DRY_FIRE_SOUND_PATH: String = "res://assets/audio/dry_fire.wav"
 var pickup_streams: Dictionary[String, AudioStream] = {}
 var pickup_sound: AudioStreamPlayer = null
-var dry_fire_sound: AudioStreamPlayer = null
+var handling_audio: WeaponHandlingAudio
 var pickup_cue_count: int = 0
 var dry_fire_cue_count: int = 0
 var scope_sound: AudioStreamPlayer = null
 var scope_cue_count: int = 0
-var _dry_fire_seen: int = -1
-## Reload start and finish for the fighter this screen belongs to. No reload
-## clip has been produced, so two short reviewed handling sounds are reused:
-## the scope-out swish and tap as the gun comes down, the scope-in click as the
-## magazine seats. Pitch and level set them apart from the Sniper scope.
-const RELOAD_START_SOUND_PATH: String = "res://assets/audio/sniper/scope_out.wav"
+## Magazine seating remains private feedback. Reload starts and dry triggers
+## arrive as spatial server events through WeaponHandlingAudio.
 const RELOAD_COMPLETE_SOUND_PATH: String = "res://assets/audio/sniper/scope_in.wav"
-const RELOAD_START_DB: float = -10.0
-const RELOAD_START_PITCH: float = 0.94
 const RELOAD_COMPLETE_DB: float = -8.0
 const RELOAD_COMPLETE_PITCH: float = 1.08
 var reload_sound: AudioStreamPlayer = null
-var reload_start_stream: AudioStream = null
 var reload_complete_stream: AudioStream = null
 var reload_start_cue_count: int = 0
 var reload_complete_cue_count: int = 0
@@ -393,6 +384,7 @@ func _ready():
 	net_client.snapshot_received.connect(_on_snapshot_traced)
 	net_client.stutter_trace = stutter_trace
 	net_client.loadout_received.connect(_on_loadout_received)
+	net_client.aim_received.connect(_on_aim_received)
 	net_client.record_received.connect(_on_record_received)
 	net_client.mission_received.connect(_on_mission_received)
 	net_client.map_info_received.connect(_on_map_info)
@@ -1385,21 +1377,16 @@ func _load_audio_streams():
 		scope_sound.bus = &"Effects"
 		scope_sound.volume_db = -6.0
 		audio_parent.add_child(scope_sound)
-	if dry_fire_sound == null and ResourceLoader.exists(DRY_FIRE_SOUND_PATH):
-		dry_fire_sound = AudioStreamPlayer.new()
-		dry_fire_sound.name = "DryFireSound"
-		dry_fire_sound.bus = &"Effects"
-		dry_fire_sound.volume_db = -6.0
-		dry_fire_sound.stream = load(DRY_FIRE_SOUND_PATH)
-		audio_parent.add_child(dry_fire_sound)
+	if handling_audio == null:
+		handling_audio = WeaponHandlingAudio.new()
+		handling_audio.name = "WeaponHandling"
+		add_child(handling_audio)
 	if reload_sound == null:
 		reload_sound = AudioStreamPlayer.new()
 		reload_sound.name = "ReloadSound"
 		reload_sound.bus = &"Effects"
-		reload_sound.volume_db = RELOAD_START_DB
+		reload_sound.volume_db = RELOAD_COMPLETE_DB
 		audio_parent.add_child(reload_sound)
-		if ResourceLoader.exists(RELOAD_START_SOUND_PATH):
-			reload_start_stream = load(RELOAD_START_SOUND_PATH)
 		if ResourceLoader.exists(RELOAD_COMPLETE_SOUND_PATH):
 			reload_complete_stream = load(RELOAD_COMPLETE_SOUND_PATH)
 
@@ -1456,8 +1443,8 @@ func _present_reload_cues(loadout: Dictionary) -> void:
 	for event: String in cue.observe(loadout, Time.get_ticks_usec()):
 		match event:
 			"start":
-				_play_reload_sound(reload_start_stream, RELOAD_START_DB, RELOAD_START_PITCH)
-				reload_start_cue_count += 1
+				# The loadout starts the essential HUD bar. Only the public
+				# accepted-action event plays its sound, including for us.
 				cue.presented(Time.get_ticks_usec())
 			"complete":
 				_play_reload_sound(reload_complete_stream, RELOAD_COMPLETE_DB, RELOAD_COMPLETE_PITCH)
@@ -1495,6 +1482,8 @@ func _refresh_reload_context() -> void:
 ## Map change and disconnect: drop every reload cue, pose and sound at once.
 ## The next live refresh adopts the new venue's loadout silently.
 func _reset_reload_presentation() -> void:
+	if handling_audio != null:
+		handling_audio.clear()
 	_reload_context_live = false
 	_reload_sent_down = false
 	if reload_sound != null and reload_sound.playing:
@@ -1515,19 +1504,17 @@ func _note_reload_request() -> void:
 	if cue != null and _reload_context_live:
 		cue.request(net_client.equipment, Time.get_ticks_usec())
 
-## The owner's dry trigger count only grows within one life; a held empty
-## trigger repeats at the weapon's own cadence on the server.
-func _play_dry_fire_cue(loadout: Dictionary) -> void:
-	if loadout.is_empty():
-		_dry_fire_seen = -1
+func _on_weapon_handling(data: Dictionary) -> void:
+	if handling_audio == null:
 		return
-	var count: Variant = loadout.get("dry_fire_count")
-	if not EquipmentState.integer(count, EquipmentState.MAX_EXACT_INTEGER):
+	var listener: Vector3 = camera.global_position if is_instance_valid(camera) and camera.is_inside_tree() else Vector3.INF
+	if not handling_audio.present(data, listener):
 		return
-	if _dry_fire_seen >= 0 and int(count) > _dry_fire_seen and dry_fire_sound != null:
-		dry_fire_sound.play()
-		dry_fire_cue_count += 1
-	_dry_fire_seen = int(count)
+	if net_client != null and data.get("player_id") == net_client.player_id:
+		if data.get("kind") == "reload_start":
+			reload_start_cue_count += 1
+		else:
+			dry_fire_cue_count += 1
 
 func _crawler_position(value: Variant) -> Vector3:
 	if not value is Array or value.size() != 3:
@@ -3095,16 +3082,22 @@ func _clear_world() -> void:
 	if camera:
 		camera.set_available_targets([])
 
+func _on_aim_received(data: Dictionary) -> void:
+	local_fire.observe_aim(data)
+	_refresh_equipment_visibility()
+
+
 func _on_loadout_received(data: Dictionary) -> void:
 	local_fire.observe_equipment(data)
 	hud.equipment_hud.apply(data)
 	_present_reload_cues(data)
-	_play_dry_fire_cue(data)
 	_sync_pickups(latest_snapshot.get("pickups", []))
 	_refresh_equipment_visibility()
 
 func _refresh_equipment_visibility() -> void:
 	var pawn: Node = players.get(net_client.player_id)
+	var own_live_view: bool = is_human_player and is_instance_valid(pawn) and pawn.hp > 0 and hud.fp_juice_enabled
+	hud.set_aim_state(net_client.aim if own_live_view else {})
 	hud.equipment_hud.visible = is_human_player and not net_client.equipment.is_empty() \
 		and is_instance_valid(pawn) and pawn.hp > 0 and hud.fp_juice_enabled and _vehicle_seat().is_empty()
 	_refresh_reload_context()
@@ -3494,7 +3487,9 @@ func _on_spectator_facts(facts: Dictionary) -> void:
 
 func _on_event_received(data):
 	var event_type = data.get("event", "")
-	if event_type == "sabotage":
+	if event_type == "weapon_handling":
+		_on_weapon_handling(data)
+	elif event_type == "sabotage":
 		_on_sabotage_event(data)
 	elif event_type == "flag":
 		hud.show_flag_event(data)
