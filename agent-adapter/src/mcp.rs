@@ -46,6 +46,7 @@ pub struct ConnectionError {
 pub struct ToolState {
     pub last_snapshot: Option<Value>,
     pub loadout: Option<protocol::LoadoutState>,
+    pub aim: Option<protocol::AimState>,
     pub record: Option<protocol::PlayerRecord>,
     pub mission: localexception_server::mission::MissionClient,
     pub recent_events: Vec<Value>,
@@ -89,6 +90,7 @@ impl Default for ToolState {
         Self {
             last_snapshot: None,
             loadout: None,
+            aim: None,
             record: None,
             mission: Default::default(),
             recent_events: Vec::new(),
@@ -620,6 +622,9 @@ pub fn build_observe_result(state: &ToolState) -> Value {
                 }
                 if let Some(loadout) = state.loadout.as_ref() {
                     obj.insert("loadout".into(), serde_json::json!(loadout));
+                }
+                if let Some(aim) = state.aim.as_ref() {
+                    obj.insert("aim".into(), serde_json::json!(aim));
                 }
                 if let Some(record) = state.record.as_ref() {
                     obj.insert("record".into(), serde_json::json!(record));
@@ -1703,6 +1708,7 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
                                 state.session_name = None;
                                 state.last_snapshot = None;
                                 state.loadout = None;
+                                state.aim = None;
                                 state.record = None;
                                 state.last_speak_tick = None;
                                 pending_leave = true;
@@ -1862,6 +1868,10 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
         }) => {
             state.mission.observe(tick, mission)?;
         }
+        Ok(protocol::ServerMessage::Aim(aim)) => {
+            aim.validate_for(state.player_id, state.aim.as_ref())?;
+            state.aim = Some(aim);
+        }
         Ok(protocol::ServerMessage::Loadout(loadout)) => {
             loadout.validate_for(state.player_id, state.loadout.as_ref())?;
             state.loadout = Some(loadout);
@@ -1960,6 +1970,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
                 layout.validate()?;
             }
             protocol::validate_map_presentation(presentation.as_ref(), &solids)?;
+            state.aim = None;
             if let Some(geometry) = &walker {
                 geometry.validate(half_extent, &solids)?;
             }
@@ -2220,6 +2231,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             state.map = None;
             state.last_snapshot = None;
             state.loadout = None;
+            state.aim = None;
             state.record = None;
             state.mission = Default::default();
             // The map follows the Welcome; a new seat has seen nothing yet.
@@ -2246,6 +2258,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
                 state.map = None;
                 state.last_snapshot = None;
                 state.loadout = None;
+                state.aim = None;
                 state.record = None;
                 state.mission = Default::default();
                 state.connection_error = Some(ConnectionError { code, message });
@@ -2292,6 +2305,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             if raw.get("type").and_then(|v| v.as_str()) == Some("loadout") {
                 return Err("invalid loadout message");
             }
+            if raw.get("type").and_then(|v| v.as_str()) == Some("aim") {
+                return Err("invalid aim message");
+            }
             if raw.get("type").and_then(|v| v.as_str()) == Some("record") {
                 return Err("invalid record message");
             }
@@ -2309,6 +2325,39 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
 #[cfg(test)]
 mod mcp_tests {
     use super::*;
+
+    #[test]
+    fn private_aim_is_validated_and_retained_in_full_observe() {
+        let owner = Uuid::from_u128(69);
+        let mut state = ToolState {
+            player_id: Some(owner),
+            connected: true,
+            last_snapshot: Some(serde_json::json!({"tick": 30, "players": []})),
+            ..Default::default()
+        };
+        let valid = serde_json::json!({"type":"aim", "player_id":owner, "tick":30,
+            "weapon":"rail", "cone_microradians":12000, "raise_ready_at":37});
+        ingest_server_text(&mut state, &valid.to_string()).unwrap();
+        let held = state.aim.clone();
+        let observed = build_observe_result(&state);
+        assert_eq!(observed["aim"]["cone_microradians"], 12000);
+        assert_eq!(observed["aim"]["raise_ready_at"], 37);
+        for patch in [
+            serde_json::json!({"tick":29}),
+            serde_json::json!({"player_id":Uuid::nil()}),
+            serde_json::json!({"cone_microradians":190001}),
+            serde_json::json!({"cone_microradians":"0"}),
+            serde_json::json!({"raise_ready_at":38}),
+            serde_json::json!({"weapon":"unknown"}),
+        ] {
+            let mut bad = valid.clone();
+            bad.as_object_mut()
+                .unwrap()
+                .extend(patch.as_object().unwrap().clone());
+            assert!(ingest_server_text(&mut state, &bad.to_string()).is_err());
+            assert_eq!(state.aim, held);
+        }
+    }
 
     #[test]
     fn walker_observation_requires_its_current_registered_world() {

@@ -809,6 +809,7 @@ pub async fn run_bot(
     let mut frag_identity = FragSummaryIdentity::default();
     let mut last: Option<Snapshot> = None;
     let mut loadout: Option<localexception_server::protocol::LoadoutState> = None;
+    let mut aim: Option<localexception_server::protocol::AimState> = None;
     let mut record: Option<localexception_server::protocol::PlayerRecord> = None;
     let mut navigation = None;
     let mut navigator = localexception_server::navigation::Navigator::default();
@@ -886,6 +887,13 @@ pub async fn run_bot(
                             }
                         }
                     }
+                    Ok(ServerMessage::Aim(next)) => {
+                        if let Err(error) = next.validate_for(me, aim.as_ref()) {
+                            session_error = Some(Error::Transport(format!("invalid aim: {error}")));
+                            break;
+                        }
+                        aim = Some(next);
+                    }
                     Ok(ServerMessage::Loadout(next)) => {
                         let valid = next.validate_for(me, loadout.as_ref());
                         if let Err(error) = valid {
@@ -895,6 +903,7 @@ pub async fn run_bot(
                         loadout = Some(next);
                     }
                     Ok(ServerMessage::Welcome { player_id, .. }) => {
+                        aim = None;
                         if me != player_id {
                             frag_identity = FragSummaryIdentity::default();
                         }
@@ -932,6 +941,7 @@ pub async fn run_bot(
                     // Geometry belongs to the local controller, never a paid
                     // per-frame decision. Reject invalid worlds before driving.
                     Ok(ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, m19, m20, epilogue, map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
+                        aim = None;
                         decision_epoch.advance();
                         carrier_defense.clear();
                         if let Err(error) = localexception_server::protocol::validate_map_presentation(presentation.as_ref(), &solids) {

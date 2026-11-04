@@ -313,8 +313,8 @@ the behavior and verification.
 The numbered weapon order is melee, pistol, shotgun, rifle, railgun, sniper
 and Rocket Launcher. Key 1 cycles owned melee weapons; key 4 cycles owned
 Rifle and Repeater; key 5 cycles owned
-Railgun and Arc. The Repeater foundation is not granted in current campaign
-maps. The wheel and bracket keys skip guns you do not own. Campaign ammo
+Railgun and Arc. The Repeater is found in M10's cargo hold.
+The wheel and bracket keys skip guns you do not own. Campaign ammo
 is one count per type, and that count includes the rounds in each gun. The
 corner shows rounds in the gun, then what is left to load. They add up with
 the other guns on the same type. R, or X or Square on a pad, reloads the gun in hand.
@@ -322,7 +322,13 @@ Under the count, the corner says RELOAD REQUESTED while the press travels,
 RELOADING with a filling bar once the server accepts it, then LOADED. A full
 gun, an empty bag, a melee weapon or a mode without magazines says so instead.
 A swap, death or vehicle seat cancels quietly. The held gun dips while
-reloading and one short sound marks the start and the finish.
+reloading. Nearby fighters can hear an accepted reload start and an empty
+trigger click within 24 metres; the completion cue stays private.
+The fixed centre pip marks your aim. Its detached ring shows the server's
+current weapon cone, including movement and accumulated firing spread.
+Small cones collapse to the pip, and the scope keeps its own sight.
+Arena weapon changes take 0.20 to 0.35 seconds before the new gun can fire;
+campaign changes remain immediate.
 An empty gun does not fire while rounds remain in the bag. Pistol and Rifle share
 Bullets; Shotgun uses Shells; Railgun and Sniper use Cells. A seven-pellet Shotgun blast
 costs one shell. In free-for-all every life starts with the Pistol (12 in the

@@ -70,7 +70,7 @@ What is left on a playing screen is the host line and, for eight seconds after j
 2. ~~**Kill the ON AIR strip in gameplay.**~~ Landed, along with the rest of the spectator furniture. It survives as a small palette-correct chip in warmup and on the round bumper, where the broadcast conceit is the point. Gate: the strip does not appear in any playing state's still.
 3. **The weapon gets its corner.** View model to roughly a third of screen height, no backing panel, ammo beside it.
 4. **One font, one grid.** A display face with outline, a shared margin, and every element snapped to it.
-5. **The crosshair answers.** Half landed: it can be seen now. Hit tick and kill confirm still to do. Hit tick, kill confirm, spread that matches the weapon.
+5. **The crosshair answers.** Implemented: outlined aim pip, hit tick, kill confirm and a detached ring projected from the server's current weapon cone. Movement, firing bloom and campaign spread share that authoritative readout. Scoped weapons keep their scope sight.
 6. **Playing means first person.** Joining puts a person behind the gun with the playing HUD, and the spectator chrome, the broadcast strip, and the follow-camera furniture stay with the spectator view where they belong.
 7. **Nameplates become a bar and a chip,** size now capped; from `plans/hud-quiet.md` rung 3, and host lines leave the centre.
 

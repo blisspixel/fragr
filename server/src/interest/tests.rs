@@ -11,6 +11,100 @@ fn wall() -> Vec<Solid> {
 const READER: u128 = 1;
 const TARGET: u128 = 2;
 
+#[test]
+fn handling_events_are_coarse_when_hidden_and_silent_beyond_reach() {
+    let mut state = state_with(&[(0.0, 0.0), (10.0, 0.0)]);
+    let snapshot = state.snapshot();
+    let target_index = snapshot
+        .players
+        .iter()
+        .position(|p| p.id == id(TARGET))
+        .unwrap();
+    let view = View {
+        rows: vec![(target_index, Sense::Hidden)],
+        ..View::default()
+    };
+    let message = ServerMessage::Event(GameEvent::WeaponHandling {
+        player_id: id(TARGET),
+        tick: state.tick,
+        kind: crate::protocol::WeaponHandlingKind::ReloadStart,
+        position: [10.0, 0.0, 0.0],
+    });
+    let cut = view
+        .handling_event(&state, &snapshot, id(READER), &message)
+        .unwrap();
+    let encoded = Broadcast::encode(cut.clone()).unwrap();
+    let wire: serde_json::Value = serde_json::from_str(encoded.text()).unwrap();
+    assert_eq!(wire["event"], "weapon_handling");
+    assert_ne!(wire["position"], serde_json::json!([10.0, 0.0, 0.0]));
+    let ServerMessage::Event(GameEvent::WeaponHandling { position, .. }) = cut else {
+        panic!("handling cue");
+    };
+    assert_ne!(position, [10.0, 0.0, 0.0]);
+    assert!((position[0] - 10.0).hypot(position[2]) <= 1.501);
+    assert_eq!(
+        snapshot.players[target_index].x, 10.0,
+        "projection does not mutate the world"
+    );
+    let seen = View::default()
+        .handling_event(&state, &snapshot, id(READER), &message)
+        .unwrap();
+    assert_eq!(
+        serde_json::to_value(seen).unwrap(),
+        serde_json::to_value(&message).unwrap()
+    );
+    player(&mut state, READER).x = -30.0;
+    assert!(view
+        .handling_event(&state, &snapshot, id(READER), &message)
+        .is_none());
+    assert!(view
+        .handling_event(&state, &snapshot, Uuid::nil(), &message)
+        .is_none());
+    assert!(view
+        .handling_event(
+            &state,
+            &snapshot,
+            id(READER),
+            &ServerMessage::Snapshot(snapshot.clone())
+        )
+        .is_none());
+}
+
+#[test]
+fn handling_range_is_filtered_even_when_the_roster_needs_no_redaction() {
+    let mut session = crate::session::GameSession::new();
+    session.state = state_with(&[(0.0, 0.0), (30.0, 0.0)]);
+    // Team-mates are always complete roster rows, independent of cover.
+    session.state.config.rules =
+        crate::rules::RuleSet::new(crate::protocol::GameMode::Tdm, &[], false).unwrap();
+    for p in &mut session.state.players {
+        p.team = Some(crate::protocol::Team::Union);
+    }
+    session.client_to_player.insert(id(11), id(READER));
+    session.client_to_player.insert(id(12), id(TARGET));
+    let messages = vec![
+        ServerMessage::Snapshot(session.state.snapshot()),
+        ServerMessage::Event(GameEvent::WeaponHandling {
+            player_id: id(TARGET),
+            tick: session.state.tick,
+            kind: crate::protocol::WeaponHandlingKind::DryFire,
+            position: [30.0, 0.0, 0.0],
+        }),
+    ];
+    let broadcasts = Broadcast::encode_all(messages).unwrap();
+    let cuts = session.interest_views(&broadcasts).unwrap();
+    assert_eq!(cuts[&id(11)].muted, vec![1]);
+    assert!(!cuts[&id(12)].muted.contains(&1));
+    let cue = cuts[&id(12)].events.get(&1).expect("owner hears its cue");
+    assert!(
+        matches!(cue.message(), ServerMessage::Event(GameEvent::WeaponHandling { player_id, .. }) if *player_id == id(TARGET))
+    );
+    assert!(
+        !cuts.contains_key(&id(13)),
+        "a watcher gets the shared spatial event, not a fighter cut"
+    );
+}
+
 fn id(n: u128) -> Uuid {
     Uuid::from_u128(n)
 }

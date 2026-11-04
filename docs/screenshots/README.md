@@ -19,6 +19,13 @@ the AUTO preview, captured November 4, 2026 on Linux with Forward+. The full
 pass were inspected, including effect frame sequences. Other published
 surfaces retain their earlier images because their presentation did not change.
 
+The first-person views and combat effect strips now show authoritative aim
+feedback from the combat release. The full publish tour passed on Linux in
+Forward+ and Compatibility, with the team and Recall Notice passes included.
+Inspected frame sequences preserve a fixed aim pip and level HUD text; the
+dedicated aim tour also checks the rendered ring against private server facts.
+Unchanged world, menu and profile images retain their earlier captures.
+
 ## November 1, 2026 Local Exception rename
 
 The full publish tour passed 34 main states, two team states and Recall Notice

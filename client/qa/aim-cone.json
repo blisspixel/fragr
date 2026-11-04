@@ -1,0 +1,14 @@
+{
+  "comment": "Live server cone and fixed pip through rest, sustained Rifle fire, movement, recovery and Scatter. Run qa_aim_cone.gd, bots 0, full-arsenal, no round events. Inspect full frames and temporal strips alongside their recorded private aim facts.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "rifle_rest", "scene": "res://scenes/main.tscn", "at_seconds": 4, "join": "human", "camera": "first_person", "weapon": "Flechette", "aim_rest": true, "full_frames": true, "strip_frames": 3, "strip_interval_seconds": 0.1},
+    {"name": "rifle_burst", "camera": "first_person", "weapon": "Flechette", "trigger": "fire", "probe": "ShotEffects", "aim_open": true, "full_frames": true, "strip_frames": 16, "strip_interval_seconds": 0.1},
+    {"name": "rifle_recovered", "camera": "first_person", "weapon": "Flechette", "aim_rest": true, "full_frames": true, "strip_frames": 3, "strip_interval_seconds": 0.1},
+    {"name": "rail_rest", "camera": "first_person", "weapon": "Rail", "aim_rest": true, "full_frames": true, "strip_frames": 3, "strip_interval_seconds": 0.1},
+    {"name": "rail_move", "camera": "first_person", "weapon": "Rail", "trigger": "walk", "aim_open": true, "full_frames": true, "strip_frames": 10, "strip_interval_seconds": 0.08},
+    {"name": "rail_stopped", "camera": "first_person", "weapon": "Rail", "aim_rest": true, "full_frames": true, "strip_frames": 3, "strip_interval_seconds": 0.1},
+    {"name": "scatter", "camera": "first_person", "weapon": "Scatter", "aim_open": true, "full_frames": true, "strip_frames": 4, "strip_interval_seconds": 0.1}
+  ]
+}

@@ -1079,6 +1079,8 @@ fn place(player: &mut Player, point: [f32; 4]) {
     player.eliminated = false;
     player.lives = Some(1);
     player.fire_cooldown = 0;
+    player.weapon_ready_at = None;
+    player.bloom = 0.0;
     player.inventory.release_trigger();
 }
 

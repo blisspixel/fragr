@@ -1342,6 +1342,7 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
                 localexception_server::protocol::FlagEventKind::Captured => captures += 1,
             },
             GameEvent::Hit { .. }
+            | GameEvent::WeaponHandling { .. }
             | GameEvent::Checkpoint { .. }
             | GameEvent::CrawlerScrabble { .. }
             | GameEvent::EnemyBark { .. }

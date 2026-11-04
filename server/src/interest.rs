@@ -144,6 +144,53 @@ pub struct View {
 }
 
 impl View {
+    /// Event-specific hearing does not reveal a hidden body or its equipment.
+    /// Downed team readers hear from the same living seats whose eyes they ride.
+    pub fn handling_event(
+        &self,
+        state: &GameState,
+        snapshot: &Snapshot,
+        reader_id: Uuid,
+        message: &ServerMessage,
+    ) -> Option<ServerMessage> {
+        let ServerMessage::Event(GameEvent::WeaponHandling {
+            player_id,
+            tick,
+            kind,
+            position,
+        }) = message
+        else {
+            return None;
+        };
+        let reader = state.players.iter().find(|p| p.id == reader_id)?;
+        let target = state.players.iter().find(|p| p.id == *player_id)?;
+        let ears = eyes_of(state, reader, state.config.rules.teams());
+        let ear = ears
+            .into_iter()
+            .filter_map(|ear| {
+                let at = feet(ear);
+                let distance = (at[0] - position[0])
+                    .hypot(at[1] - position[1])
+                    .hypot(at[2] - position[2]);
+                (distance <= crate::protocol::HANDLING_REACH).then_some((ear, distance))
+            })
+            .min_by(|a, b| a.1.total_cmp(&b.1))?
+            .0;
+        let position = if self.withholds(snapshot, *player_id) {
+            let mut at = heard_at(ear, target, *tick);
+            at[1] -= crate::sim::PLAYER_FLOOR_Y;
+            at
+        } else {
+            *position
+        };
+        Some(ServerMessage::Event(GameEvent::WeaponHandling {
+            player_id: *player_id,
+            tick: *tick,
+            kind: *kind,
+            position,
+        }))
+    }
+
     pub fn is_empty(&self) -> bool {
         self.rows.is_empty() && self.shots.is_empty() && self.things.is_empty()
     }

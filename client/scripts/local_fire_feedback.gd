@@ -25,8 +25,10 @@ var _latest_seq: int = -1
 var _wanted_weapon: String = ""
 var _switch_seq: int = -1
 var _switch_ack_tick: int = -1
+var _aim: Dictionary = {}
 
 func reset() -> void:
+	_aim.clear()
 	pending.clear()
 	next_fire_usec = 0
 	_held_since = -1
@@ -53,6 +55,10 @@ func sent(action: Dictionary, equipment: Dictionary, weapon: String, tick: int, 
 		_held_since = -1
 	_held_weapon = weapon
 	if not trigger or not _wanted_weapon.is_empty() or not COOLDOWN_TICKS.has(weapon):
+		return false
+	if not _aim.is_empty() and (_aim.get("weapon") != weapon \
+			or maxi(tick, int(_aim["tick"])) < int(_aim.get("raise_ready_at", 0))):
+		_held_since = -1
 		return false
 	if equipment.is_empty() or not EquipmentState.carried_names(equipment).has(weapon):
 		return false
@@ -101,6 +107,9 @@ func confirm(weapon: String, tick: int, now_usec: int) -> bool:
 	return false
 
 ## Confirmed rounds remain reserved until the inventory includes that shot.
+func observe_aim(data: Dictionary) -> void:
+	_aim = data.duplicate(true)
+
 func observe_equipment(equipment: Dictionary) -> void:
 	var tick: int = int(equipment.get("tick", -1))
 	for index: int in range(pending.size() - 1, -1, -1):

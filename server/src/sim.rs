@@ -94,15 +94,6 @@ struct ResolvedShot {
     pellets: Vec<ResolvedPellet>,
 }
 
-/// Body facts copied out before the movement cone asks about seats and water.
-struct AimBody {
-    id: Uuid,
-    feet: f32,
-    x: f32,
-    z: f32,
-    vy: f32,
-    speed: f32,
-}
 /// Ticks after a respawn during which a fighter cannot be hit (one second).
 pub const SPAWN_SHIELD_TICKS: u32 = 20;
 const HITSCAN_RANGE: f32 = 100.0;
@@ -850,6 +841,9 @@ pub struct Player {
     /// opens the cone through `movement_cone_share` even while this is zero.
     /// A mounted gun does not, and treading water counts as ground.
     pub(crate) bloom: f32,
+    /// The selected arena weapon cannot fire before this tick. A later valid
+    /// selection starts a fresh raise; input ownership changes keep the deadline.
+    pub(crate) weapon_ready_at: Option<u64>,
     /// Ticks since this fighter's last hitscan shot, saturating.
     pub(crate) since_shot: u32,
     pub respawn_timer: Option<u32>,
@@ -917,6 +911,37 @@ pub struct Player {
 }
 
 impl Player {
+    pub(crate) fn handling_event(
+        &self,
+        tick: u64,
+        kind: crate::protocol::WeaponHandlingKind,
+    ) -> GameEvent {
+        GameEvent::WeaponHandling {
+            player_id: self.id,
+            tick,
+            kind,
+            position: [self.x, self.y - PLAYER_FLOOR_Y, self.z],
+        }
+    }
+    /// Every live carried-weapon change, from a press or a found gun, shares
+    /// the same raise. A fresh spawn kit is issued separately.
+    pub(crate) fn select_weapon(&mut self, weapon: WeaponType, arena: bool, tick: u64) {
+        if !self.inventory.select(self.weapon, weapon) || self.weapon == weapon {
+            return;
+        }
+        self.repeater_cycle.reset();
+        if self.fighter_model(arena) {
+            self.weapon_ready_at = Some(tick.saturating_add(u64::from(weapon.raise_ticks())));
+        } else {
+            self.bloom = 0.0;
+        }
+        self.inventory.cancel_reload();
+        if self.weapon != WeaponType::ArticleBlade {
+            self.last_non_blade_weapon = self.weapon;
+        }
+        self.weapon = weapon;
+    }
+
     pub(crate) fn platform_jump_requested(&self) -> bool {
         self.jump_requested || self.pending_action.jump
     }
@@ -933,7 +958,9 @@ impl Player {
 
     pub(crate) fn clear_input(&mut self) {
         self.repeater_cycle.reset();
-        self.bloom = 0.0;
+        if self.weapon_ready_at.is_none() {
+            self.bloom = 0.0;
+        }
         self.view_lag = None;
         self.pending_action = Action::default();
         self.jump_requested = false;
@@ -1015,6 +1042,7 @@ impl Player {
             fire_cooldown: 0,
             repeater_cycle: repeater::RepeaterCycle::default(),
             bloom: 0.0,
+            weapon_ready_at: None,
             since_shot: u32::MAX,
             respawn_timer: None,
             just_fired: false,
@@ -2475,8 +2503,17 @@ impl GameState {
             // than the weapon's cadence: a held trigger never recovers, a
             // deliberate tap rhythm does.
             player.since_shot = player.since_shot.saturating_add(1);
-            if player.since_shot
-                > player.weapon.cooldown_ticks() + crate::protocol::BLOOM_GRACE_TICKS
+            if player
+                .weapon_ready_at
+                .is_some_and(|ready| self.tick >= ready)
+            {
+                player.weapon_ready_at = None;
+                player.bloom = 0.0;
+                player.since_shot = u32::MAX;
+            }
+            if player.weapon_ready_at.is_none()
+                && player.since_shot
+                    > player.weapon.cooldown_ticks() + crate::protocol::BLOOM_GRACE_TICKS
             {
                 player.bloom = (player.bloom - crate::protocol::BLOOM_RECOVERY_PER_TICK).max(0.0);
             }
@@ -2493,6 +2530,7 @@ impl GameState {
             }
 
             if player.hp <= 0 {
+                player.weapon_ready_at = None;
                 player.inventory.cancel_reload();
                 continue;
             }
@@ -2508,20 +2546,18 @@ impl GameState {
             player.inventory.finish_reload(self.tick);
 
             if let Some(new_weapon) = player.pending_action.weapon_swap.take() {
-                if player.inventory.select(player.weapon, new_weapon) {
-                    if player.weapon != new_weapon {
-                        player.repeater_cycle.reset();
-                        player.bloom = 0.0;
-                        player.inventory.cancel_reload();
-                        if player.weapon != WeaponType::ArticleBlade {
-                            player.last_non_blade_weapon = player.weapon;
-                        }
-                    }
-                    player.weapon = new_weapon;
-                }
+                player.select_weapon(new_weapon, arena_feel, self.tick);
             }
-            if std::mem::take(&mut player.reload_requested) {
-                player.inventory.request_reload(player.weapon, self.tick);
+            if std::mem::take(&mut player.reload_requested)
+                && player.weapon_ready_at.is_none()
+                && player.inventory.request_reload(player.weapon, self.tick)
+            {
+                self.events.push(
+                    player.handling_event(
+                        self.tick,
+                        crate::protocol::WeaponHandlingKind::ReloadStart,
+                    ),
+                );
             }
 
             let action = &player.pending_action;
@@ -2843,7 +2879,8 @@ impl GameState {
                 continue;
             }
 
-            let suppressed = grenade_launches.contains(&player.id)
+            let suppressed = player.weapon_ready_at.is_some()
+                || grenade_launches.contains(&player.id)
                 || mine_placements.contains(&player.id)
                 || remote_placements.contains(&player.id);
             let fire_permitted = player.repeater_cycle.step(
@@ -2854,7 +2891,11 @@ impl GameState {
                 player.inventory.usable(player.weapon),
                 self.tick,
             );
-            if fire_permitted && player.fire_cooldown == 0 && !player.fire_latched {
+            if fire_permitted
+                && player.fire_cooldown == 0
+                && !player.fire_latched
+                && player.weapon_ready_at.is_none()
+            {
                 if crate::combat::is_assessor(player.campaign) {
                     assessor_launches.push(player.id);
                     continue;
@@ -2885,6 +2926,12 @@ impl GameState {
                     ));
                 } else if player.inventory.dry_fire_count() > dry_before {
                     player.statistics.dry_trigger();
+                    self.events.push(
+                        player.handling_event(
+                            self.tick,
+                            crate::protocol::WeaponHandlingKind::DryFire,
+                        ),
+                    );
                 }
             }
         }
@@ -3875,6 +3922,70 @@ impl GameState {
         floor
     }
 
+    /// One owner for both the simulated ray and the private aim readout.
+    fn shot_cone(
+        &self,
+        shooter: &Player,
+        weapon: WeaponType,
+        arena: &crate::movement::Arena,
+    ) -> f32 {
+        let fighter = shooter.fighter_model(self.arena_feel());
+        let moving = if self.vehicle_seat(shooter.id).is_some() || !fighter {
+            0.0
+        } else {
+            let feet = shooter.y - PLAYER_FLOOR_Y;
+            let grounded = crate::movement::grounded(
+                feet,
+                self.aim_floor(arena, shooter.x, shooter.z, feet),
+                shooter.vy,
+            );
+            crate::movement::movement_cone_share(shooter.vx.hypot(shooter.vz), grounded)
+        };
+        if crate::combat::is_notary(shooter.campaign) {
+            0.0
+        } else if fighter && weapon != WeaponType::Scatter {
+            weapon.spread_radians() * shooter.bloom.clamp(0.0, 1.0).max(moving)
+        } else if fighter {
+            weapon.spread_radians() * (1.0 + moving)
+        } else {
+            weapon.spread_radians()
+        }
+    }
+
+    pub fn aim_state(&self, id: Uuid) -> Option<crate::protocol::AimState> {
+        self.aim_state_in(id, &self.current_arena())
+    }
+
+    pub(crate) fn aim_state_in(
+        &self,
+        id: Uuid,
+        arena: &crate::movement::Arena,
+    ) -> Option<crate::protocol::AimState> {
+        let player = self
+            .players
+            .iter()
+            .find(|p| p.id == id && p.is_participant())?;
+        let mounted = self
+            .vehicle_seat(id)
+            .is_some_and(|(_, seat)| seat == crate::protocol::VehicleSeat::Gunner);
+        let weapon = if mounted {
+            WeaponType::Flechette
+        } else {
+            player.weapon
+        };
+        Some(crate::protocol::AimState {
+            player_id: id,
+            tick: self.tick,
+            weapon,
+            cone_microradians: (self.shot_cone(player, weapon, arena) * 1_000_000.0).round() as u32,
+            raise_ready_at: if mounted {
+                None
+            } else {
+                player.weapon_ready_at.filter(|ready| *ready > self.tick)
+            },
+        })
+    }
+
     /// Seeded 3D rays for both cover and targets, one per pellet. No height
     /// auto-aim or forgiveness cone: a ray must intersect the finite fighter volume.
     fn check_hitscan(
@@ -3884,7 +3995,7 @@ impl GameState {
         civilians: &[crate::movement::contact::ContactBody],
         tableau: &[crate::movement::Solid],
     ) -> ResolvedShot {
-        let (origin, yaw, pitch, weapon, bloom, campaign, fighter, body) = {
+        let (origin, yaw, pitch, weapon, spread) = {
             let shooter = &self.players[shooter_idx];
             (
                 [
@@ -3896,44 +4007,8 @@ impl GameState {
                 shooter.yaw,
                 shooter.pitch,
                 shooter.weapon,
-                shooter.bloom,
-                shooter.campaign,
-                shooter.fighter_model(self.arena_feel()),
-                AimBody {
-                    id: shooter.id,
-                    feet: shooter.y - PLAYER_FLOOR_Y,
-                    x: shooter.x,
-                    z: shooter.z,
-                    vy: shooter.vy,
-                    speed: shooter.vx.hypot(shooter.vz),
-                },
+                self.shot_cone(shooter, shooter.weapon, arena),
             )
-        };
-        // The seat is above every floor, and boarding does not clear the
-        // speed the body arrived with. The mounted gun is not that jump.
-        let seated = self.vehicle_seat(body.id).is_some();
-        let moving = if seated || !fighter {
-            0.0
-        } else {
-            let on_ground = crate::movement::grounded(
-                body.feet,
-                self.aim_floor(arena, body.x, body.z, body.feet),
-                body.vy,
-            );
-            crate::movement::movement_cone_share(body.speed, on_ground)
-        };
-        let spread = if crate::combat::is_notary(campaign) {
-            0.0
-        } else if fighter && weapon != WeaponType::Scatter {
-            // Bloom opens the cone across a held trigger. Movement opens it
-            // at once: a full run or a jump uses the whole cone, and a
-            // counter-strafe back into the accurate band puts the next fresh
-            // shot on the aim ray again. Bloom still has to recover on its own.
-            weapon.spread_radians() * bloom.clamp(0.0, 1.0).max(moving)
-        } else if fighter {
-            weapon.spread_radians() * (1.0 + moving)
-        } else {
-            weapon.spread_radians()
         };
         let volumes = self.shot_volumes(shooter_idx);
         let pellets = (0..weapon.pellets())
@@ -4646,6 +4721,7 @@ impl GameState {
             fire_cooldown: 0,
             repeater_cycle: repeater::RepeaterCycle::default(),
             bloom: 0.0,
+            weapon_ready_at: None,
             since_shot: u32::MAX,
             interaction_requested: false,
             throw_requested: false,
@@ -4813,6 +4889,7 @@ impl GameState {
 
     /// Decrement pad respawn timers and claim available pads on touch.
     fn tick_pickups(&mut self) {
+        let arena_feel = self.arena_feel();
         self.claim_golden_rail();
         if self.round_state == RoundState::Active {
             if let Some(blade) = self.article_blade.as_mut() {
@@ -5038,8 +5115,7 @@ impl GameState {
                             == crate::protocol::EquipmentPolicy::FullArsenal
                             && !player.inventory.armed());
                     if switches {
-                        player.inventory.release_trigger();
-                        player.weapon = w;
+                        player.select_weapon(w, arena_feel, self.tick);
                     }
                     (w.name().to_string(), None, w.name().to_string())
                 }
@@ -5143,6 +5219,7 @@ impl GameState {
             fire_cooldown: 0,
             repeater_cycle: repeater::RepeaterCycle::default(),
             bloom: 0.0,
+            weapon_ready_at: None,
             since_shot: u32::MAX,
             interaction_requested: false,
             throw_requested: false,

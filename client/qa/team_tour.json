@@ -16,6 +16,9 @@
       "camera": "first_person",
       "join": "human",
       "weapon": "Flechette",
+      "await_clear_frame": 30,
+      "clear_frame_fighters": 0,
+      "retry_join_for_clear_frame": true,
       "note": "Joined team fighter: the same status bar as free-for-all, side score strip and ally marks, no developer legend."
     }
   ]

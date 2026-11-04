@@ -44,6 +44,7 @@ pub struct GameSession {
     navigation_map: crate::maps::RuntimeMap,
     navigators: HashMap<Uuid, crate::navigation::Navigator>,
     sent_loadouts: HashMap<Uuid, (crate::protocol::WeaponType, u64)>,
+    sent_aim: HashMap<Uuid, protocol::AimState>,
     sent_records: HashMap<Uuid, protocol::PlayerRecord>,
     pub resume: Arc<ResumeTable>,
     participant_slots: Option<Arc<tokio::sync::Semaphore>>,
@@ -142,6 +143,7 @@ impl GameSession {
             bot_skill: crate::sim::BotSkill::default(),
             navigators: HashMap::new(),
             sent_loadouts: HashMap::new(),
+            sent_aim: HashMap::new(),
             sent_records: HashMap::new(),
             resume: Arc::new(ResumeTable::new()),
             participant_slots: None,
@@ -424,6 +426,7 @@ impl GameSession {
         accepted.body = body;
         self.client_to_player.retain(|_, id| *id != player_id);
         self.client_to_player.insert(client_id, player_id);
+        self.sent_aim.remove(&client_id);
         if let Some(peer) = self.take_pending_peer(client_id) {
             self.fighter_peers.insert(player_id, peer);
         }
@@ -508,6 +511,7 @@ impl GameSession {
                 player_id,
                 body,
             } => {
+                self.sent_aim.remove(&id);
                 if self.population_enforced {
                     let reserved = if let Some(pid) = player_id {
                         self.population.contains_pawn(pid)
@@ -1070,6 +1074,7 @@ impl GameSession {
         // state and snapshots so every controller observes the same world.
         let rules = self.state.wire_rules();
         if self.last_map_sent.as_ref() != Some(&self.state.map) || self.last_rules_sent != rules {
+            self.sent_aim.clear();
             self.last_map_sent = Some(self.state.map.clone());
             self.last_rules_sent = rules;
             self.last_mission_sent = None;
@@ -1086,6 +1091,23 @@ impl GameSession {
             self.last_mission_sent = mission;
         }
         out.push(ServerMessage::Snapshot(self.state.snapshot()));
+        self.sent_aim
+            .retain(|client, _| self.client_to_player.contains_key(client));
+        let aim_arena = self.state.current_arena();
+        for (client, player) in &self.client_to_player {
+            if let Some(aim) = self.state.aim_state_in(*player, &aim_arena) {
+                if !self
+                    .sent_aim
+                    .get(client)
+                    .is_some_and(|previous| aim.same_facts(previous))
+                {
+                    self.pending_unicasts
+                        .push((Recipient::Client(*client), ServerMessage::Aim(aim.clone())));
+                    self.sent_aim.insert(*client, aim);
+                }
+            }
+        }
+        drop(aim_arena);
         if self.booth_due() {
             out.push(ServerMessage::SpectatorFacts(self.state.spectator_facts()));
         }
@@ -1186,21 +1208,44 @@ impl GameSession {
         let readers: Vec<Uuid> = self.client_to_player.values().copied().collect();
         let views = self.interest.views(&self.state, snapshot, &readers);
         let by_reader = crate::interest::encode_views(world, &views)?;
-        Ok(self
-            .client_to_player
-            .iter()
-            .filter_map(|(client, player)| {
-                let world = Arc::clone(by_reader.get(player)?);
-                let view = views.get(player)?;
-                let muted = broadcasts
-                    .iter()
-                    .enumerate()
-                    .filter(|(_, broadcast)| view.mutes(snapshot, broadcast.message()))
-                    .map(|(index, _)| index)
-                    .collect();
-                Some((*client, ReaderCut { world, muted }))
-            })
-            .collect())
+        let mut cuts = HashMap::new();
+        for (client, player) in &self.client_to_player {
+            let Some(view) = views.get(player) else {
+                continue;
+            };
+            let reader_world = by_reader.get(player).unwrap_or(world);
+            let mut muted = Vec::new();
+            let mut events = HashMap::new();
+            for (index, broadcast) in broadcasts.iter().enumerate() {
+                let message = broadcast.message();
+                if matches!(
+                    message,
+                    ServerMessage::Event(protocol::GameEvent::WeaponHandling { .. })
+                ) {
+                    if let Some(event) =
+                        view.handling_event(&self.state, snapshot, *player, message)
+                    {
+                        events.insert(index, crate::net::Broadcast::encode(event)?);
+                    } else {
+                        muted.push(index);
+                    }
+                } else if view.mutes(snapshot, message) {
+                    muted.push(index);
+                }
+            }
+            if view.is_empty() && muted.is_empty() && events.is_empty() {
+                continue;
+            }
+            cuts.insert(
+                *client,
+                ReaderCut {
+                    world: Arc::clone(reader_world),
+                    muted,
+                    events,
+                },
+            );
+        }
+        Ok(cuts)
     }
 
     /// Connections that watch and hold no fighter: the booth's audience.
@@ -1367,10 +1412,13 @@ pub async fn broadcast_views_to_clients(
             if cut.is_some_and(|cut| cut.muted.contains(&index)) {
                 continue;
             }
-            let sent = world
-                .then_some(cut)
-                .flatten()
-                .map_or(broadcast, |cut| &cut.world);
+            let sent = world.then_some(cut).flatten().map_or_else(
+                || {
+                    cut.and_then(|cut| cut.events.get(&index))
+                        .unwrap_or(broadcast)
+                },
+                |cut| &cut.world,
+            );
             queue_for_client(client, Arc::clone(sent).into(), &mut stats);
         }
     }
@@ -1384,6 +1432,8 @@ pub async fn broadcast_views_to_clients(
 pub struct ReaderCut {
     pub world: Arc<crate::net::Broadcast>,
     pub muted: Vec<usize>,
+    /// Spatial events whose hidden source was reduced to a heard location.
+    pub events: HashMap<usize, Arc<crate::net::Broadcast>>,
 }
 
 /// Resolve connection or player recipients through the same delivery path.
@@ -2066,6 +2116,61 @@ mod session_tests {
         );
         // Round start was pushed by start_round; tick drains remaining events if any.
         assert!(!msgs.is_empty());
+    }
+
+    #[test]
+    fn aim_is_private_changed_only_and_resent_for_a_new_connection() {
+        let mut session = GameSession::new();
+        session.state.start_round();
+        let id = Uuid::from_u128(101);
+        let client = Uuid::from_u128(102);
+        session
+            .state
+            .add_player(id, "Aim reader".into(), Role::Agent);
+        session.client_to_player.insert(client, id);
+        let out = session.tick_messages(0.05);
+        assert!(
+            !out.iter().any(|msg| matches!(msg, ServerMessage::Aim(_))),
+            "never broadcast private aim"
+        );
+        let first = session.take_unicasts();
+        assert!(first.iter().any(|(to, msg)| matches!(msg, ServerMessage::Aim(aim) if *to == Recipient::Client(client) && aim.player_id == id)));
+        session.tick_messages(0.05);
+        assert!(
+            !session
+                .take_unicasts()
+                .iter()
+                .any(|(_, msg)| matches!(msg, ServerMessage::Aim(_))),
+            "unchanged aim stays quiet"
+        );
+        session.state.players[0]
+            .inventory
+            .grant_weapon(protocol::WeaponType::Rail);
+        session.state.set_action(
+            id,
+            protocol::Action {
+                weapon_swap: Some(protocol::WeaponType::Rail),
+                ..Default::default()
+            },
+        );
+        session.tick_messages(0.05);
+        assert!(session.take_unicasts().iter().any(|(_, msg)| matches!(msg, ServerMessage::Aim(aim) if aim.weapon == protocol::WeaponType::Rail && aim.raise_ready_at.is_some())));
+        let next = Uuid::from_u128(103);
+        session.client_to_player.remove(&client);
+        session.client_to_player.insert(next, id);
+        session.tick_messages(0.05);
+        assert!(session.take_unicasts().iter().any(
+            |(to, msg)| matches!(msg, ServerMessage::Aim(_) if *to == Recipient::Client(next))
+        ));
+        for _ in 0..8 {
+            session.tick_messages(0.05);
+        }
+        assert!(session.take_unicasts().iter().any(
+            |(_, msg)| matches!(msg, ServerMessage::Aim(aim) if aim.raise_ready_at.is_none())
+        ));
+        session.client_to_player.clear();
+        session.tick_messages(0.05);
+        assert!(session.sent_aim.is_empty());
     }
 
     fn bot_names(session: &GameSession) -> Vec<String> {

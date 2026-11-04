@@ -323,6 +323,9 @@ func _check_manager(scene: PackedScene) -> void:
 	manager.set("hud", hud)
 	manager.set("is_human_player", true)
 	manager.call("_load_audio_streams")
+	var listener_camera := Node3D.new()
+	manager.add_child(listener_camera)
+	manager.set("camera", listener_camera)
 	var pickup: AudioStreamPlayer = manager.get("pickup_sound")
 	_check(pickup != null and pickup.bus == &"Effects", "pickup feedback uses the Effects bus")
 	var cells: TestPad = TestPad.new()
@@ -344,13 +347,11 @@ func _check_manager(scene: PackedScene) -> void:
 		"kind": "health", "weapon": "", "amount": 25, "pickup_id": ""})
 	_check(manager.get("pickup_cue_count") == heard and hud.toasts == heard,
 		"another fighter's pickup is not this screen's feedback")
-	for step: Array in [[{"tick": 1, "dry_fire_count": 0}, 0], [{"tick": 2, "dry_fire_count": 1}, 1],
-			[{"tick": 3, "dry_fire_count": 1}, 1], [{}, 1], [{"tick": 4, "dry_fire_count": 4}, 1],
-			[{"tick": 5, "dry_fire_count": 5}, 2], [{"tick": 6, "dry_fire_count": 0}, 2],
-			[{"tick": 7, "dry_fire_count": 1.5}, 2], [{"tick": 8, "dry_fire_count": 1}, 3]]:
-		manager.call("_play_dry_fire_cue", step[0])
+	net.player_id = "00000000-0000-0000-0000-000000000001"
+	for step: Array in [[2, 1], [2, 1], [1, 1], [5, 2], [1.5, 2], [8, 3]]:
+		manager.call("_on_event_received", {"type": "event", "event": "weapon_handling", "player_id": net.player_id, "tick": step[0], "kind": "dry_fire", "position": [0.0, 0.0, 0.0]})
 		_check(manager.get("dry_fire_cue_count") == step[1],
-			"dry trigger feedback follows only a growing count: " + str(step[0]))
+			"dry trigger feedback follows distinct server events: " + str(step[0]))
 	var scope: AudioStreamPlayer = manager.get("scope_sound")
 	manager.call("_play_scope_cue", false, false)
 	manager.call("_play_scope_cue", false, true)

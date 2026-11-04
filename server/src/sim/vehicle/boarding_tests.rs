@@ -17,6 +17,81 @@ fn scene() -> (GameState, Uuid, Arena) {
 }
 
 #[test]
+fn competing_driver_requests_never_fall_back_to_the_gunner_seat() {
+    let (mut state, first, arena) = scene();
+    let second = Uuid::from_u128(702);
+    state.add_player(second, "Second driver".into(), Role::Agent);
+    for (player, z) in state.players.iter_mut().zip([-1.9, 1.9]) {
+        player.x = 0.0;
+        player.z = z;
+        player.y = PLAYER_FLOOR_Y;
+    }
+    for actor in [first, second] {
+        state.set_action(
+            actor,
+            Action {
+                interact: true,
+                seat: Some(VehicleSeat::Driver),
+                ..Action::default()
+            },
+        );
+    }
+    state.vehicle_interactions(&arena);
+    assert_eq!(state.vehicle_seat(first), Some((0, VehicleSeat::Driver)));
+    assert!(state.vehicle_seat(second).is_none());
+    assert!(state.vehicles[0].state.gunner.is_none());
+    assert!(
+        !state
+            .players
+            .iter()
+            .find(|p| p.id == second)
+            .unwrap()
+            .interaction_requested
+    );
+    // The requested seat is already consumed; a later tick cannot interpret
+    // the refused press as an unspecified-seat request.
+    state.vehicle_interactions(&arena);
+    assert!(state.vehicle_seat(second).is_none());
+    assert!(state.vehicles[0].state.gunner.is_none());
+    // Ordinary unqualified boarding still offers an available gunner seat.
+    state.set_action(second, Action::default());
+    state.set_action(
+        second,
+        Action {
+            interact: true,
+            ..Action::default()
+        },
+    );
+    state.vehicle_interactions(&arena);
+    assert_eq!(state.vehicle_seat(second), Some((0, VehicleSeat::Gunner)));
+}
+
+#[test]
+fn explicit_gunner_boarding_requires_a_supported_seat() {
+    for kind in [VehicleKind::Jeep, VehicleKind::Motorcycle] {
+        let (mut state, actor, arena) = scene();
+        state.vehicles[0] = vehicles::Jeep::of_kind(1, kind, [0.0; 3], 0.0);
+        state.players[0].x = 0.0;
+        state.players[0].z = -1.9;
+        state.players[0].y = PLAYER_FLOOR_Y;
+        state.set_action(
+            actor,
+            Action {
+                interact: true,
+                seat: Some(VehicleSeat::Gunner),
+                ..Action::default()
+            },
+        );
+        state.vehicle_interactions(&arena);
+        let expected = (kind == VehicleKind::Jeep).then_some((0, VehicleSeat::Gunner));
+        assert_eq!(state.vehicle_seat(actor), expected);
+        assert!(state.vehicles[0].state.driver.is_none());
+        state.vehicle_interactions(&arena);
+        assert_eq!(state.vehicle_seat(actor), expected);
+    }
+}
+
+#[test]
 fn exit_uses_an_open_side_instead_of_crossing_low_cover() {
     let (mut state, actor, mut arena) = scene();
     state.vehicles[0].assign(VehicleSeat::Driver, Some(actor));

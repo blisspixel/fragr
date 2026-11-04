@@ -223,6 +223,9 @@ impl BotController {
             return BotIntent {
                 action: Action {
                     interact: press(state.tick),
+                    // Another bot can reach the same empty jeep this tick.
+                    // Ask for its wheel, never the fallback gunner seat.
+                    seat: Some(VehicleSeat::Driver),
                     ..Action::default()
                 },
                 goal: None,
@@ -299,6 +302,18 @@ mod tests {
         let jeep = state.vehicles[index].state.position;
         assert!(flat(side, jeep) < crate::vehicles::entry_radius(VehicleKind::Jeep));
         assert!(!walk.action.interact);
+    }
+
+    #[test]
+    fn boarding_requests_the_wheel_without_a_gunner_fallback() {
+        let (mut state, bot, index) = harbour();
+        let jeep = state.vehicles[index].state.position;
+        state.players[0].x = jeep[0];
+        state.players[0].z = jeep[2] + crate::vehicles::entry_radius(VehicleKind::Jeep) - 0.3;
+        state.tick = 2;
+        let board = bot.board_intent(&state, &state.players[0], index);
+        assert!(board.action.interact);
+        assert_eq!(board.action.seat, Some(VehicleSeat::Driver));
     }
 
     #[test]

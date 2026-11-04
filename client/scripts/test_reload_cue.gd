@@ -7,8 +7,9 @@ extends SceneTree
 
 class CaptureNetwork extends Node:
 	var connection_state: int = WebSocketPeer.STATE_OPEN
-	var player_id: Variant = "self"
+	var player_id: Variant = "00000000-0000-0000-0000-000000000001"
 	var equipment: Dictionary = {}
+	var aim: Dictionary = {}
 	var mission: Dictionary = {}
 	var last_send_ok: bool = false
 	var fail_next: bool = false
@@ -42,6 +43,8 @@ class HudProbe extends Node:
 		pass
 	func cancel_fire_juice() -> void:
 		pass
+	func set_aim_state(_data: Dictionary) -> void:
+		pass
 
 var _failures: int = 0
 ## Reload playbacks started through the real manager, released before exit.
@@ -70,7 +73,7 @@ func _loadout(weapon: String, rounds: int, tick: int, ready_at: int = -1, bag: i
 	var magazine: Dictionary = {"weapon": weapon, "rounds": rounds}
 	if ready_at >= 0:
 		magazine["ready_at"] = ready_at
-	return {"type": "loadout", "player_id": "self", "tick": tick, "selected": weapon,
+	return {"type": "loadout", "player_id": "00000000-0000-0000-0000-000000000001", "tick": tick, "selected": weapon,
 		"weapons": ["fists", weapon], "ammo": ammo, "personal_claims": [],
 		"dry_fire_count": 0, "grenades": 0, "loaded": [magazine]}
 
@@ -87,7 +90,7 @@ func _run() -> void:
 
 func _check_refusals() -> void:
 	var partial: Dictionary = _loadout("tack", 5, 10)
-	_check(EquipmentState.validation_error(partial, "self").is_empty(), "fixture loadout is a valid private state")
+	_check(EquipmentState.validation_error(partial, "00000000-0000-0000-0000-000000000001").is_empty(), "fixture loadout is a valid private state")
 	_check(ReloadCue.refusal(partial) == "", "a partial pistol with rounds in the bag can reload")
 	_check(ReloadCue.refusal(_loadout("tack", 12, 10)) == "full", "a full magazine is refused as full")
 	var dry: Dictionary = _loadout("tack", 4, 10, -1, 4)
@@ -100,10 +103,10 @@ func _check_refusals() -> void:
 	_check(ReloadCue.refusal(pool_only) == "unsupported" and ReloadCue.refusal({}) == "unsupported", "a loadout without magazines cannot reload here")
 	_check(ReloadCue.refusal(_loadout("tack", 0, 10, 26)) == "busy", "a running reload makes another press busy")
 	# A weapon-only gun has one owned gun and three zero pools: an unlimited reserve.
-	var only: Dictionary = {"type": "loadout", "player_id": "self", "tick": 10, "selected": "rail",
+	var only: Dictionary = {"type": "loadout", "player_id": "00000000-0000-0000-0000-000000000001", "tick": 10, "selected": "rail",
 		"weapons": ["rail"], "ammo": [{"pool": "bullets", "rounds": 0}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 0}, {"pool": "rockets", "rounds": 0}],
 		"personal_claims": [], "dry_fire_count": 0, "grenades": 0, "loaded": [{"weapon": "rail", "rounds": 1}]}
-	_check(EquipmentState.validation_error(only, "self").is_empty(), "weapon-only fixture is valid")
+	_check(EquipmentState.validation_error(only, "00000000-0000-0000-0000-000000000001").is_empty(), "weapon-only fixture is valid")
 	_check(EquipmentState.reserve(only, "rail") == -1 and ReloadCue.refusal(only) == "", "a weapon-only gun reloads from an unlimited reserve")
 	# A finite arcade bag spent to zero carries several guns and is really empty.
 	var spent: Dictionary = only.duplicate(true)
@@ -166,7 +169,7 @@ func _check_cancel_swap_and_reset() -> void:
 	swapped["selected"] = "tack"
 	swapped["loaded"].append({"weapon": "tack", "rounds": 12})
 	swapped["ammo"][0]["rounds"] = 40
-	_check(EquipmentState.validation_error(swapped, "self").is_empty(), "swap fixture is valid")
+	_check(EquipmentState.validation_error(swapped, "00000000-0000-0000-0000-000000000001").is_empty(), "swap fixture is valid")
 	_check(cue.observe(swapped, 3).is_empty() and cue.phase == ReloadCue.Phase.IDLE and cue.status_key().is_empty(), "a weapon swap clears the reload quietly")
 	# The deadline passed but the server never filled the gun: not complete.
 	var stalled := ReloadCue.new()
@@ -239,18 +242,21 @@ func _check_manager_wiring() -> void:
 	var camera := CameraProbe.new()
 	camera.fp_target = pawn
 	root.add_child(hud)
+	root.add_child(camera)
 	manager.net_client = network
 	manager.hud = hud
 	manager.camera = camera
 	manager.is_human_player = true
-	manager.players["self"] = pawn
-	manager.local_fp_pawn_id = "self"
+	manager.players["00000000-0000-0000-0000-000000000001"] = pawn
+	manager.local_fp_pawn_id = "00000000-0000-0000-0000-000000000001"
 	manager._load_audio_streams()
+	manager.remove_child(manager.handling_audio)
+	root.add_child(manager.handling_audio)
 	# The manager is not in the tree here; its reload player must be to play.
 	if manager.reload_sound != null:
 		manager.reload_sound.get_parent().remove_child(manager.reload_sound)
 		root.add_child(manager.reload_sound)
-	_check(manager.reload_sound != null and manager.reload_start_stream != null and manager.reload_complete_stream != null and manager.reload_sound.bus == &"Effects", "reload audio reuses the committed handling sounds on the Effects bus")
+	_check(manager.reload_sound != null and manager.handling_audio != null and manager.reload_complete_stream != null and manager.reload_sound.bus == &"Effects", "reload audio uses the shared spatial presenter and private completion")
 	var partial: Dictionary = _loadout("flechette", 4, 100)
 	network.equipment = partial
 	_deliver(manager, partial)
@@ -275,7 +281,11 @@ func _check_manager_wiring() -> void:
 	var accepted: Dictionary = _loadout("flechette", 4, 101, 123)
 	network.equipment = accepted
 	_deliver(manager, accepted)
-	_check(manager.reload_start_cue_count == 1 and manager.reload_sound.stream == manager.reload_start_stream and is_equal_approx(manager.reload_sound.pitch_scale, manager.RELOAD_START_PITCH), "acceptance plays one start sound")
+	_check(manager.reload_start_cue_count == 0, "private loadout does not duplicate the public start")
+	var start: Dictionary = {"type": "event", "event": "weapon_handling", "player_id": "00000000-0000-0000-0000-000000000001", "tick": 101, "kind": "reload_start", "position": [0.0, 0.0, 0.0]}
+	manager._on_event_received(start)
+	_check(manager.reload_start_cue_count == 1 and manager.handling_audio.reload_count == 1, "acceptance event plays one spatial start")
+	manager._on_event_received(start)
 	_check(hud.equipment_hud.reload.last_accept_to_cue_usec >= 0, "accept-to-cue is recorded for the live path")
 	_deliver(manager, accepted)
 	_deliver(manager, accepted)
@@ -319,8 +329,9 @@ func _check_manager_wiring() -> void:
 	var third_accept: Dictionary = _loadout("flechette", 1, 301, 323)
 	network.equipment = third_accept
 	_deliver(manager, third_accept)
+	manager._on_event_received({"type": "event", "event": "weapon_handling", "player_id": "00000000-0000-0000-0000-000000000001", "tick": 301, "kind": "reload_start", "position": [0.0, 0.0, 0.0]})
 	_check(manager.reload_start_cue_count == 2, "a new life's reload starts once")
-	manager.latest_snapshot = {"tick": 305, "vehicles": [{"id": 1, "kind": "jeep", "driver": null, "gunner": "self"}]}
+	manager.latest_snapshot = {"tick": 305, "vehicles": [{"id": 1, "kind": "jeep", "driver": null, "gunner": "00000000-0000-0000-0000-000000000001"}]}
 	_check(manager._vehicle_seat() == "gunner", "vehicle fixture seats the local fighter")
 	manager._refresh_equipment_visibility()
 	_check(not manager._reload_context_live and hud.equipment_hud.reload.phase == ReloadCue.Phase.IDLE, "a vehicle seat clears the reload presentation")
@@ -345,6 +356,7 @@ func _check_manager_wiring() -> void:
 	_check(_voices_released(), "every reload playback is released before exit")
 	_voices.clear()
 	manager.reload_sound.free()
+	manager.handling_audio.free()
 	manager.free()
 	hud.free()
 	pawn.free()

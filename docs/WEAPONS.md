@@ -156,6 +156,17 @@ four-metre blast radius and up to 100 damage with falloff and solid occlusion.
 It bounces rather than detonating on contact and can hurt its owner. The
 [grenade foundation](plans/hand-grenade-foundation.md) records its verified seam.
 
+The first-person sight keeps a fixed centre pip and projects a detached ring
+from the server's current cone and the camera field of view. It includes
+movement and firing bloom; the client never estimates accuracy from speed.
+Cones smaller than four screen pixels keep only the pip. Scoped sights remain
+unchanged.
+
+Arena selection raises Tack, Scatter and melee for four ticks (0.20 seconds),
+Flechette, Repeater and Arc for five (0.25 seconds), and Rail, Sniper and Rocket
+for seven (0.35 seconds). The selected weapon cannot fire until ready, when
+its bloom resets. Campaign changes and fresh spawn kits remain immediate.
+
 The genuine Repeater uses six server ticks of held-fire warmup, then ordinary
 traced shots with a two-tick cooldown, 35 m reach and 0.035-radian spread. Each
 actual shot spends one shared Bullet; warmup spends none. Release, weapon
@@ -290,9 +301,9 @@ Every weapon owns its own set. Nothing is shared, because a shared fire sound is
 |---|---|---|
 | **fire** | The shot leaves | Yes |
 | **cycle** | Between shots: pump, recharge, spin-down, settle | Yes |
-| **reload** | An accepted human reload starts, then its magazine fills. Both reuse reviewed Sniper scope handling sounds at a lower level and shifted pitch until dedicated clips exist | Guns with a magazine |
+| **reload** | Accepted reload starts are positional within 24 m. Completion stays private. Both reuse reviewed Sniper scope handling sounds at a lower level until dedicated clips exist | Guns with a magazine |
 | **raise** | You switch to it | Yes |
-| **dry** | Trigger pulled with an empty count | Yes |
+| **dry** | Server-accepted empty trigger click, positional within 24 m | Yes |
 | **empty** | The count just reached zero and this weapon is finished until a pickup | Yes |
 | **impact_flesh** | It hits a fighter | Yes |
 | **impact_hard** | It hits the world | Yes |

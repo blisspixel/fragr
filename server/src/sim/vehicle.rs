@@ -184,6 +184,14 @@ impl GameState {
             if !interact {
                 continue;
             }
+            if switch.is_some() {
+                // An explicit boarding request is one press, even if another
+                // actor took that seat earlier in this tick. Do not leave a
+                // latched interact behind after its seat preference is cleared.
+                if let Some(p) = self.players.iter_mut().find(|p| p.id == actor) {
+                    p.interaction_requested = false;
+                }
+            }
             let Some(p) = self
                 .players
                 .iter()
@@ -212,7 +220,14 @@ impl GameState {
                     {
                         return None;
                     }
-                    let seat = if v.state.driver.is_none() {
+                    let seat = if let Some(requested) = switch {
+                        if !vehicles::supports_seat(v.state.kind, requested)
+                            || v.occupant(requested).is_some()
+                        {
+                            return None;
+                        }
+                        requested
+                    } else if v.state.driver.is_none() {
                         VehicleSeat::Driver
                     } else if v.state.gunner.is_none()
                         && vehicles::supports_seat(v.state.kind, VehicleSeat::Gunner)

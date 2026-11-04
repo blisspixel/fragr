@@ -573,6 +573,7 @@ impl GameState {
     /// First living contestant on the golden pad takes it. A parked pawn
     /// keeps its last position and does not take the gun while gone.
     pub(super) fn claim_golden_rail(&mut self) {
+        let arena_feel = self.arena_feel();
         let Some(gold) = self.golden_rail.clone() else {
             return;
         };
@@ -597,8 +598,7 @@ impl GameState {
         player.golden = true;
         // Under discovery equipment the golden pad is also the Railgun.
         player.inventory.grant_weapon(WeaponType::Rail);
-        player.inventory.release_trigger();
-        player.weapon = WeaponType::Rail;
+        player.select_weapon(WeaponType::Rail, arena_feel, self.tick);
         let (id, name, team) = (player.id, player.name.clone(), player.team);
         if let Some(gold) = self.golden_rail.as_mut() {
             gold.holder = Some(id);
