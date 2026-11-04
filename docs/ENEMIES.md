@@ -237,6 +237,10 @@ upper gallery, an Auditor and one Sweeper behind the gallery seal: its
 repair channel reaches the Sweeper the player has just dropped, without two
 more machines competing for attention. The player can interrupt the channel,
 watch the bounded reactivation, or kill the Auditor first to prevent it.
+The [channel](screenshots/m08_auditor_channel_16x9.png),
+[reactivation](screenshots/m08_auditor_reactivation_16x9.png) and
+[interruption sequence](screenshots/m08_auditor_interruption_strip.png)
+show the authored lesson; the first two use inspection viewpoints.
 The machinery bridge then tests the support role beside Sweepers and Clerks. Later fights
 can mix these established roles. During the level 18 wipe, the Inheritance can
 seize surviving Notaries as infrastructure; their issued shape remains, while
