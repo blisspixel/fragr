@@ -47,7 +47,8 @@ func _grab() -> Image:
 		var hud: Node = manager.get("hud")
 		var reticle: AimReticle = hud.get("aim_reticle")
 		sample["ring_radius_pixels"] = reticle.radius
-		sample["ring_visible"] = reticle.is_visible_in_tree()
+		sample["reticle_visible"] = reticle.is_visible_in_tree()
+		sample["ring_visible"] = reticle.is_visible_in_tree() and reticle.radius > 4.0
 		sample["pip_position"] = [reticle.global_position.x, reticle.global_position.y]
 		_aim_samples.append(sample)
 	return super._grab()
