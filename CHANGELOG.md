@@ -4,6 +4,20 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.5 - 2026-11-04
+
+- Open arena weapon cones during a run or jump, with exact rested shots and
+  mounted-gun and water-surface handling from the server.
+- Complete the remaining Level 8 and Level 9 authoring routes. Supply detours
+  avoid one-way traps, repeated pickup oscillation is broken, and recovery
+  follows objective progress rather than presentation timestamps.
+- Let local navigation retreat and re-route around observed crowds without
+  remembering hidden, expired or upstairs bodies as obstacles.
+- Give the default free agent olive-grey field plates and copper wear,
+  preserving the dark frame and screen and the Union's separate palette.
+- Retry interrupted live-fight framing without accepting a dead or results
+  pose as a valid capture.
+
 ## v0.99.4 - 2026-11-02
 
 - Let Level 15 finish while carrying the temporary Article Blade. The Blade
