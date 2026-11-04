@@ -4,6 +4,20 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.6 - 2026-11-04
+
+- Keep a fixed aim pip and draw the server's actual weapon cone around it.
+  Sustained fire and movement open the ring; rest closes it. Campaign cones
+  and Scatter pellets retain their own authoritative spread.
+- Give arena weapon changes a deliberate raise before firing. The server
+  clears bloom when the raise completes, so swapping cannot reset accuracy
+  and shoot for free in the same tick.
+- Make accepted reload starts and dry triggers audible to nearby fighters,
+  with bounded spatial cues that late snapshots cannot replay. The owner's
+  reload bar remains available with sound muted or motion reduced.
+- Refuse an occupied explicit vehicle seat without silently boarding another
+  seat on the following tick.
+
 ## v0.99.5 - 2026-11-04
 
 - Open arena weapon cones during a run or jump, with exact rested shots and
