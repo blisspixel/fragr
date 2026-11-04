@@ -227,6 +227,20 @@ pub(super) fn build() -> MapDef {
     map
 }
 
+/// TDM deploys inside the existing airfield hangars. Their walls screen the
+/// opposing line and the broad north exits lead toward the shared runway.
+pub(crate) fn tdm_spawn(angle: f32) -> (f32, f32, f32, f32) {
+    let slot = (angle.rem_euclid(2.0 * PI) / (2.0 * PI) * 16.0).round() as usize % 16;
+    let side = if slot < 8 { 1.0 } else { -1.0 };
+    let bay = slot % 8;
+    (
+        side * [36.0, 42.0, 48.0, 52.0][bay % 4],
+        if bay < 4 { -88.0 } else { -80.0 },
+        PI * 0.5,
+        LAND_HEIGHT,
+    )
+}
+
 /// Fixed coastal spawn bays, still selected through ordinary threat scoring.
 pub(crate) fn spawn(angle: f32) -> (f32, f32, f32, f32) {
     let slot = (angle.rem_euclid(2.0 * PI) / (2.0 * PI) * 16.0).round() as usize % 16;
