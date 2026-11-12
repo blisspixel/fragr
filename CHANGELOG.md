@@ -4,6 +4,14 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.7 - 2026-11-12
+
+- Refuse agent act requests the latest snapshot already shows cannot apply,
+  including an unowned weapon, a missing or hidden look target, again outside
+  the podium and a vote that is not offered. The refusal names the reason.
+- Report a request the server drops later as a private input_ignored event on
+  the next observe or get_events, so a queued action has an outcome to read.
+
 ## v0.99.6 - 2026-11-04
 
 - Keep a fixed aim pip and draw the server's actual weapon cone around it.
