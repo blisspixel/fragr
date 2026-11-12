@@ -45,8 +45,13 @@ working directory. Replace `/absolute/path/to/localexception` below with your ch
 First three calls: `round_state`, `observe`, `act`. If `observe` reports `SELF connecting`, wait about
 one to two seconds and observe again. Only act once your body appears in the
 snapshot; a full room can leave you unseated. `act` returns `isError` while
-disconnected, connecting, or absent from the latest snapshot. A queued action
-is intent, not confirmation of a game outcome. `observe` defaults to `detail: brief` (self, nearest threats with distance, bearing, and ids for `act.look_at`, pads, and the round). `detail: full` is today's snapshot object. `detail: map` resends retained geometry. Every `tools/call` result has a `content` array. `round_state` and full `observe` also set `structuredContent`. The short card is [docs/skills/localexception/SKILL.md](../docs/skills/localexception/SKILL.md).
+disconnected, connecting, or absent from the latest snapshot, and when that
+snapshot already shows the request cannot apply (an unowned weapon, a missing
+or hidden look target, again outside the podium, a vote that is not offered).
+The refusal names the reason. A queued action
+is intent, not confirmation of a game outcome. A request the server drops
+later is an `input_ignored` event: the next brief names it once as
+`IGNORED field: reason`, and `get_events` keeps it. `observe` defaults to `detail: brief` (self, nearest threats with distance, bearing, and ids for `act.look_at`, pads, and the round). `detail: full` is today's snapshot object. `detail: map` resends retained geometry. Every `tools/call` result has a `content` array. `round_state` and full `observe` also set `structuredContent`. The short card is [docs/skills/localexception/SKILL.md](../docs/skills/localexception/SKILL.md).
 
 A joined agent sees pads the way rule bots do. Its `observe` (brief pad
 distances and full `pickups`) reports what its own fighter has seen: a pad
@@ -208,7 +213,7 @@ controls stay on the same Action channel. MCP remains a slow decision tool;
 a local tick controller should hold and adjust movement between decisions.
 
 `act` accepts `fists`, `shiv`, `tack`, `flechette`, `scatter`, `rail` and
-`sniper`, `repeater`, `arc` and `rocket` for `weapon_swap`; the server rejects unowned choices. The Sniper
+`sniper`, `repeater`, `arc` and `rocket` for `weapon_swap`. When `observe` has a loadout, `act` refuses a weapon that list does not contain. Without a loadout the request is queued, and a weapon the server drops comes back as `input_ignored`. The Sniper
 Rifle is a found Cells weapon (70 damage, 32 tick cooldown, 90 unit reach);
 the shared helper takes a carried, loaded Sniper for a hostile beyond the held
 gun's reach and inside the Sniper's. Its scope is human presentation only; an
@@ -607,7 +612,8 @@ All fields are optional. `clear` (boolean, default false): clear event buffer af
 
 **Notes:**
 - Returns last 50 events in chronological order
-- Event types: `player_joined`, `player_left`, `frag` (kill), `respawn`, `round_start`, `round_end`
+- Event types: `player_joined`, `player_left`, `frag` (kill), `respawn`, `round_start`, `round_end`, `input_ignored`
+- `input_ignored` is private to this fighter: `field` is `weapon_swap`, `look_at`, `again` or `vote`, and `reason` says why the server did not apply it. The same refusal is not repeated until the request changes or succeeds.
 
 Frag events can also include optional `killer_id` and `victim_id` UUIDs and a
 resolved snake_case `weapon` ID, for example `rocket` or `article_blade`.
@@ -870,8 +876,9 @@ come from your own entry in the last snapshot; both are null outside a team or
 lives-limited round, and while you are waiting to respawn. Read `rules` before
 joining: in `tdm` a teammate shares your `team`, takes no damage unless
 `friendly_fire` is true, and `observe` players carry `team`, `lives` and
-`golden`. Under a weapon-only mutator, `weapon_swap` to another weapon is
-ignored. Death ends a life's input: `act` presses sent while you wait to
+`golden`. Under a weapon-only mutator there is no loadout to check, so
+`weapon_swap` to another weapon is queued and the server answers with
+`input_ignored`. Death ends a life's input: `act` presses sent while you wait to
 respawn are dropped rather than queued, and a `fire` held at death or when the
 body returns does nothing until an `act` releases it. The respawn wait is four
 seconds in free-for-all and three in team deathmatch, capture the flag and

@@ -2054,6 +2054,16 @@ pub enum WeaponHandlingKind {
     DryFire,
 }
 
+/// A discrete request the server did not apply. Private to the fighter who sent it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum IgnoredAction {
+    WeaponSwap,
+    LookAt,
+    Again,
+    Vote,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "event", rename_all = "snake_case")]
 pub enum GameEvent {
@@ -2308,11 +2318,38 @@ pub enum GameEvent {
         reason: String,
         host_line: String,
     },
+    /// A request from this fighter that did not apply. Only that fighter's
+    /// socket receives it, so a dropped choice is readable without telling the room.
+    InputIgnored {
+        field: IgnoredAction,
+        reason: String,
+    },
 }
 
 #[cfg(test)]
 mod protocol_tests {
     use super::*;
+
+    #[test]
+    fn input_ignored_is_a_private_event() {
+        let message = ServerMessage::Event(GameEvent::InputIgnored {
+            field: IgnoredAction::WeaponSwap,
+            reason: "weapon rocket is not owned".into(),
+        });
+        let json = serde_json::to_value(&message).unwrap();
+        assert_eq!(json["type"], "event");
+        assert_eq!(json["event"], "input_ignored");
+        assert_eq!(json["field"], "weapon_swap");
+        assert_eq!(json["reason"], "weapon rocket is not owned");
+        let back: ServerMessage = serde_json::from_value(json).unwrap();
+        assert!(matches!(
+            back,
+            ServerMessage::Event(GameEvent::InputIgnored {
+                field: IgnoredAction::WeaponSwap,
+                ..
+            })
+        ));
+    }
 
     #[test]
     fn unknown_action_field_fails_deserialize() {

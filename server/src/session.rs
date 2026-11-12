@@ -1146,6 +1146,10 @@ impl GameSession {
             }
             out.push(ServerMessage::Event(event));
         }
+        for (player_id, event) in self.state.take_input_ignored() {
+            self.pending_unicasts
+                .push((Recipient::Player(player_id), ServerMessage::Event(event)));
+        }
         out
     }
 

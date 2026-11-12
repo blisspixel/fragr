@@ -1009,7 +1009,7 @@ World-point aim:
 - Server enforces rate limits and cooldowns (weapon-specific)
 - Spectators that send actions are ignored
 - Unknown fields are rejected (schema error). Sticky state is not overwritten by junk.
-- MCP `act` returns `isError` on unknown keys, bad `weapon_swap`, or bad `look_at` (unknown nested keys, incomplete x/z, bad UUID). It also refuses a disconnected session, a missing initial snapshot or a participant whose body is absent from the latest snapshot. A successful result queues intent, not a confirmed server outcome. Empty/missing arguments are valid defaults only for a seated participant.
+- MCP `act` returns `isError` on unknown keys, bad `weapon_swap`, or bad `look_at` (unknown nested keys, incomplete x/z, bad UUID). It also refuses a disconnected session, a missing initial snapshot or a participant whose body is absent from the latest snapshot. When that snapshot can already decide, it refuses an unowned `weapon_swap` while a loadout is known (`weapon rocket is not owned; OWNED fists,tack`), a `look_at` player missing from the snapshot or marked heard or hidden, `again` while the round has not ended or the podium is not waiting, and a `vote` for a map that is not offered. A successful result queues intent, not a confirmed server outcome. A request the adapter cannot decide locally can still be queued. If the server then drops that `weapon_swap`, `look_at`, `again` or `vote`, the fighter's next events include a private `input_ignored` with `field` and `reason`. The same refusal is sent once until the request changes or succeeds. Empty/missing arguments are valid defaults only for a seated participant.
 
 #### Jeep control and facts (capability 39)
 
@@ -2563,7 +2563,13 @@ Private inventory still owns magazine, reload completion and dry-trigger count;
 it must not play a second start/click sound alongside this public event.
 
 **Fields:**
-- `event`: Event type (`frag`, `hit`, `crawler_scrabble`, `weapon_handling`, `respawn`, `round_start`, `round_end`, `flag`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `venue_notice`, `pickup`, `host_reaction`, `enemy_bark`, `companion_bark`)
+- `event`: Event type (`frag`, `hit`, `crawler_scrabble`, `weapon_handling`, `respawn`, `round_start`, `round_end`, `flag`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `venue_notice`, `pickup`, `host_reaction`, `enemy_bark`, `companion_bark`, `input_ignored`)
+- `field` / `reason`: (`input_ignored` only) the dropped request (`weapon_swap`, `look_at`, `again` or `vote`) and why it did not apply. The server sends it only to the fighter who sent the request.
+
+  ```json
+  {"type":"event","event":"input_ignored","field":"weapon_swap","reason":"weapon rocket is not owned"}
+  ```
+
 - `position`: (`crawler_scrabble`, `enemy_bark` and `companion_bark`) three finite world coordinates for the spatial sound source
 - `kind`: (pickup only) Pad kind: `"weapon"` / `"health"` / `"armor"` / `"plate"` / `"golden_rail"` (default `"weapon"`). Weapon and golden pads also carry `weapon`; health, armor and plate pads carry `amount` (the armour actually gained).
 - `rules`: (round_start, optional) the arena's rule set, repeated each round for event readers
@@ -2699,7 +2705,7 @@ not block a ground bay. No new action or snapshot field is added.
 - **Free-for-all start.** Every life, join, round start, playlist show and
   reconnect starts with the Pistol (`tack`, 50 Bullets, a 12-round magazine for
   a joined human) and Fists. Stronger guns are owned only after their pad is
-  taken: `weapon_swap` to an unowned gun is ignored, a newly found gun is
+  taken: `weapon_swap` to an unowned gun is ignored and that fighter receives a private `input_ignored` event, a newly found gun is
   selected once, and a later pickup of a carried gun adds ammunition without
   changing the selection. Equipment is discovery equipment, so the owner
   receives a private `loadout` on every change. Death keeps that loadout
@@ -2714,7 +2720,7 @@ not block a ground bay. No new action or snapshot field is added.
   another mode, a weapon-only mutator or Golden Rail.
 - **Sabotage.** See [Sabotage](#sabotage) below.
 - **Rail Only, Shotgun Only, Fists Only.** Everyone holds that one weapon with
-  unlimited ammunition, `weapon_swap` to anything else is ignored, and weapon
+  unlimited ammunition, `weapon_swap` to anything else is ignored, and that fighter receives a private `input_ignored` event. Weapon
   and ammunition pads are removed. Health and armour pads stay. No private
   loadout is sent, as on any full-arsenal arena.
 - **Licence to Kill.** Any hit that deals damage kills: `damage` is at least the

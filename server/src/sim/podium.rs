@@ -40,9 +40,13 @@ impl GameState {
     }
 
     /// `Action::again` from a seated fighter while the podium shows.
-    pub(super) fn note_again(&mut self, id: Uuid) {
+    /// True when the ready-up counted.
+    pub(super) fn note_again(&mut self, id: Uuid) -> bool {
         if self.podium_open() && self.again_voters().contains(&id) {
             self.again.insert(id);
+            true
+        } else {
+            false
         }
     }
 
