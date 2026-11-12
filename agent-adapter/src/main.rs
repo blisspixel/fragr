@@ -175,6 +175,7 @@ async fn mcp_connect_and_hello(
         state.record = None;
         state.mission = Default::default();
         state.recent_events.clear();
+        state.ignored_notices.clear();
     }
     let (ws_stream, _) =
         connect_async_with_config(server_url, Some(socket_config()), false).await?;
@@ -2582,7 +2583,7 @@ mod tests {
             .look_at
             .and_then(|aim| aim.player_id);
         assert_eq!(chosen, Some(auditor));
-        let state = mcp::ToolState {
+        let mut state = mcp::ToolState {
             player_id: Some(me),
             last_snapshot: Some(serde_json::to_value(&snapshot).unwrap()),
             recent_events: vec![serde_json::json!({
@@ -2596,7 +2597,7 @@ mod tests {
             })],
             ..Default::default()
         };
-        let (text, structured) = mcp::observe_brief(&state);
+        let (text, structured) = mcp::observe_brief(&mut state);
         assert!(text.len() < 1024, "four-bot brief is {} bytes", text.len());
         assert!(text.contains(&auditor.to_string()), "{text}");
         assert!(text.contains("dist=16.0"), "{text}");
@@ -2623,7 +2624,7 @@ mod tests {
             "union/auditor/channeling"
         );
         assert_eq!(structured["self"]["id"], me.to_string());
-        let (connecting, _) = mcp::observe_brief(&mcp::ToolState::default());
+        let (connecting, _) = mcp::observe_brief(&mut mcp::ToolState::default());
         assert!(connecting.contains("connecting"));
     }
 
@@ -2652,12 +2653,12 @@ mod tests {
         // hidden one with no place at all.
         snapshot.players[2] = redact(&snapshot.players[2], Sense::Heard([0.0, 1.5, 14.0]));
         snapshot.players[3] = redact(&snapshot.players[3], Sense::Hidden);
-        let state = mcp::ToolState {
+        let mut state = mcp::ToolState {
             player_id: Some(me),
             last_snapshot: Some(serde_json::to_value(&snapshot).unwrap()),
             ..Default::default()
         };
-        let (text, structured) = mcp::observe_brief(&state);
+        let (text, structured) = mcp::observe_brief(&mut state);
         assert!(text.contains(&format!("ENEMY id={seen}")), "{text}");
         assert!(!text.contains(&format!("ENEMY id={heard}")), "{text}");
         assert!(
@@ -3319,6 +3320,265 @@ fn main() -> ExitCode {
         })
         .await
         .expect("MCP action must advance the welcomed player by two metres");
+        mcp_leave_session(&mut session, &state).await;
+        stop_tx.send(()).unwrap();
+        server.await.unwrap().unwrap();
+    }
+
+    async fn parked_server(
+        options: localexception_server::run::ServerOptions,
+    ) -> (
+        tokio::task::JoinHandle<Result<(), Box<dyn std::error::Error + Send + Sync>>>,
+        String,
+        tokio::sync::oneshot::Sender<()>,
+    ) {
+        let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
+        let (stop_tx, stop_rx) = tokio::sync::oneshot::channel();
+        let server = tokio::spawn(localexception_server::run::run_server(
+            options,
+            async {
+                let _ = stop_rx.await;
+            },
+            Some(ready_tx),
+        ));
+        let url = format!("ws://{}", ready_rx.await.unwrap());
+        (server, url, stop_tx)
+    }
+
+    async fn mcp_tool(
+        url: &str,
+        session: &mut Option<McpWsSession>,
+        state: &std::sync::Arc<tokio::sync::Mutex<ToolState>>,
+        name: &str,
+        arguments: serde_json::Value,
+    ) -> String {
+        let mut output = Vec::new();
+        apply_mcp_line(
+            &serde_json::json!({
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": {"name": name, "arguments": arguments}
+            })
+            .to_string(),
+            url,
+            session,
+            state,
+            &mut output,
+        )
+        .await
+        .unwrap();
+        String::from_utf8(output).unwrap()
+    }
+
+    fn tool_message(response: &str) -> String {
+        let value: serde_json::Value = serde_json::from_str(response).expect("tool json");
+        value["result"]["content"][0]["text"]
+            .as_str()
+            .unwrap_or("")
+            .to_string()
+    }
+
+    #[tokio::test]
+    async fn mcp_rejects_impossible_acts_over_the_socket() {
+        let (server, url, stop_tx) = parked_server(localexception_server::run::ServerOptions {
+            bind: "127.0.0.1:0".into(),
+            bots: 0,
+            status_every_s: 0,
+            ..Default::default()
+        })
+        .await;
+        let state = std::sync::Arc::new(tokio::sync::Mutex::new(ToolState::default()));
+        let mut session = Some(mcp_connect_and_hello(&url, "Refuse", &state).await.unwrap());
+        tokio::time::timeout(std::time::Duration::from_secs(3), async {
+            loop {
+                {
+                    let state = state.lock().await;
+                    let seated = state.last_snapshot.as_ref().is_some_and(|snapshot| {
+                        snapshot["players"].as_array().is_some_and(|players| {
+                            players.iter().any(|player| {
+                                player["id"].as_str()
+                                    == state.player_id.map(|id| id.to_string()).as_deref()
+                            })
+                        })
+                    });
+                    let owned = state.loadout.as_ref().is_some_and(|loadout| {
+                        loadout.weapons.contains(&protocol::WeaponType::Fists)
+                            && loadout.weapons.contains(&protocol::WeaponType::Tack)
+                    });
+                    if seated && owned {
+                        break;
+                    }
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(20)).await;
+            }
+        })
+        .await
+        .expect("free-for-all loadout");
+
+        let rocket = mcp_tool(
+            &url,
+            &mut session,
+            &state,
+            "act",
+            serde_json::json!({"weapon_swap": "rocket"}),
+        )
+        .await;
+        let rocket_text = tool_message(&rocket);
+        assert!(rocket.contains("\"isError\":true"), "{rocket}");
+        assert!(
+            rocket_text.contains("weapon rocket is not owned"),
+            "{rocket_text}"
+        );
+        assert!(rocket_text.contains("OWNED fists,tack"), "{rocket_text}");
+
+        let missing = mcp_tool(
+            &url,
+            &mut session,
+            &state,
+            "act",
+            serde_json::json!({"look_at": {"player_id": "00000000-0000-0000-0000-000000000000"}}),
+        )
+        .await;
+        let missing_text = tool_message(&missing);
+        assert!(missing.contains("\"isError\":true"), "{missing}");
+        assert!(
+            missing_text.contains("player_id not in the latest snapshot"),
+            "{missing_text}"
+        );
+
+        let again = mcp_tool(
+            &url,
+            &mut session,
+            &state,
+            "act",
+            serde_json::json!({"again": true}),
+        )
+        .await;
+        let again_text = tool_message(&again);
+        assert!(again.contains("\"isError\":true"), "{again}");
+        assert!(
+            again_text.contains("again is ignored mid-round"),
+            "{again_text}"
+        );
+
+        let forward = mcp_tool(
+            &url,
+            &mut session,
+            &state,
+            "act",
+            serde_json::json!({"forward": true, "weapon_swap": "fists"}),
+        )
+        .await;
+        assert!(
+            tool_message(&forward).contains("Action queued"),
+            "{forward}"
+        );
+        tokio::time::sleep(std::time::Duration::from_millis(150)).await;
+        let events = mcp_tool(
+            &url,
+            &mut session,
+            &state,
+            "get_events",
+            serde_json::json!({}),
+        )
+        .await;
+        assert!(
+            !events.contains("input_ignored"),
+            "an up-front refusal is never sent: {events}"
+        );
+
+        mcp_leave_session(&mut session, &state).await;
+        stop_tx.send(()).unwrap();
+        server.await.unwrap().unwrap();
+    }
+
+    #[tokio::test]
+    async fn mcp_reports_a_weapon_the_server_drops_later() {
+        let rules = localexception_server::rules::RuleSet::new(
+            localexception_server::protocol::GameMode::Ffa,
+            &[localexception_server::protocol::Mutator::FistsOnly],
+            false,
+        )
+        .expect("fists only");
+        let match_config = localexception_server::sim::MatchConfig {
+            rules,
+            warmup_ticks: 0,
+            compliance_ping_ticks: None,
+            boss_spawn_ticks: None,
+            ..Default::default()
+        };
+        let (server, url, stop_tx) = parked_server(localexception_server::run::ServerOptions {
+            bind: "127.0.0.1:0".into(),
+            bots: 0,
+            status_every_s: 0,
+            match_config: Some(match_config),
+            ..Default::default()
+        })
+        .await;
+        let state = std::sync::Arc::new(tokio::sync::Mutex::new(ToolState::default()));
+        let mut session = Some(mcp_connect_and_hello(&url, "Fists", &state).await.unwrap());
+        tokio::time::timeout(std::time::Duration::from_secs(3), async {
+            loop {
+                {
+                    let state = state.lock().await;
+                    let seated = state.last_snapshot.as_ref().is_some_and(|snapshot| {
+                        snapshot["round_state"] == "Active"
+                            && snapshot["players"].as_array().is_some_and(|players| {
+                                players.iter().any(|player| {
+                                    player["id"].as_str()
+                                        == state.player_id.map(|id| id.to_string()).as_deref()
+                                })
+                            })
+                    });
+                    if seated && state.loadout.is_none() {
+                        break;
+                    }
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(20)).await;
+            }
+        })
+        .await
+        .expect("fists-only seat without a loadout");
+        tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+        assert!(
+            state.lock().await.loadout.is_none(),
+            "fists-only must not grow a loadout after the seat appears"
+        );
+
+        let queued = mcp_tool(
+            &url,
+            &mut session,
+            &state,
+            "act",
+            serde_json::json!({"weapon_swap": "rocket"}),
+        )
+        .await;
+        assert!(tool_message(&queued).contains("Action queued"), "{queued}");
+        let noticed = tokio::time::timeout(std::time::Duration::from_secs(3), async {
+            loop {
+                let brief =
+                    mcp_tool(&url, &mut session, &state, "observe", serde_json::json!({})).await;
+                if brief.contains("IGNORED weapon_swap") && brief.contains("not owned") {
+                    break brief;
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+            }
+        })
+        .await
+        .expect("the dropped weapon is named on the next brief");
+        assert!(noticed.contains("weapon rocket is not owned"), "{noticed}");
+        let events = mcp_tool(
+            &url,
+            &mut session,
+            &state,
+            "get_events",
+            serde_json::json!({}),
+        )
+        .await;
+        assert!(events.contains("input_ignored"), "{events}");
+        assert!(events.contains("weapon_swap"), "{events}");
+
         mcp_leave_session(&mut session, &state).await;
         stop_tx.send(()).unwrap();
         server.await.unwrap().unwrap();
