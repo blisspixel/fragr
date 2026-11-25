@@ -16,6 +16,20 @@ func _settle() -> void:
 	for _frame: int in range(4):
 		await process_frame
 
+## The same press and release the Tab walk uses. A bare push_input pair can be
+## dropped on the macOS display server before the focused button sees it.
+func _tap(key: Key) -> void:
+	var down: InputEventKey = InputEventKey.new()
+	down.physical_keycode = key
+	down.keycode = key
+	down.pressed = true
+	Input.parse_input_event(down)
+	await process_frame
+	var up: InputEventKey = down.duplicate()
+	up.pressed = false
+	Input.parse_input_event(up)
+	await process_frame
+
 func _run() -> void:
 	root.mode = Window.MODE_WINDOWED
 	root.size = Vector2i(1280, 720)
@@ -68,20 +82,30 @@ func _run() -> void:
 			_check(menu._scroll_back.is_visible_in_tree() and card.encloses(menu._scroll_back.get_global_rect()),
 				"Back stays visible while the last saved host is focused")
 			if count == 20:
-				var enter: InputEventKey = InputEventKey.new()
-				enter.keycode = KEY_ENTER
-				enter.physical_keycode = KEY_ENTER
-				enter.pressed = true
-				root.push_input(enter)
-				enter = enter.duplicate()
-				enter.pressed = false
-				root.push_input(enter)
-				await _settle()
+				await _tap(KEY_ENTER)
+				var chosen: bool = false
 				var view: Rect2 = menu._page_scroll.get_global_rect().grow(0.1)
-				_check(menu._host_edit.text == "127.0.0.1:18020" and menu._selected_card.get_parent() == menu._saved_box
-					and view.encloses(menu._selected_card.get_global_rect()) and view.encloses(last.get_global_rect())
-					and root.gui_get_focus_owner() == last,
-					"choosing the last host keeps it focused and scrolls its whole status card into view")
+				for _wait: int in range(30):
+					view = menu._page_scroll.get_global_rect().grow(0.1)
+					var card_in: bool = is_instance_valid(menu._selected_card) \
+						and menu._selected_card.get_parent() == menu._saved_box \
+						and view.encloses(menu._selected_card.get_global_rect())
+					if menu._host_edit.text == "127.0.0.1:18020" and card_in \
+							and view.encloses(last.get_global_rect()) \
+							and root.gui_get_focus_owner() == last:
+						chosen = true
+						break
+					await process_frame
+				_check(chosen,
+					"choosing the last host keeps it focused and scrolls its whole status card into view (text=%s focus=%s card=%s row=%s view=%s viewport=%s scale=%s)" % [
+						menu._host_edit.text,
+						str(root.gui_get_focus_owner()),
+						menu._selected_card.get_global_rect() if is_instance_valid(menu._selected_card) else Rect2(),
+						last.get_global_rect(),
+						view,
+						root.get_visible_rect().size,
+						root.content_scale_factor,
+					])
 				menu._probe.cancel_request()
 			var check: Control = menu._root.find_child("CheckHost", true, false) as Control
 			check.grab_focus()
