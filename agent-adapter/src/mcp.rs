@@ -861,7 +861,59 @@ fn tools_list_result() -> Value {
             "description": "On the podium of a rotating server, vote for the next map: one map_id from round_state.podium.vote.options. Send it once; a later vote replaces it. The leader loads when the podium closes, ties going to the earlier option. Refused when the latest snapshot has no open vote or the map is not offered. Ignored mid-round, from a spectator and for a map not offered."
         });
     }
+    annotate_tools(&mut tools);
     tools
+}
+
+/// MCP revisions this adapter can honestly answer. Newer optional fields are
+/// ignored by an older client, so an offered supported revision is echoed.
+const MCP_PROTOCOL_LATEST: &str = "2025-11-25";
+
+fn negotiated_protocol_version(params: Option<&Value>) -> &'static str {
+    match params
+        .and_then(|params| params.get("protocolVersion"))
+        .and_then(|version| version.as_str())
+    {
+        Some("2024-11-05") => "2024-11-05",
+        Some("2025-06-18") => "2025-06-18",
+        Some("2025-11-25") => "2025-11-25",
+        _ => MCP_PROTOCOL_LATEST,
+    }
+}
+
+/// Titles and read-only hints from MCP 2025-11-25. `get_events` only drops
+/// this adapter's local cursor, so a host may treat that call as read-only.
+fn annotate_tools(tools: &mut Value) {
+    const ROWS: &[(&str, &str, bool)] = &[
+        ("observe", "Observe the match", true),
+        ("act", "Send input", false),
+        ("get_events", "Read recent events", true),
+        ("speak", "Speak", false),
+        ("join", "Join the match", false),
+        ("leave", "Leave the match", false),
+        ("mission_ready", "Ready the mission", false),
+        ("mission_continue", "Continue the mission", false),
+        ("round_state", "Read the round", true),
+    ];
+    let Some(list) = tools
+        .get_mut("tools")
+        .and_then(|tools| tools.as_array_mut())
+    else {
+        return;
+    };
+    for tool in list {
+        let Some(name) = tool.get("name").and_then(|name| name.as_str()) else {
+            continue;
+        };
+        let Some((_, title, read_only)) = ROWS.iter().copied().find(|(row, _, _)| *row == name)
+        else {
+            continue;
+        };
+        tool["title"] = Value::String(title.to_string());
+        if read_only {
+            tool["annotations"] = serde_json::json!({ "readOnlyHint": true });
+        }
+    }
 }
 
 fn tools_list_body() -> Value {
@@ -1567,7 +1619,7 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
             jsonrpc: "2.0".to_string(),
             id,
             result: Some(serde_json::json!({
-                "protocolVersion": "2024-11-05",
+                "protocolVersion": negotiated_protocol_version(request.params.as_ref()),
                 "capabilities": {
                     "tools": {}
                 },
@@ -4801,6 +4853,41 @@ mod mcp_tests {
 
         let bad = handle_mcp_request(req("nope", None), &mut state);
         assert_eq!(bad.response.error.unwrap().code, -32601);
+    }
+
+    #[test]
+    fn initialize_echoes_a_supported_revision_and_tools_carry_titles() {
+        let mut state = ToolState::default();
+        for (offered, expected) in [
+            (Some("2024-11-05"), "2024-11-05"),
+            (Some("2025-06-18"), "2025-06-18"),
+            (Some("2025-11-25"), "2025-11-25"),
+            (Some("1999-01-01"), "2025-11-25"),
+            (None, "2025-11-25"),
+        ] {
+            let params = offered.map(|version| serde_json::json!({"protocolVersion": version}));
+            let init = handle_mcp_request(req("initialize", params), &mut state);
+            assert_eq!(
+                init.response.result.unwrap()["protocolVersion"],
+                expected,
+                "offered {offered:?}"
+            );
+        }
+        let list = handle_mcp_request(req("tools/list", None), &mut state);
+        let tools = list.response.result.unwrap()["tools"].clone();
+        let tools = tools.as_array().unwrap();
+        let read_only = ["observe", "get_events", "round_state"];
+        assert_eq!(tools.len(), 9);
+        for tool in tools {
+            let name = tool["name"].as_str().unwrap();
+            let title = tool["title"].as_str().unwrap();
+            assert!(!title.is_empty(), "{name}");
+            if read_only.contains(&name) {
+                assert_eq!(tool["annotations"]["readOnlyHint"], true, "{name}");
+            } else {
+                assert!(tool.get("annotations").is_none(), "{name}");
+            }
+        }
     }
 
     #[test]
