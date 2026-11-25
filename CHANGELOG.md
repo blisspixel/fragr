@@ -6,10 +6,11 @@ Release history, newest first. Planned work stays in
 
 ## v0.99.10 - 2026-11-25
 
-- Issue one grenade on each free-for-all, duel and team-arsenal life. Death
-  replaces it with one. After it is thrown, an arena pad can refill that one
-  and cannot raise the carry above one. Sabotage and weapon-only starts are
-  unchanged. Gun damage, cooldown and spread are unchanged.
+- Issue one grenade on each free-for-all, duel, team deathmatch, capture the
+  flag and conquest life. Death replaces it with one. After it is thrown, an
+  arena pad can refill that one and cannot raise the carry above one.
+  Sabotage and weapon-only starts are unchanged. Gun damage, cooldown and
+  spread are unchanged.
 - Teach the grenade on Level 5's lone Heavy. After it has seen a participant
   step behind cover, it cooks for two seconds and lobs one. It does not lob
   in the open, and it does not lob again until the cooldown. No other
