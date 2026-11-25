@@ -67,28 +67,50 @@ impl GameState {
             && self.start_kit() == Some(StartKit::Found { sidearm: true })
     }
 
+    /// One counted grenade on a fresh arena life. Campaign supply, Sabotage
+    /// starts and weapon-only matches keep their own rules. The carry cap
+    /// stays one so the grenade cannot become a second gun.
+    pub(crate) fn arena_grenade_life(&self) -> bool {
+        if self.map.is_campaign()
+            || self.sabotage.is_some()
+            || self.config.rules.mode() == GameMode::Sabotage
+            || self.config.rules.only_weapon().is_some()
+        {
+            return false;
+        }
+        matches!(
+            self.config.rules.mode(),
+            GameMode::Ffa | GameMode::Duel | GameMode::Tdm | GameMode::Ctf | GameMode::Conquest
+        )
+    }
+
     /// A fresh arsenal for one life and the weapon it holds.
     pub(crate) fn fresh_inventory(&self) -> (Inventory, WeaponType) {
-        let Some(kit) = self.start_kit() else {
+        let (mut inventory, weapon) = if let Some(kit) = self.start_kit() {
+            let inventory = match kit {
+                StartKit::Only(weapon) => Inventory::restricted(weapon),
+                StartKit::Arsenal => Inventory::new(EquipmentPolicy::FullArsenal),
+                StartKit::Found { sidearm } => {
+                    let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+                    if sidearm {
+                        inventory.grant_weapon(WeaponType::Tack);
+                    }
+                    inventory
+                }
+            };
+            (inventory, kit.selected())
+        } else {
             let policy = self.map.equipment_policy();
             let weapon = match policy {
                 EquipmentPolicy::Discovery => WeaponType::Fists,
                 EquipmentPolicy::FullArsenal => WeaponType::default(),
             };
-            return (Inventory::new(policy), weapon);
+            (Inventory::new(policy), weapon)
         };
-        let inventory = match kit {
-            StartKit::Only(weapon) => Inventory::restricted(weapon),
-            StartKit::Arsenal => Inventory::new(EquipmentPolicy::FullArsenal),
-            StartKit::Found { sidearm } => {
-                let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
-                if sidearm {
-                    inventory.grant_weapon(WeaponType::Tack);
-                }
-                inventory
-            }
-        };
-        (inventory, kit.selected())
+        if self.arena_grenade_life() {
+            inventory.grant_grenades(1);
+        }
+        (inventory, weapon)
     }
 
     /// Put a fresh kit in one fighter's hands: a human keeps magazines, and

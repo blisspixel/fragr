@@ -400,11 +400,16 @@ impl Inventory {
     }
 
     pub fn grant_grenades(&mut self, amount: u16) -> u16 {
+        self.grant_grenades_capped(amount, 6)
+    }
+
+    /// Grant grenades up to `cap`. Weapon-only inventories still refuse.
+    pub fn grant_grenades_capped(&mut self, amount: u16, cap: u16) -> u16 {
         if self.only.is_some() {
             return 0;
         }
-        let next = self.grenades.saturating_add(amount).min(6);
-        let gained = next - self.grenades;
+        let next = self.grenades.saturating_add(amount).min(cap);
+        let gained = next.saturating_sub(self.grenades);
         if gained > 0 {
             self.grenades = next;
             self.revision += 1;

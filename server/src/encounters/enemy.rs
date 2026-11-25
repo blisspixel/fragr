@@ -409,7 +409,20 @@ pub(super) struct EnemyController {
     flank_rest: u64,
     /// Something this guard would say, drained by the encounter.
     pending_bark: Option<crate::protocol::EnemyBarkKind>,
+    /// Authored on one early lesson body: lob a grenade at a held doorway.
+    lob: bool,
+    /// The current cook. It finishes without line of sight.
+    lobbing: bool,
+    /// Earliest tick another cook may start.
+    lob_ready_at: u64,
 }
+
+/// Tell before the Level 5 lesson Heavy lobs one grenade. Longer than its
+/// gun windup, so the cook is its own signal.
+pub(crate) const LOB_WINDUP_TICKS: u64 = 40;
+/// Ticks before that Heavy may cook another.
+pub(crate) const LOB_COOLDOWN_TICKS: u64 = 300;
+const LOB_PITCH: f32 = 0.5;
 
 /// (windup, recovery) ticks. Health, damage, burst length, locked aim and
 /// hit stun stay identical. Pursuit memory and recovery steps are separate.
@@ -656,6 +669,9 @@ impl EnemyController {
             flank: None,
             flank_rest: 0,
             pending_bark: None,
+            lob: false,
+            lobbing: false,
+            lob_ready_at: 0,
         }
     }
 
@@ -1236,7 +1252,21 @@ impl EnemyController {
                 return BotIntent { action, goal: None };
             }
         }
+        if target.is_none() && self.begin_lob(eye, tick, &mut action) {
+            return BotIntent { action, goal: None };
+        }
         if matches!(self.phase, EnemyPhase::Windup | EnemyPhase::Firing) {
+            if self.lobbing {
+                action.yaw = Some(self.aim.0);
+                action.pitch = Some(self.aim.1);
+                if tick >= self.until {
+                    action.throw_grenade = true;
+                    self.lobbing = false;
+                    self.lob_ready_at = tick.saturating_add(LOB_COOLDOWN_TICKS);
+                    self.enter(EnemyPhase::Recovery, tick, 20);
+                }
+                return BotIntent { action, goal: None };
+            }
             let suppressing = self.kind == EnemyKind::HeavySweeper
                 && self.phase == EnemyPhase::Firing
                 && self.shots_left > 0;
@@ -1446,6 +1476,41 @@ impl EnemyController {
     pub(super) fn with_hover(mut self, hover: Option<crate::maps::Hover>) -> Self {
         self.hover = hover;
         self
+    }
+
+    /// The Level 5 lesson Heavy, and only an authored body that says so.
+    pub(super) fn with_lob(mut self, lob: bool) -> Self {
+        self.lob = lob;
+        self
+    }
+
+    /// Start one doorway lob when the participant has been seen and is now
+    /// behind cover, inside a throw that can reach the last place they stood.
+    fn begin_lob(&mut self, eye: [f32; 3], tick: u64, action: &mut Action) -> bool {
+        if !self.lob || self.lobbing || tick < self.lob_ready_at || !self.chased {
+            return false;
+        }
+        if matches!(
+            self.phase,
+            EnemyPhase::Windup
+                | EnemyPhase::Firing
+                | EnemyPhase::Leaping
+                | EnemyPhase::Charging
+                | EnemyPhase::Hit
+                | EnemyPhase::Dead
+                | EnemyPhase::Channeling
+        ) {
+            return false;
+        }
+        let dx = self.last_known[0] - eye[0];
+        let dz = self.last_known[2] - eye[2];
+        let distance = dx.hypot(dz);
+        if !(4.0..=18.0).contains(&distance) {
+            return false;
+        }
+        self.lobbing = true;
+        self.begin_windup((dz.atan2(dx), LOB_PITCH), tick, LOB_WINDUP_TICKS, action);
+        true
     }
     /// The authored control domain; validation already matched it to the kind.
     pub(super) fn with_control(mut self, control: crate::protocol::ControlDomain) -> Self {

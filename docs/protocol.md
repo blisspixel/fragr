@@ -915,9 +915,12 @@ World-point aim:
 - `throw_grenade`: Optional held boolean, omitted while false. A rising edge
   latches one counted throw, including a press and release between ticks.
   Holding it does not repeat. The launch uses authoritative aim, consumes one
-  of at most six grenades and takes that tick's attack admission while retaining
-  gun selection. An empty or refused throw still permits gun fire. The separate
-  throw cooldown is 15 ticks; fuse is 40 subsequent active ticks.
+  carried grenade and takes that tick's attack admission while retaining gun
+  selection. Campaign supply still reaches six. An arena life in free-for-all,
+  duel or a team arsenal is issued one and cannot carry more than one.
+  Sabotage and weapon-only matches are not issued a grenade. An empty or
+  refused throw still permits gun fire. The separate throw cooldown is 15
+  ticks; fuse is 40 subsequent active ticks.
 - `place_mine`: Optional held boolean, omitted while false. A rising edge
   latches one counted placement, like `throw_grenade`. The mine leaves the eye
   at 8 m/s along authoritative aim plus 2 m/s upward and sticks to the first

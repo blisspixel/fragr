@@ -93,6 +93,15 @@ impl Definition {
             })
             || definitions[4].enemies.len() != 1
             || definitions[4].enemies[0].kind != EnemyKind::HeavySweeper
+            || !definitions[4].enemies[0].lob
+            || definitions.iter().enumerate().any(|(i, group)| {
+                let lobs = group.enemies.iter().filter(|enemy| enemy.lob).count();
+                if i == 4 {
+                    lobs != 1
+                } else {
+                    lobs != 0
+                }
+            })
             || definitions[..4]
                 .iter()
                 .flat_map(|g| &g.enemies)
@@ -106,7 +115,7 @@ impl Definition {
             })
         {
             return Err(invalid(
-                "M05 requires six ordered groups and an isolated Heavy introduction",
+                "M05 requires six ordered groups, an isolated Heavy introduction and one doorway lob",
             ));
         }
         let encounter = |id: &str| {

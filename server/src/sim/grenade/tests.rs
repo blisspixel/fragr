@@ -589,3 +589,247 @@ fn grenade_self_damage_stays_full_and_its_blast_pushes_whoever_survives() {
         state.players[1].vy
     );
 }
+
+/// One arena life, one grenade. It bounces, hurts a fighter the gun cannot
+/// see, and hurts the thrower inside the blast. The next press does nothing.
+#[test]
+fn one_arena_grenade_bounces_around_a_corner_and_will_not_throw_twice() {
+    let map = crate::maps::AuthoredMap::read(
+        serde_json::to_vec(&serde_json::json!({
+            "version":1,"map_id":1101,"name":"Corner grenade","half_extent":20,
+            "ground":"concrete","equipment":"discovery",
+            "solids":[
+                {"id":"west","min":[-2.1,0.0,-1.6],"max":[-1.6,8.0,1.6],"surface":"concrete"},
+                {"id":"east","min":[1.6,0.0,-1.6],"max":[2.1,8.0,1.6],"surface":"concrete"},
+                {"id":"south","min":[-2.1,0.0,-2.1],"max":[2.1,8.0,-1.6],"surface":"concrete"},
+                {"id":"north","min":[-2.1,0.0,1.6],"max":[2.1,8.0,2.1],"surface":"concrete"},
+                {"id":"lip","min":[-0.2,0.0,-0.35],"max":[0.2,2.2,0.35],"surface":"concrete"}
+            ],
+            "spawns":[{"id":"entry","feet":[0,0,-8],"yaw":0}],
+            "landmarks":[{"id":"exit","feet":[0,0,8]}]
+        }))
+        .unwrap()
+        .as_slice(),
+    )
+    .unwrap();
+    let mut state = GameState::with_authored_map(map);
+    state.seed(3);
+    state.config.warmup_ticks = 1;
+    state.start_round();
+    let thrower = Uuid::from_u128(1);
+    let hidden = Uuid::from_u128(2);
+    state.add_player(thrower, "Thrower".into(), crate::protocol::Role::Human);
+    state.add_player(hidden, "Hidden".into(), crate::protocol::Role::Agent);
+    {
+        let body = state.players.iter_mut().find(|p| p.id == thrower).unwrap();
+        body.x = -0.9;
+        body.z = 0.0;
+        body.y = PLAYER_FLOOR_Y;
+        body.hp = 100;
+        assert_eq!(body.inventory.grenades(), 1);
+    }
+    {
+        let body = state.players.iter_mut().find(|p| p.id == hidden).unwrap();
+        body.x = 0.9;
+        body.z = 0.0;
+        body.y = PLAYER_FLOOR_Y;
+        body.hp = 100;
+    }
+    let arena = state.current_arena().into_owned();
+    let eye = [-0.9, crate::combat::stance_eye(None, false), 0.0];
+    let hidden_chest = [0.9, 1.0, 0.0];
+    assert!(
+        !crate::combat::line_of_sight(eye, hidden_chest, &arena.solids),
+        "the corner blocks the gun"
+    );
+    state.set_action(
+        thrower,
+        crate::protocol::Action {
+            throw_grenade: true,
+            yaw: Some(1.833),
+            pitch: Some(0.25),
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    assert_eq!(
+        state
+            .players
+            .iter()
+            .find(|p| p.id == thrower)
+            .unwrap()
+            .inventory
+            .grenades(),
+        0
+    );
+    assert_eq!(state.grenades.len(), 1);
+    let mut bounced = false;
+    for _ in 0..FUSE_TICKS {
+        if state
+            .grenades
+            .iter()
+            .any(|grenade| grenade.bounce_count > 0)
+        {
+            bounced = true;
+        }
+        state.tick(0.05);
+    }
+    assert!(
+        bounced,
+        "the grenade never bounced: {:?}",
+        state.explosion_results
+    );
+    let blast = state
+        .explosion_results
+        .last()
+        .expect("grenade should have detonated");
+    let hit = |id: Uuid| {
+        blast
+            .hits
+            .iter()
+            .any(|hit| hit.target_id == id && hit.hp_damage > 0)
+    };
+    assert!(hit(hidden), "hidden fighter was not hurt: {blast:?}");
+    assert!(
+        hit(thrower),
+        "thrower inside the blast was not hurt: {blast:?}"
+    );
+    let attacks = state.player_record(thrower).unwrap().total.grenades.attacks;
+    assert_eq!(attacks, 1);
+    for _ in 0..THROW_COOLDOWN + 5 {
+        state.tick(0.05);
+    }
+    state
+        .players
+        .iter_mut()
+        .find(|p| p.id == thrower)
+        .unwrap()
+        .hp = 100;
+    state.set_action(
+        thrower,
+        crate::protocol::Action {
+            throw_grenade: true,
+            yaw: Some(1.833),
+            pitch: Some(0.25),
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    assert_eq!(
+        state
+            .players
+            .iter()
+            .find(|p| p.id == thrower)
+            .unwrap()
+            .inventory
+            .grenades(),
+        0
+    );
+    assert!(state.grenades.is_empty());
+    assert_eq!(
+        state.player_record(thrower).unwrap().total.grenades.attacks,
+        1
+    );
+}
+
+#[test]
+fn the_lesson_heavy_lobs_once_after_its_tell_and_not_before() {
+    let doc = serde_json::json!({
+        "version":1,"map_id":1102,"name":"Lob lesson","half_extent":16,
+        "ground":"concrete","equipment":"discovery",
+        "solids":[{"id":"lip","min":[2.0,0.0,-1.0],"max":[2.4,3.0,3.0],"surface":"concrete"}],
+        "spawns":[{"id":"entry","feet":[0,0,-6],"yaw":1.5707964}],
+        "landmarks":[{"id":"exit","feet":[0,0,10]}],
+        "encounters":[{
+            "id":"lesson",
+            "regions":[{"min":[-16,0,-16],"max":[16,3,16]}],
+            "enemies":[{"id":"lesson_heavy","kind":"heavy_sweeper","feet":[0,0,4],"yaw":4.712389,"lob":true}]
+        }]
+    });
+    let map = crate::maps::AuthoredMap::read(serde_json::to_vec(&doc).unwrap().as_slice()).unwrap();
+    let mut session = crate::session::GameSession::with_authored_map(map);
+    session.state.seed(9);
+    let player = Uuid::from_u128(1);
+    session
+        .state
+        .add_player(player, "Holder".into(), crate::protocol::Role::Human);
+    session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == player)
+        .unwrap()
+        .x = 0.0;
+    session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == player)
+        .unwrap()
+        .z = -6.0;
+    let mut saw_gun_tell = false;
+    for _ in 0..30 {
+        session.tick_messages(0.05);
+        if session.state.players.iter().any(|p| {
+            matches!(
+                p.campaign,
+                Some(crate::protocol::CampaignActor::Hostile {
+                    phase: crate::protocol::EnemyPhase::Windup,
+                    ..
+                })
+            )
+        }) {
+            saw_gun_tell = true;
+            break;
+        }
+    }
+    assert!(saw_gun_tell, "the heavy never raised its gun");
+    assert!(session.state.snapshot().grenades.is_empty());
+    let body = session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == player)
+        .unwrap();
+    body.x = 5.0;
+    body.z = 1.0;
+    let mut cook: Option<(u64, u64)> = None;
+    let mut threw_at = None;
+    for _ in 0..120 {
+        session.tick_messages(0.05);
+        if let Some(heavy) = session.state.players.iter().find(|p| p.is_campaign_enemy()) {
+            if let Some(crate::protocol::CampaignActor::Hostile {
+                phase: crate::protocol::EnemyPhase::Windup,
+                phase_started,
+                phase_ends,
+                ..
+            }) = heavy.campaign
+            {
+                cook = Some((phase_started, phase_ends));
+            }
+        }
+        if !session.state.snapshot().grenades.is_empty() {
+            threw_at = Some(session.state.tick);
+            break;
+        }
+    }
+    let (started, ends) = cook.expect("no cook before the lob");
+    assert_eq!(ends - started, crate::encounters::enemy::LOB_WINDUP_TICKS);
+    let threw_at = threw_at.expect("the lesson heavy never threw");
+    assert!(
+        threw_at >= ends,
+        "threw at {threw_at} before the tell ended at {ends}"
+    );
+    let mut thrown = std::collections::BTreeSet::new();
+    for grenade in session.state.snapshot().grenades {
+        thrown.insert(grenade.id);
+    }
+    assert_eq!(thrown.len(), 1);
+    for _ in 0..80 {
+        session.tick_messages(0.05);
+        for grenade in session.state.snapshot().grenades {
+            thrown.insert(grenade.id);
+        }
+        assert_eq!(thrown.len(), 1, "a second lob inside the cooldown");
+    }
+}

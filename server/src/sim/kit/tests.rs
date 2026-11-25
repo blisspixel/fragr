@@ -92,6 +92,7 @@ fn a_free_for_all_life_starts_with_the_pistol_and_fists_and_nothing_else() {
         );
         assert_eq!(loadout.ammo(AmmoPool::Shells), 0);
         assert_eq!(loadout.ammo(AmmoPool::Cells), 0);
+        assert_eq!(fighter(&state, id).inventory.grenades(), 1);
     }
     // A human reloads a twelve-round Pistol magazine from the fifty.
     let human_loadout = fighter(&state, human)
@@ -829,4 +830,83 @@ fn no_free_for_all_floor_is_mostly_the_rifle() {
         kinds.dedup();
         assert!(kinds.len() >= 3, "{}: {kinds:?}", map.name());
     }
+}
+
+#[test]
+fn arena_lives_carry_one_grenade_and_sabotage_and_weapon_only_do_not() {
+    let mut duel = GameState::with_map(MapKind::ArenaDuel, false);
+    duel.seed(7);
+    duel.config.rules = RuleSet::new(GameMode::Duel, &[], false).unwrap();
+    duel.start_round();
+    let duel_id = join(&mut duel, 1, Role::Human);
+    assert_eq!(fighter(&duel, duel_id).inventory.grenades(), 1);
+
+    let mut team = GameState::with_map(MapKind::ComplianceYard, false);
+    team.seed(7);
+    team.config.rules = RuleSet::new(GameMode::Tdm, &[], false).unwrap();
+    team.start_round();
+    let team_id = join(&mut team, 1, Role::Human);
+    assert_eq!(fighter(&team, team_id).inventory.grenades(), 1);
+    assert!(fighter(&team, team_id)
+        .inventory
+        .owns(WeaponType::Flechette));
+
+    let mut sabotage = GameState::with_map(MapKind::ComplianceYard, false);
+    sabotage.seed(7);
+    sabotage.config.rules = RuleSet::new(GameMode::Sabotage, &[], false).unwrap();
+    sabotage.start_round();
+    let sabotage_id = join(&mut sabotage, 1, Role::Human);
+    assert_eq!(fighter(&sabotage, sabotage_id).inventory.grenades(), 0);
+
+    let mut only = GameState::with_map(MapKind::ComplianceYard, false);
+    only.seed(7);
+    only.config.rules = RuleSet::new(GameMode::Ffa, &[Mutator::RailOnly], false).unwrap();
+    only.start_round();
+    let only_id = join(&mut only, 1, Role::Human);
+    assert_eq!(fighter(&only, only_id).inventory.grenades(), 0);
+    assert_eq!(fighter(&only, only_id).weapon, WeaponType::Rail);
+}
+
+#[test]
+fn an_arena_grenade_pad_cannot_raise_the_carry_above_one() {
+    let mut state = ffa(MapKind::ArenaDuel);
+    let id = join(&mut state, 1, Role::Human);
+    assert_eq!(fighter(&state, id).inventory.grenades(), 1);
+    let (x, y, z) = {
+        let body = fighter(&state, id);
+        (body.x, body.y, body.z)
+    };
+    state.pickups.push(crate::sim::ArenaPickup {
+        claim: crate::protocol::SupplyClaim::Contested,
+        id: "test_grenade".into(),
+        kind: PickupKind::Grenade { count: 3 },
+        amount: 3,
+        x,
+        y: y + 0.4,
+        z,
+        floor: y - PLAYER_FLOOR_Y,
+        available: true,
+        respawn_timer: None,
+        secret: false,
+    });
+    state.tick(DT);
+    assert_eq!(fighter(&state, id).inventory.grenades(), 1);
+    // Spent, a pad can put one back, and still cannot stock a second.
+    assert!(state
+        .players
+        .iter_mut()
+        .find(|p| p.id == id)
+        .unwrap()
+        .inventory
+        .try_throw());
+    assert_eq!(fighter(&state, id).inventory.grenades(), 0);
+    let pad = state
+        .pickups
+        .iter_mut()
+        .find(|pad| pad.id == "test_grenade")
+        .unwrap();
+    pad.available = true;
+    pad.respawn_timer = None;
+    state.tick(DT);
+    assert_eq!(fighter(&state, id).inventory.grenades(), 1);
 }

@@ -4,6 +4,17 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.10 - 2026-11-25
+
+- Issue one grenade on each free-for-all, duel and team-arsenal life. Death
+  replaces it with one. A second throw in that life is refused, and an arena
+  pad cannot raise the carry above one. Sabotage and weapon-only starts are
+  unchanged. Gun damage, cooldown and spread are unchanged.
+- Teach the grenade on Level 5's lone Heavy. After it has seen a participant
+  step behind cover, it cooks for two seconds and lobs one. It does not lob
+  in the open, and it does not lob again until the cooldown. No other
+  Continuance body throws.
+
 ## v0.99.9 - 2026-11-25
 
 - Reopening a saved Continue on Local Exception keeps the finale in progress.

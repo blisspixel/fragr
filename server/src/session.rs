@@ -963,6 +963,9 @@ impl GameSession {
                 self.navigators.remove(&id);
                 intent.action
             };
+            // A cooked lob is one committed press. Body avoidance must not
+            // trade it for a step, or the tell would finish with no grenade.
+            let throwing = action.throw_grenade;
             let locked = self
                 .state
                 .players
@@ -980,7 +983,7 @@ impl GameSession {
                         })
                     )
                 });
-            let action = if locked {
+            let action = if locked || throwing {
                 action
             } else {
                 self.navigators.entry(id).or_default().avoid_bodies(
