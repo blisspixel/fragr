@@ -395,29 +395,7 @@ impl GameState {
             player.hp = 0;
             player.respawn_timer = None;
             player.clear_input();
-            run.phase = if run.m02.is_some()
-                || run.m03.is_some()
-                || run.m04.is_some()
-                || run.m05.is_some()
-                || run.m06.is_some()
-                || run.m08.is_some()
-                || run.m07.is_some()
-                || run.m09.is_some()
-                || run.m10.is_some()
-                || run.m11.is_some()
-                || run.m12.is_some()
-                || run.m13.is_some()
-                || run.m14.is_some()
-                || run.m15.is_some()
-                || run.m16.is_some()
-                || run.m17.is_some()
-                || run.m18.is_some()
-                || run.m19.is_some()
-            {
-                MissionPhase::InProgress
-            } else {
-                MissionPhase::FindTransfer
-            };
+            run.phase = run.opened_phase();
             run.ready.insert(player.id);
             run.started = true;
         }

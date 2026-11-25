@@ -131,6 +131,17 @@ impl MissionRun {
             map_steps: Vec::new(),
         })
     }
+
+    /// The phase a ready party plays. Recall Notice is the transfer record.
+    /// Later missions, including one reopened at a pending Continue, are in
+    /// progress. The map's mission id owns this, so a new stage cannot fall
+    /// through to Level 1.
+    fn opened_phase(&self) -> MissionPhase {
+        self.initial_map
+            .campaign_mission_id()
+            .map(MissionId::ready_phase)
+            .unwrap_or(MissionPhase::FindTransfer)
+    }
 }
 
 /// One admission rule for movement, equipment, combat and encounter participation.
@@ -291,31 +302,7 @@ impl GameState {
             .collect();
         run.ready.retain(|id| party.contains(id));
         if run.phase == MissionPhase::Briefing && !party.is_empty() && party.is_subset(&run.ready) {
-            run.phase = if run.m20.is_some()
-                || run.epilogue.is_some()
-                || run.m02.is_some()
-                || run.m03.is_some()
-                || run.m04.is_some()
-                || run.m05.is_some()
-                || run.m06.is_some()
-                || run.m08.is_some()
-                || run.m07.is_some()
-                || run.m09.is_some()
-                || run.m10.is_some()
-                || run.m11.is_some()
-                || run.m12.is_some()
-                || run.m13.is_some()
-                || run.m14.is_some()
-                || run.m15.is_some()
-                || run.m16.is_some()
-                || run.m17.is_some()
-                || run.m18.is_some()
-                || run.m19.is_some()
-            {
-                MissionPhase::InProgress
-            } else {
-                MissionPhase::FindTransfer
-            };
+            run.phase = run.opened_phase();
             run.changed_at = self.tick;
             run.started = true;
             run.started_at = Some(self.tick);
@@ -440,31 +427,7 @@ impl GameState {
         run.phase = if run.ready.is_empty() {
             MissionPhase::Briefing
         } else {
-            if run.m20.is_some()
-                || run.epilogue.is_some()
-                || run.m02.is_some()
-                || run.m03.is_some()
-                || run.m04.is_some()
-                || run.m05.is_some()
-                || run.m06.is_some()
-                || run.m08.is_some()
-                || run.m07.is_some()
-                || run.m09.is_some()
-                || run.m10.is_some()
-                || run.m11.is_some()
-                || run.m12.is_some()
-                || run.m13.is_some()
-                || run.m14.is_some()
-                || run.m15.is_some()
-                || run.m16.is_some()
-                || run.m17.is_some()
-                || run.m18.is_some()
-                || run.m19.is_some()
-            {
-                MissionPhase::InProgress
-            } else {
-                MissionPhase::FindTransfer
-            }
+            run.opened_phase()
         };
         run.attempt = run.attempt.saturating_add(1);
         for player in &mut self.players {
