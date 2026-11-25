@@ -4,7 +4,7 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## v0.99.7 - 2026-11-04
+## v0.99.7 - 2026-11-25
 
 - Introduce the Auditor's bounded machine repair with one Sweeper in Level 8's
   upper gallery, before the mixed machinery-bridge encounter. A player can

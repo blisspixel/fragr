@@ -16,7 +16,7 @@ Scale grows with evidence: small squads (four to twelve fighters) for 1.0, then 
 
 <a id="now-in-development"></a>
 
-## Where we are (2026-11-04)
+## Where we are (2026-11-25)
 
 - **Release.** [v0.99.7](https://github.com/blisspixel/fragr/releases/tag/v0.99.7) teaches the Auditor's repair with one Sweeper before the mixed machinery-bridge fight in Level 8, and brings Holdfast TDM's opening fight to its screened airfield hangars. Level 8's changed authoring refuses saves currently in that mission from earlier builds; campaign save schema 27 is unchanged. The preceding combat release presents the server's weapon cone, timed arena weapon raises and nearby reload and dry-trigger cues. Gameplay capability 69 requires a matching client and server. The [release page](https://github.com/blisspixel/fragr/releases/latest) records Windows, Linux and macOS packages, checksums and package-validation results. Human play on Windows, real controllers, fresh-player acceptance and listening remain separate unproven evidence.
 - **Campaign.** Levels 1 to 20 are connected development missions with mission-entry saves (one current save schema, no migration), finite ammunition and three continues per episode; surviving Level 20 records the campaign's survival, which opens the Still Here epilogue (capability 57) from the menu, and a run exhausted in levels 18 to 20 gets its own ending and credits. Level 1, Recall Notice, is dressed as the golden slice (#461). Level 19, Planned Works (#465), adds the jetpack and the Paver; Level 20, Local Exception (#466), adds the Surveyor; both machines carry final Inheritance models from wave 11. Art, pacing and fresh-player review are open on every level.
