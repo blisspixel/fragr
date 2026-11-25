@@ -1767,7 +1767,7 @@ impl GameState {
             id,
             name,
             role,
-            spawn.unwrap_or_else(|| self.map.spawn(angle)),
+            spawn.unwrap_or_else(|| self.spawn_at_angle(angle)),
             self.equipment_policy(),
         );
         // Keep an admitted seat while an obstructed world waits for room.

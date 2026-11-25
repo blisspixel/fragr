@@ -63,7 +63,7 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 	if EquipmentState.ammo(before, pool) != EquipmentState.ammo(after, pool):
 		push_error("qa_arc_visual: reload changed the finite ammunition total")
 		_failed = true
-	var report: FileAccess = FileAccess.open(_out_dir.path_join(weapon.to_lower()+"-reload-observation.json"), FileAccess.WRITE)
+	var report: FileAccess = FileAccess.open(_out_dir.path_join(str(state["name"])+"-reload-observation.json"), FileAccess.WRITE)
 	report.store_string(JSON.stringify({"ordinary_key":"R", "before":before, "acknowledged":acknowledged, "after":after, "cues":cues, "samples":_reload_samples}, "\t") + "\n")
 
 func _probe_active(probe: Node, state: Dictionary) -> bool:

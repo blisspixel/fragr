@@ -156,6 +156,11 @@ impl Definition {
                 .iter()
                 .any(|e| e.kind != EnemyKind::Sweeper)
             || auditors(&definitions[3]) != 1
+            || definitions[3].enemies.len() != 2
+            || !definitions[3]
+                .enemies
+                .iter()
+                .any(|e| e.kind == EnemyKind::Sweeper)
             || auditors(&definitions[4]) != 1
             || definitions.iter().map(auditors).sum::<usize>() != 2
             || !definitions[3]
@@ -168,7 +173,7 @@ impl Definition {
                 .any(|e| crate::encounters::enemy::repairable(e.kind))
         {
             return Err(invalid(
-                "M08 requires six ordered groups, at most an optional service ring after the Auditor, a two-Sweeper mine lesson and one repairing Auditor in each of its two Auditor fights",
+                "M08 requires six ordered groups, at most an optional service ring after the Auditor, a two-Sweeper mine lesson, an Auditor with one Sweeper teaching repair, and one repairing Auditor in the mixed bridge fight",
             ));
         }
         let arrivals = [0, 1, 2, 3, 5, 6].map(|i| M08_OBJECTIVE_IDS[i]);

@@ -113,7 +113,7 @@ fn spots(state: &GameState) -> Vec<([f32; 3], Option<usize>)> {
         .map(|(index, pad)| ([pad.x, pad.floor, pad.z], Some(index)))
         .collect();
     for index in 0..SPAWN_SPOTS {
-        let (x, z, _, floor) = state.map.spawn(index as f32 / SPAWN_SPOTS as f32 * TAU);
+        let (x, z, _, floor) = state.spawn_at_angle(index as f32 / SPAWN_SPOTS as f32 * TAU);
         spots.push(([x, floor, z], None));
     }
     spots

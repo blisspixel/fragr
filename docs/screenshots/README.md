@@ -26,6 +26,21 @@ Inspected frame sequences preserve a fixed aim pip and level HUD text; the
 dedicated aim tour also checks the rendered ring against private server facts.
 Unchanged world, menu and profile images retain their earlier captures.
 
+The `m08_auditor_*` stills and strips show the focused gallery lesson from
+`26c82fbf`, captured on Linux with Godot 4.7.2-stable, Forward+, at 1280x720.
+The channel and reactivation use labelled inspection cameras; interruption
+uses the actual first-person shot. The route uses earned ammunition and ordinary
+acknowledged reloads through `qa_arc_visual.gd`. Server facts require the named
+disabled machine, repair budget and damaging interruption. The full 37-state
+M08 route reaches party departure; these inspected views do not establish
+fresh-player acceptance.
+
+The `holdfast_tdm_issued_*` files show `7fab4d64` on the same engine and renderer.
+The human carries the actual issued Rifle, Shotgun and Rail kit; the watched
+sequence shows live movement and fire from the covered airfield deployment.
+These are not the unmerged Pistol-and-pads experiment. Existing README surfaces
+retain their prior images after a complete inspected publish pass.
+
 ## November 1, 2026 Local Exception rename
 
 The full publish tour passed 34 main states, two team states and Recall Notice

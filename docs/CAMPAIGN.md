@@ -364,8 +364,9 @@ moral penalty for using the shooter's core mechanics.
   and 20 and reduced the level 10 aft boarders and level 13 machine hall to
   three kinds. The Assessor now teaches alone in Level 12's greenhouse
   defense before the mixed pressure. The Auditor's Level 8 introduction
-  still arrives with three Sweepers; its repair/revive lesson remains open
-  before that combination (#527).
+  pairs it with one Sweeper so a disabled body's repair is readable before
+  the machinery bridge combines the support officer with Sweepers and Clerks.
+  Killing the Auditor first remains a valid way to prevent repair.
   [ENEMIES.md](ENEMIES.md) owns the roster.
 - Secrets reward observation with supplies, tactical access, or early weapons.
   Essential motive, objectives, and rescue warnings are never secret-only.
