@@ -74,7 +74,7 @@ fn select(state: &mut GameState, id: Uuid, weapon: WeaponType) {
 }
 
 #[test]
-fn a_free_for_all_life_starts_with_the_pistol_and_fists_and_nothing_else() {
+fn a_free_for_all_life_starts_with_the_pistol_fists_and_one_grenade() {
     let mut state = ffa(MapKind::ComplianceYard);
     let human = join(&mut state, 1, Role::Human);
     let agent = join(&mut state, 2, Role::Agent);
@@ -234,6 +234,14 @@ fn death_loses_the_found_guns_and_the_next_life_starts_on_the_kit_after_four_sec
     stand_on(&mut state, victim, "pad_rail");
     state.tick(DT);
     assert_eq!(fighter(&state, victim).weapon, WeaponType::Rail);
+    assert!(state
+        .players
+        .iter_mut()
+        .find(|p| p.id == victim)
+        .unwrap()
+        .inventory
+        .try_throw());
+    assert_eq!(fighter(&state, victim).inventory.grenades(), 0);
     park(&mut state, victim);
     kill(&mut state, killer, victim);
     // While down, the private loadout still names what this life carried, so
@@ -253,6 +261,7 @@ fn death_loses_the_found_guns_and_the_next_life_starts_on_the_kit_after_four_sec
     assert!(back.respawn_timer.is_none() && back.hp > 0);
     assert_eq!(back.weapon, WeaponType::Tack);
     assert_eq!(owned(&state, victim), [WeaponType::Fists, WeaponType::Tack]);
+    assert_eq!(back.inventory.grenades(), 1);
     assert!(
         back.inventory.armed(),
         "a human keeps magazines across lives"
@@ -276,6 +285,7 @@ fn a_round_restart_and_a_reconnect_both_start_on_the_kit() {
     assert_eq!(state.round_state, RoundState::Active);
     assert_eq!(fighter(&state, id).weapon, WeaponType::Tack);
     assert_eq!(owned(&state, id), [WeaponType::Fists, WeaponType::Tack]);
+    assert_eq!(fighter(&state, id).inventory.grenades(), 1);
 
     stand_on(&mut state, id, "pad_scatter");
     state.tick(DT);
@@ -284,6 +294,7 @@ fn a_round_restart_and_a_reconnect_both_start_on_the_kit() {
     state.remove_player(id);
     let again = join(&mut state, 1, Role::Human);
     assert_eq!(owned(&state, again), [WeaponType::Fists, WeaponType::Tack]);
+    assert_eq!(fighter(&state, again).inventory.grenades(), 1);
 }
 
 #[test]
@@ -299,12 +310,18 @@ fn every_exception_keeps_its_own_kit() {
             .into_iter()
             .filter(|w| inventory.owns(*w))
             .collect();
-        (weapon, owned, state.wire_rules().unwrap().start_kit)
+        (
+            weapon,
+            owned,
+            state.wire_rules().unwrap().start_kit,
+            inventory.grenades(),
+        )
     };
     let arsenal = vec![WeaponType::Flechette, WeaponType::Scatter, WeaponType::Rail];
     for (mode, mutators) in [
         (GameMode::Tdm, vec![]),
         (GameMode::Ctf, vec![]),
+        (GameMode::Conquest, vec![]),
         (GameMode::Ffa, vec![Mutator::GoldenRail]),
         (GameMode::Ffa, vec![Mutator::FullArsenal]),
         (
@@ -312,11 +329,16 @@ fn every_exception_keeps_its_own_kit() {
             vec![Mutator::FullArsenal, Mutator::LicenceToKill],
         ),
     ] {
-        let (weapon, owned, wire) = kit(mode, &mutators);
+        let (weapon, owned, wire, grenades) = kit(mode, &mutators);
         assert_eq!(weapon, WeaponType::Flechette, "{mode:?} {mutators:?}");
         assert_eq!(owned, arsenal, "{mode:?} {mutators:?}");
         assert_eq!(wire, arsenal, "{mode:?} {mutators:?}");
+        assert_eq!(grenades, 1, "{mode:?} {mutators:?}");
     }
+    let (weapon, owned, _, grenades) = kit(GameMode::Duel, &[]);
+    assert_eq!(weapon, WeaponType::Tack);
+    assert_eq!(owned, [WeaponType::Fists, WeaponType::Tack]);
+    assert_eq!(grenades, 1);
     for (mutator, weapon) in [
         (Mutator::RailOnly, WeaponType::Rail),
         (Mutator::ShotgunOnly, WeaponType::Scatter),
@@ -324,18 +346,22 @@ fn every_exception_keeps_its_own_kit() {
     ] {
         assert_eq!(
             kit(GameMode::Ffa, &[mutator]),
-            (weapon, vec![weapon], vec![weapon])
+            (weapon, vec![weapon], vec![weapon], 0)
         );
     }
     // Licence to Kill and Two Lives do not choose weapons: the Pistol start holds.
     for mutator in [Mutator::LicenceToKill, Mutator::TwoLives] {
-        let (weapon, owned, _) = kit(GameMode::Ffa, &[mutator]);
+        let (weapon, owned, _, grenades) = kit(GameMode::Ffa, &[mutator]);
         assert_eq!(weapon, WeaponType::Tack);
         assert_eq!(owned, [WeaponType::Fists, WeaponType::Tack]);
+        assert_eq!(grenades, 1);
     }
     // Sabotage owns its starts: empty-handed by default, the Pistol in 5v5.
-    let (weapon, _, wire) = kit(GameMode::Sabotage, &[]);
-    assert_eq!((weapon, wire), (WeaponType::Fists, vec![WeaponType::Fists]));
+    let (weapon, _, wire, grenades) = kit(GameMode::Sabotage, &[]);
+    assert_eq!(
+        (weapon, wire, grenades),
+        (WeaponType::Fists, vec![WeaponType::Fists], 0)
+    );
     let mut five = GameState::with_map(MapKind::Sector9, false);
     let mut config = MatchConfig {
         rules: RuleSet::new(GameMode::Sabotage, &[], false).unwrap(),
@@ -343,11 +369,15 @@ fn every_exception_keeps_its_own_kit() {
     };
     config.sabotage.five_vs_five = true;
     five.apply_config(config);
-    assert_eq!(five.fresh_inventory().1, WeaponType::Tack);
+    let (five_kit, five_weapon) = five.fresh_inventory();
+    assert_eq!(five_weapon, WeaponType::Tack);
+    assert_eq!(five_kit.grenades(), 0);
     // Episode 0 keeps the arena arsenal it was built around.
     let mut episode = GameState::with_map(MapKind::ArenaDuel, false);
     episode.solo_broadcast.enabled = true;
-    assert_eq!(episode.fresh_inventory().1, WeaponType::Flechette);
+    let (episode_kit, episode_weapon) = episode.fresh_inventory();
+    assert_eq!(episode_weapon, WeaponType::Flechette);
+    assert_eq!(episode_kit.grenades(), 1);
     assert!(!episode.sidearm_start());
     // A campaign map carries its own equipment and names no kit.
     let map = crate::maps::AuthoredMap::read(
@@ -357,7 +387,9 @@ fn every_exception_keeps_its_own_kit() {
     let campaign = GameState::with_authored_map(map);
     assert!(campaign.start_kit().is_none());
     assert!(campaign.wire_rules().is_none());
-    assert_eq!(campaign.fresh_inventory().1, WeaponType::Fists);
+    let (campaign_kit, campaign_weapon) = campaign.fresh_inventory();
+    assert_eq!(campaign_weapon, WeaponType::Fists);
+    assert_eq!(campaign_kit.grenades(), 0);
 }
 
 #[test]
