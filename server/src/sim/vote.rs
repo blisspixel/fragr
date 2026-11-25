@@ -129,15 +129,19 @@ impl GameState {
     }
 
     /// `Action::vote` from a seated person or agent while the vote is open.
-    pub(super) fn note_vote(&mut self, id: Uuid, map_id: u32) {
+    /// `None` when the ballot counted. The string is why it did not.
+    pub(super) fn note_vote(&mut self, id: Uuid, map_id: u32) -> Option<&'static str> {
         if !self.again_voters().contains(&id) {
-            return;
+            return Some("vote is ignored while no map vote is open");
         }
         let Some(vote) = self.map_vote.as_mut() else {
-            return;
+            return Some("vote is ignored while no map vote is open");
         };
         if let Some(map) = vote.options.iter().copied().find(|map| map.id() == map_id) {
             vote.ballots.insert(id, map);
+            None
+        } else {
+            Some("vote map is not offered")
         }
     }
 

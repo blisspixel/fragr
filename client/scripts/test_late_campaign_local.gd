@@ -46,12 +46,22 @@ func _run() -> void:
 		await process_frame
 		await process_frame
 		current_scene._start_development(mission)
-		if not await _until(func() -> bool: return current_scene != null and current_scene.has_method("change_role") and current_scene.net_client.mission_geometry.get("id") == mission and is_instance_valid(current_scene.opening), mission + " owned entry and reader page"):
+		# Map info creates the reader and clears mission facts. The phase
+		# arrives on the following message, so wait for that briefing
+		# instead of reading the cleared dictionary on the map frame.
+		if not await _until(func() -> bool:
+			if current_scene == null or not current_scene.has_method("change_role"):
+				return false
+			if current_scene.net_client.mission_geometry.get("id") != mission or not is_instance_valid(current_scene.opening):
+				return false
+			var facts: Variant = current_scene.net_client.mission.get("state", {})
+			return facts is Dictionary and str(facts.get("phase", "")) == "briefing"
+		, mission + " owned entry stays in briefing on the reader page"):
 			quit(1)
 			return
 		var game: Node = current_scene
 		_check(game._mission_map() and game.controls_blocked(), "accepted mission waits for readiness")
-		_check(game.net_client.mission.get("state", {}).get("phase") == "briefing", "server remains in briefing")
+		_check(str(game.net_client.mission.get("state", {}).get("phase", "")) == "briefing", "server remains in briefing")
 		game.opening._skip.pressed.emit()
 		if not await _until(func() -> bool: return current_scene != null and current_scene.has_method("change_role") and current_scene.net_client.mission.get("state", {}).get("phase") == "in_progress" and not current_scene.controls_blocked(), mission + " reader dismissal reaches live play"):
 			quit(1)

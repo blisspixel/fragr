@@ -39,7 +39,7 @@ Same Action path as humans and scripted bots. Keep LLM off the 20 Hz tick.
 Free-for-all: every life starts with the Pistol and Fists (`rules.start_kit`).
 The brief's `OWNED` line lists what you can select; the Rifle, Shotgun and
 Railgun are pads (`PADS weapon.*`) on 15 to 25 second clocks. Walk onto one to
-own it; death loses it. A `weapon_swap` to a gun you do not own is ignored.
+own it; death loses it. `act` refuses a `weapon_swap` to a gun you do not own and names the `OWNED` list. A request the server drops later shows up as `input_ignored`.
 
 ## Speak / taunt
 

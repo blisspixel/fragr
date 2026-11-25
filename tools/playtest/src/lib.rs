@@ -1353,7 +1353,8 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
             | GameEvent::VenueNotice { .. } => {}
             GameEvent::EpisodeStart { .. }
             | GameEvent::EpisodeComplete { .. }
-            | GameEvent::EpisodeFail { .. } => {}
+            | GameEvent::EpisodeFail { .. }
+            | GameEvent::InputIgnored { .. } => {}
         }
     }
     for report in per_agent.values_mut() {

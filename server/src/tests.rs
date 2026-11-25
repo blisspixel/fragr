@@ -3,8 +3,8 @@ use crate::protocol::{
     boss_down_host_line, boss_host_line, boss_round_wipe_host_line, compliance_host_line,
     default_host_line, default_map_id, default_map_name, default_mode_name, default_playlist,
     mvp_host_line, round_open_host_line, warmup_host_line, Action, ClientMessage, GameEvent,
-    HostReactionKind, PlayerScore, PlayerState, Role, ServerMessage, Snapshot, WeaponType,
-    AUDITOR_NAME, BOSS_NAME, EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT,
+    HostReactionKind, IgnoredAction, LookAt, PlayerScore, PlayerState, Role, ServerMessage,
+    Snapshot, WeaponType, AUDITOR_NAME, BOSS_NAME, EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT,
 };
 #[cfg(test)]
 use crate::session::GameSession;
@@ -2013,6 +2013,164 @@ fn test_weapon_swap_to_an_unowned_gun_is_refused() {
     );
     state.tick(0.05);
     assert_eq!(state.players[0].weapon, WeaponType::Fists);
+}
+
+#[test]
+fn test_dropped_requests_are_noted_once_and_not_broadcast() {
+    use crate::session::Recipient;
+    use crate::sim::RoundState;
+
+    let mut state = GameState::new();
+    state.start_round();
+    let player_id = Uuid::new_v4();
+    state.add_player(player_id, "Swapper".to_string(), Role::Agent);
+
+    let swap = |state: &mut GameState, weapon: WeaponType| {
+        state.set_action(
+            player_id,
+            Action {
+                weapon_swap: Some(weapon),
+                ..Default::default()
+            },
+        );
+        state.tick(0.05);
+    };
+    swap(&mut state, WeaponType::Rocket);
+    let notes = state.take_input_ignored();
+    assert!(
+        state
+            .take_events()
+            .iter()
+            .all(|event| !matches!(event, GameEvent::InputIgnored { .. })),
+        "a refusal is private, not a room event"
+    );
+    assert_eq!(notes.len(), 1);
+    match &notes[0] {
+        (id, GameEvent::InputIgnored { field, reason }) => {
+            assert_eq!(*id, player_id);
+            assert_eq!(*field, IgnoredAction::WeaponSwap);
+            assert!(reason.contains("rocket"), "{reason}");
+            assert!(reason.contains("not owned"), "{reason}");
+        }
+        other => panic!("unexpected note {other:?}"),
+    }
+    swap(&mut state, WeaponType::Rocket);
+    assert!(
+        state.take_input_ignored().is_empty(),
+        "the same refusal is noted once"
+    );
+    swap(&mut state, WeaponType::Fists);
+    assert!(
+        state.take_input_ignored().is_empty(),
+        "an owned gun is not a refusal"
+    );
+    assert_eq!(state.players[0].weapon, WeaponType::Fists);
+    swap(&mut state, WeaponType::Rocket);
+    assert_eq!(
+        state.take_input_ignored().len(),
+        1,
+        "a later refusal is noted again"
+    );
+
+    state.set_action(
+        player_id,
+        Action {
+            again: true,
+            ..Default::default()
+        },
+    );
+    let again = state.take_input_ignored();
+    assert!(
+        matches!(
+            &again[..],
+            [(id, GameEvent::InputIgnored { field: IgnoredAction::Again, reason })]
+                if *id == player_id && reason.contains("podium")
+        ),
+        "{again:?}"
+    );
+    state.set_action(
+        player_id,
+        Action {
+            again: true,
+            ..Default::default()
+        },
+    );
+    assert!(state.take_input_ignored().is_empty());
+    state.round_state = RoundState::Ended;
+    state.set_action(
+        player_id,
+        Action {
+            again: true,
+            ..Default::default()
+        },
+    );
+    assert!(
+        state.take_input_ignored().is_empty(),
+        "an open podium counts the ready-up"
+    );
+
+    state.round_state = RoundState::Active;
+    state.set_action(
+        player_id,
+        Action {
+            look_at: Some(LookAt {
+                player_id: Some(Uuid::nil()),
+                ..Default::default()
+            }),
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    let look = state.take_input_ignored();
+    assert!(
+        matches!(
+            &look[..],
+            [(id, GameEvent::InputIgnored { field: IgnoredAction::LookAt, reason })]
+                if *id == player_id && reason.contains("not a living fighter")
+        ),
+        "{look:?}"
+    );
+    state.tick(0.05);
+    assert!(
+        state.take_input_ignored().is_empty(),
+        "a held miss is not repeated every tick"
+    );
+
+    let mut session = GameSession::new();
+    session.state.start_round();
+    let seated = Uuid::new_v4();
+    session
+        .state
+        .add_player(seated, "Seated".to_string(), Role::Agent);
+    session.state.set_action(
+        seated,
+        Action {
+            weapon_swap: Some(WeaponType::Rocket),
+            ..Default::default()
+        },
+    );
+    let broadcast = session.tick_messages(0.05);
+    assert!(
+        !broadcast.iter().any(|message| matches!(
+            message,
+            ServerMessage::Event(GameEvent::InputIgnored { .. })
+        )),
+        "the room broadcast does not carry the refusal"
+    );
+    let unicasts = session.take_unicasts();
+    assert!(
+        unicasts.iter().any(|(who, message)| {
+            matches!(who, Recipient::Player(id) if *id == seated)
+                && matches!(
+                    message,
+                    ServerMessage::Event(GameEvent::InputIgnored {
+                        field: IgnoredAction::WeaponSwap,
+                        reason,
+                    }) if reason.contains("not owned")
+                )
+        }),
+        "{unicasts:?}"
+    );
 }
 
 #[test]

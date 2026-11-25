@@ -50,6 +50,8 @@ pub struct ToolState {
     pub record: Option<protocol::PlayerRecord>,
     pub mission: localexception_server::mission::MissionClient,
     pub recent_events: Vec<Value>,
+    /// Dropped requests to name on the next brief, then forget.
+    pub ignored_notices: Vec<Value>,
     pub player_id: Option<Uuid>,
     /// Tick of last MCP speak that was accepted for send (rate-limit honesty).
     pub last_speak_tick: Option<u64>,
@@ -94,6 +96,7 @@ impl Default for ToolState {
             record: None,
             mission: Default::default(),
             recent_events: Vec::new(),
+            ignored_notices: Vec::new(),
             player_id: None,
             last_speak_tick: None,
             connected: false,
@@ -850,12 +853,12 @@ fn tools_list_result() -> Value {
         act["inputSchema"]["properties"]["again"] = serde_json::json!({
             "type": "boolean",
             "default": false,
-            "description": "On the podium after a round, ask for the next one now. When every seated person and agent has asked, it starts two seconds after the result instead of waiting out the podium. round_state reports who is ready. Ignored mid-round and in Sabotage."
+            "description": "On the podium after a round, ask for the next one now. When every seated person and agent has asked, it starts two seconds after the result instead of waiting out the podium. round_state reports who is ready. Refused when the latest snapshot is not an open podium. Ignored mid-round and in Sabotage."
         });
         act["inputSchema"]["properties"]["vote"] = serde_json::json!({
             "type": "integer",
             "minimum": 1,
-            "description": "On the podium of a rotating server, vote for the next map: one map_id from round_state.podium.vote.options. Send it once; a later vote replaces it. The leader loads when the podium closes, ties going to the earlier option. Ignored mid-round, from a spectator and for a map not offered."
+            "description": "On the podium of a rotating server, vote for the next map: one map_id from round_state.podium.vote.options. Send it once; a later vote replaces it. The leader loads when the podium closes, ties going to the earlier option. Refused when the latest snapshot has no open vote or the map is not offered. Ignored mid-round, from a spectator and for a map not offered."
         });
     }
     tools
@@ -866,7 +869,7 @@ fn tools_list_body() -> Value {
         "tools": [
             {
                 "name": "observe",
-                "description": "Get the current game state. detail=brief (default) is a compact text a model can poll: self, nearest threats with distance, bearing, and ids for act.look_at, pads as your fighter has seen them, rivals it only hears (HEARD, a rough place, never a target), and the round. A fighter receives only what it could perceive, the same as a human fighter: a rival it cannot see or hear is a hidden row with no place. detail=full is the snapshot object (players, pickups as seen, recent events, shot_results). detail=map resends retained geometry. Every tools/call returns content; full and map also set structuredContent. Returns a connecting line until the first snapshot arrives.",
+                "description": "Get the current game state. detail=brief (default) is a compact text a model can poll: self, nearest threats with distance, bearing, and ids for act.look_at, pads as your fighter has seen them, rivals it only hears (HEARD, a rough place, never a target), and the round. The next brief names a request the server dropped, once, as IGNORED field: reason. A fighter receives only what it could perceive, the same as a human fighter: a rival it cannot see or hear is a hidden row with no place. detail=full is the snapshot object (players, pickups as seen, recent events, shot_results). detail=map resends retained geometry. Every tools/call returns content; full and map also set structuredContent. Returns a connecting line until the first snapshot arrives.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -878,7 +881,7 @@ fn tools_list_body() -> Value {
             },
             {
                 "name": "act",
-                "description": "Send ordinary input. Movement, fire and duck are held until changed. weapon_swap is consumed once; later omitted fields do not erase a pending selection. interact, throw_grenade and place_mine latch rising edges, so release before another press. Weapon selection requires ownership. look_at aims in three dimensions.",
+                "description": "Send ordinary input. Movement, fire and duck are held until changed. weapon_swap is consumed once; later omitted fields do not erase a pending selection. interact, throw_grenade and place_mine latch rising edges, so release before another press. Weapon selection requires ownership. look_at aims in three dimensions. When the latest snapshot can already show it, an unowned weapon, a missing or hidden look target, again outside the podium and a vote that is not offered are refused with the reason. A queued action is intent. A request the server drops later is named on the next brief as IGNORED and in get_events as input_ignored.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -916,7 +919,7 @@ fn tools_list_body() -> Value {
             },
             {
                 "name": "get_events",
-                "description": "Get recent game events (player joins/leaves, frags, Host reactions such as multikills, sprees, match point and sudden death, respawns, round start/end, speaks). Includes last 50 events.",
+                "description": "Get recent game events (player joins/leaves, frags, Host reactions such as multikills, sprees, match point and sudden death, respawns, round start/end, speaks, input_ignored). Includes last 50 events. input_ignored is a request this fighter sent that the server did not apply.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -1158,7 +1161,7 @@ struct BriefThreat {
 
 /// Compact observation the brain already prints, plus the ids `act.look_at` needs.
 /// Threats are in the same engagement order as the scripted bot. At most eight.
-pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
+pub(crate) fn observe_brief(state: &mut ToolState) -> (String, Value) {
     if let Some(error) = &state.connection_error {
         return (
             format!("SELF disconnected: {}: {}\n", error.code, error.message),
@@ -1423,7 +1426,7 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
         }),
         None => Value::Null,
     };
-    let structured = serde_json::json!({
+    let mut structured = serde_json::json!({
         "detail": "brief",
         "self": self_json,
         "threats": threat_json,
@@ -1440,7 +1443,115 @@ pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
             "fighters": fighters,
         }
     });
+    let notices = std::mem::take(&mut state.ignored_notices);
+    for notice in &notices {
+        let field = notice
+            .get("field")
+            .and_then(Value::as_str)
+            .unwrap_or("input");
+        let reason = notice
+            .get("reason")
+            .and_then(Value::as_str)
+            .unwrap_or("ignored");
+        text.push_str(&format!("IGNORED {field}: {reason}\n"));
+    }
+    if !notices.is_empty() {
+        structured["input_ignored"] = Value::Array(notices);
+    }
     (text, structured)
+}
+
+/// Refuse an action the latest snapshot already shows cannot apply.
+fn reject_impossible_act(action: &protocol::Action, state: &ToolState) -> Result<(), String> {
+    if let Some(weapon) = action.weapon_swap {
+        if let Some(loadout) = &state.loadout {
+            if !loadout.weapons.contains(&weapon) {
+                let owned = loadout
+                    .weapons
+                    .iter()
+                    .filter_map(|owned| {
+                        serde_json::to_value(owned)
+                            .ok()
+                            .and_then(|id| id.as_str().map(str::to_string))
+                    })
+                    .collect::<Vec<_>>()
+                    .join(",");
+                let wire = serde_json::to_value(weapon)
+                    .ok()
+                    .and_then(|id| id.as_str().map(str::to_string))
+                    .unwrap_or_else(|| "weapon".to_string());
+                return Err(format!(
+                    "act rejected: weapon {wire} is not owned; OWNED {owned}"
+                ));
+            }
+        }
+    }
+    if let Some(look) = &action.look_at {
+        if let Some(target) = look.player_id {
+            let players = state
+                .last_snapshot
+                .as_ref()
+                .and_then(|snapshot| snapshot.get("players"))
+                .and_then(Value::as_array);
+            let row = players.and_then(|players| {
+                players.iter().find(|player| {
+                    player
+                        .get("id")
+                        .and_then(Value::as_str)
+                        .and_then(|id| Uuid::parse_str(id).ok())
+                        == Some(target)
+                })
+            });
+            let Some(row) = row else {
+                return Err("act rejected: player_id not in the latest snapshot".to_string());
+            };
+            if matches!(
+                row.get("sense").and_then(Value::as_str),
+                Some("heard" | "hidden")
+            ) {
+                return Err("act rejected: player_id is not a visible target".to_string());
+            }
+        }
+    }
+    if action.again {
+        let round = state
+            .last_snapshot
+            .as_ref()
+            .and_then(|snapshot| snapshot.get("round_state"))
+            .and_then(Value::as_str);
+        if round != Some("Ended") {
+            return Err("act rejected: again is ignored mid-round".to_string());
+        }
+        let voters = state
+            .last_snapshot
+            .as_ref()
+            .and_then(|snapshot| snapshot.get("podium"))
+            .and_then(|podium| podium.get("voters"))
+            .and_then(Value::as_u64)
+            .unwrap_or(0);
+        if voters == 0 {
+            return Err("act rejected: again is ignored outside the podium".to_string());
+        }
+    }
+    if let Some(map_id) = action.vote {
+        let options = state
+            .last_snapshot
+            .as_ref()
+            .and_then(|snapshot| snapshot.get("podium"))
+            .and_then(|podium| podium.get("vote"))
+            .and_then(|vote| vote.get("options"))
+            .and_then(Value::as_array);
+        let Some(options) = options else {
+            return Err("act rejected: vote is ignored while no map vote is open".to_string());
+        };
+        let offered = options
+            .iter()
+            .any(|option| option.get("map_id").and_then(Value::as_u64) == Some(u64::from(map_id)));
+        if !offered {
+            return Err("act rejected: vote map is not offered".to_string());
+        }
+    }
+    Ok(())
 }
 
 /// Dispatch one JSON-RPC MCP request against tool state.
@@ -1590,15 +1701,18 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
                         }) => {
                             tool_error_result("act rejected: not seated in this match; your body is absent from the latest snapshot")
                         }
-                        Ok(action) => {
-                            pending_action = Some(action);
-                            serde_json::json!({
-                                "content": [{
-                                    "type": "text",
-                                    "text": "Action queued; observe to confirm the server outcome"
-                                }]
-                            })
-                        }
+                        Ok(action) => match reject_impossible_act(&action, state) {
+                            Err(message) => tool_error_result(&message),
+                            Ok(()) => {
+                                pending_action = Some(action);
+                                serde_json::json!({
+                                    "content": [{
+                                        "type": "text",
+                                        "text": "Action queued; observe to confirm the server outcome"
+                                    }]
+                                })
+                            }
+                        },
                         Err(msg) => serde_json::json!({
                             "content": [{
                                 "type": "text",
@@ -1794,6 +1908,16 @@ fn event_bytes(events: &[Value]) -> usize {
                 .unwrap_or(0)
         })
         .sum()
+}
+
+const IGNORED_NOTICE_CAP: usize = 8;
+
+fn push_ignored_notice(state: &mut ToolState, event: Value) {
+    state.ignored_notices.push(event);
+    if state.ignored_notices.len() > IGNORED_NOTICE_CAP {
+        let extra = state.ignored_notices.len() - IGNORED_NOTICE_CAP;
+        state.ignored_notices.drain(0..extra);
+    }
 }
 
 /// Buffer a parsed or soft-prison raw event. Count and total bytes are both capped.
@@ -2199,6 +2323,11 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             state.map = Some(map);
         }
         Ok(protocol::ServerMessage::Event(event)) => {
+            if matches!(event, protocol::GameEvent::InputIgnored { .. }) {
+                if let Ok(notice) = serde_json::to_value(&event) {
+                    push_ignored_notice(state, notice);
+                }
+            }
             if matches!(event, protocol::GameEvent::RoundStart { .. }) {
                 state.pads.reset_round();
             }
@@ -2239,6 +2368,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             state.booth = None;
             state.player_id = player_id;
             state.connected = true;
+            state.ignored_notices.clear();
         }
         Ok(protocol::ServerMessage::Error { code, message }) => {
             push_recent_event(
@@ -2262,6 +2392,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
                 state.record = None;
                 state.mission = Default::default();
                 state.connection_error = Some(ConnectionError { code, message });
+                state.ignored_notices.clear();
             }
         }
         Ok(protocol::ServerMessage::Board(_)) => {}
@@ -3619,7 +3750,7 @@ mod mcp_tests {
         };
         // The brief names what this life owns, so a polling model knows the
         // Rifle is a pad away rather than a weapon_swap away.
-        let (text, structured) = observe_brief(&state);
+        let (text, structured) = observe_brief(&mut state);
         assert!(text.contains("OWNED fists,tack\n"), "{text}");
         assert!(text.contains("weapon.flechette="), "{text}");
         assert!(text.len() < 1024, "{}", text.len());
@@ -3628,7 +3759,7 @@ mod mcp_tests {
             serde_json::json!(["fists", "tack"])
         );
         state.loadout = None;
-        let (text, structured) = observe_brief(&state);
+        let (text, structured) = observe_brief(&mut state);
         assert!(!text.contains("OWNED"));
         assert!(structured["self"]["owned"].is_null());
     }
@@ -3751,7 +3882,7 @@ mod mcp_tests {
                 build_observe_result(&state)["connection_error"]["code"],
                 code
             );
-            assert!(observe_brief(&state).0.contains(code));
+            assert!(observe_brief(&mut state).0.contains(code));
             assert_eq!(
                 build_round_state_result(&state)["connection_error"]["code"],
                 code
@@ -3761,7 +3892,7 @@ mod mcp_tests {
                 .to_string()
                 .contains(code));
             assert!(state.recent_events.is_empty());
-            assert!(observe_brief(&state).0.contains(code));
+            assert!(observe_brief(&mut state).0.contains(code));
             let result = handle_mcp_request(
                 req(
                     "tools/call",
@@ -3882,6 +4013,187 @@ mod mcp_tests {
             .unwrap()
             .to_string();
         assert!(text.contains("Action queued"));
+    }
+
+    fn seated(round_state: &str, extra: Value) -> ToolState {
+        let mut snapshot = serde_json::json!({
+            "round_state": round_state,
+            "players": [{"id": Uuid::nil(), "hp": 100}]
+        });
+        if let (Some(object), Some(extra)) = (snapshot.as_object_mut(), extra.as_object()) {
+            for (key, value) in extra {
+                object.insert(key.clone(), value.clone());
+            }
+        }
+        ToolState {
+            connected: true,
+            player_id: Some(Uuid::nil()),
+            last_snapshot: Some(snapshot),
+            ..Default::default()
+        }
+    }
+
+    fn act_text(
+        state: &mut ToolState,
+        arguments: Value,
+    ) -> (Option<protocol::Action>, String, bool) {
+        let out = handle_mcp_request(
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name": "act", "arguments": arguments})),
+            ),
+            state,
+        );
+        let result = out.response.result.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap().to_string();
+        let error = result
+            .get("isError")
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
+        (out.pending_action, text, error)
+    }
+
+    #[test]
+    fn act_rejects_requests_the_snapshot_already_rules_out() {
+        use localexception_server::sim::GameState;
+        let id = Uuid::nil();
+        let mut game = GameState::new();
+        game.add_player(id, "Agent".into(), protocol::Role::Agent);
+        let player = game.players.iter().find(|p| p.id == id).unwrap();
+        let loadout = player
+            .inventory
+            .state(id, player.weapon, game.tick)
+            .expect("free-for-all owns its start kit");
+        let mut state = seated("Active", serde_json::json!({}));
+        state.loadout = Some(loadout);
+        let (pending, text, error) =
+            act_text(&mut state, serde_json::json!({"weapon_swap": "rocket"}));
+        assert!(pending.is_none());
+        assert!(error, "{text}");
+        assert!(text.contains("weapon rocket is not owned"), "{text}");
+        assert!(text.contains("OWNED fists,tack"), "{text}");
+
+        let (pending, text, error) =
+            act_text(&mut state, serde_json::json!({"weapon_swap": "fists"}));
+        assert!(pending.is_some(), "{text}");
+        assert!(!error, "{text}");
+
+        let (pending, text, error) = act_text(
+            &mut state,
+            serde_json::json!({"look_at": {"player_id": "00000000-0000-0000-0000-000000000001"}}),
+        );
+        assert!(pending.is_none());
+        assert!(error);
+        assert!(
+            text.contains("player_id not in the latest snapshot"),
+            "{text}"
+        );
+
+        let heard = Uuid::from_u128(2);
+        state.last_snapshot = Some(serde_json::json!({
+            "round_state": "Active",
+            "players": [
+                {"id": id, "hp": 100},
+                {"id": heard, "hp": 80, "sense": "heard"}
+            ]
+        }));
+        let (pending, text, error) = act_text(
+            &mut state,
+            serde_json::json!({"look_at": {"player_id": heard}}),
+        );
+        assert!(pending.is_none());
+        assert!(error);
+        assert!(text.contains("player_id is not a visible target"), "{text}");
+
+        state.last_snapshot.as_mut().unwrap()["players"][1]["sense"] = serde_json::json!("hidden");
+        let (_, text, error) = act_text(
+            &mut state,
+            serde_json::json!({"look_at": {"player_id": heard}}),
+        );
+        assert!(error);
+        assert!(text.contains("not a visible target"), "{text}");
+
+        let (pending, text, error) = act_text(&mut state, serde_json::json!({"again": true}));
+        assert!(pending.is_none());
+        assert!(error);
+        assert!(text.contains("again is ignored mid-round"), "{text}");
+
+        state.last_snapshot.as_mut().unwrap()["round_state"] = serde_json::json!("Ended");
+        state.last_snapshot.as_mut().unwrap()["podium"] = serde_json::json!({"voters": 0});
+        let (_, text, error) = act_text(&mut state, serde_json::json!({"again": true}));
+        assert!(error);
+        assert!(
+            text.contains("again is ignored outside the podium"),
+            "{text}"
+        );
+
+        let (_, text, error) = act_text(&mut state, serde_json::json!({"vote": 4}));
+        assert!(error);
+        assert!(
+            text.contains("vote is ignored while no map vote is open"),
+            "{text}"
+        );
+
+        state.last_snapshot.as_mut().unwrap()["podium"]["vote"] = serde_json::json!({
+            "options": [{"map_id": 2, "votes": 0}]
+        });
+        let (_, text, error) = act_text(&mut state, serde_json::json!({"vote": 4}));
+        assert!(error);
+        assert!(text.contains("vote map is not offered"), "{text}");
+        let (pending, text, error) = act_text(&mut state, serde_json::json!({"vote": 2}));
+        assert_eq!(pending.unwrap().vote, Some(2), "{text}");
+        assert!(!error, "{text}");
+
+        state.loadout = None;
+        let (pending, text, error) =
+            act_text(&mut state, serde_json::json!({"weapon_swap": "rocket"}));
+        assert!(
+            pending.is_some(),
+            "without a loadout the adapter cannot decide: {text}"
+        );
+        assert!(!error, "{text}");
+    }
+
+    #[test]
+    fn input_ignored_is_named_on_the_next_brief_and_kept_for_events() {
+        use localexception_server::sim::GameState;
+        let id = Uuid::from_u128(5);
+        let mut game = GameState::new();
+        game.add_player(id, "Agent".into(), protocol::Role::Agent);
+        let mut state = ToolState {
+            connected: true,
+            player_id: Some(id),
+            last_snapshot: Some(serde_json::to_value(game.snapshot()).unwrap()),
+            ..Default::default()
+        };
+        ingest_server_text(
+            &mut state,
+            &serde_json::json!({
+                "type": "event",
+                "event": "input_ignored",
+                "field": "weapon_swap",
+                "reason": "weapon rocket is not owned"
+            })
+            .to_string(),
+        )
+        .unwrap();
+        assert_eq!(state.recent_events[0]["event"], "input_ignored");
+        assert_eq!(state.recent_events[0]["field"], "weapon_swap");
+        let (text, structured) = observe_brief(&mut state);
+        assert!(
+            text.contains("IGNORED weapon_swap: weapon rocket is not owned"),
+            "{text}"
+        );
+        assert_eq!(
+            structured["input_ignored"][0]["reason"],
+            "weapon rocket is not owned"
+        );
+        let (again, structured) = observe_brief(&mut state);
+        assert!(!again.contains("IGNORED"), "{again}");
+        assert!(structured.get("input_ignored").is_none());
+        assert_eq!(state.recent_events.len(), 1);
+        let events = build_get_events_result(&mut state, false);
+        assert!(events.to_string().contains("input_ignored"));
     }
 
     #[test]

@@ -1045,7 +1045,8 @@ than the two-tick client in every row (27 to 50 ms). At 50 ms round trip the mea
 here is 120 ms against the 150 ms target (Valorant's published untuned
 baseline is about 141 ms); its p95 (159 ms) and the 20 ms jitter row's mean
 (154 ms) are over it. One run of the unit test under a full parallel test
-suite also read 154 ms for two peeks, which is why only the CLI's `--assert`
+suite also read 154 ms for two peeks, and the coverage job on the Auditor
+release read 156 ms. That is why only the CLI's `--assert`
 gates the number and the gate needs a quiet machine.
 
 **Input to photon** (`tools/qa_feel.sh`, photon pass, busy shared machine,

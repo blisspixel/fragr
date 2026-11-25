@@ -46,12 +46,12 @@ use crate::protocol::{
     episode0_host_line_nods_tick, episode0_host_line_win, episode0_objective_chip,
     episode0_unlock_teaser, mvp_host_line, roster_host_line, round_open_host_line,
     rule_bot_taunt_line, warmup_host_line, Action, BotTauntKind, CampaignActor, CampaignSupply,
-    EnemyPhase, GameEvent, PelletTrace, PickupState, PlayerScore, PlayerState, Role, ServerMessage,
-    ShotImpact, ShotResult, ShotTrace, Snapshot, WeaponType, AUDITOR_NAME, BOSS_NAME,
-    EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT, EPISODE_TITLE_EP0, MODE_NAME,
+    EnemyPhase, GameEvent, IgnoredAction, LookAt, PelletTrace, PickupState, PlayerScore,
+    PlayerState, Role, ServerMessage, ShotImpact, ShotResult, ShotTrace, Snapshot, WeaponType,
+    AUDITOR_NAME, BOSS_NAME, EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT, EPISODE_TITLE_EP0, MODE_NAME,
 };
 use crate::protocol::{HitZone, HostReactionKind, Mutator, Team, TeamScores};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::f32::consts::PI;
 use uuid::Uuid;
 
@@ -695,6 +695,14 @@ pub struct GameState {
     pub players: Vec<Player>,
     pub vehicles: Vec<crate::vehicles::Jeep>,
     pub events: Vec<GameEvent>,
+    /// Private notes for requests this fighter sent that did not apply.
+    input_ignored: Vec<(Uuid, GameEvent)>,
+    /// The last weapon refusal told to this fighter, so a repeated request
+    /// is not announced on every tick.
+    weapon_refusal: HashMap<Uuid, (WeaponType, String)>,
+    again_refusal: HashSet<Uuid>,
+    vote_refusal: HashMap<Uuid, u32>,
+    look_refusal: HashMap<Uuid, LookAt>,
     pub bots: Vec<BotController>,
     pub scores: HashMap<Uuid, u32>,
     /// Objective credits for the hold-Tab board (`sim::tally`).
@@ -1929,6 +1937,11 @@ impl GameState {
         self.mines.retain(|mine| mine.owner_id != id);
         self.remote_mines.retain(|mine| mine.state().owner_id != id);
         self.scores.remove(&id);
+        self.weapon_refusal.remove(&id);
+        self.again_refusal.remove(&id);
+        self.vote_refusal.remove(&id);
+        self.look_refusal.remove(&id);
+        self.input_ignored.retain(|(player, _)| *player != id);
         self.refresh_mission_readiness();
         self.update_encounters();
     }
@@ -1945,39 +1958,90 @@ impl GameState {
         // The podium's ready-up counts before anything about this body: an
         // eliminated or waiting fighter can still ask for the next round.
         if action.again && !companion_intent {
-            self.note_again(id);
+            if self.note_again(id) {
+                self.again_refusal.remove(&id);
+            } else {
+                self.note_again_ignored(id);
+            }
         }
         if let Some(map_id) = action.vote.filter(|_| !companion_intent) {
-            self.note_vote(id, map_id);
+            if let Some(reason) = self.note_vote(id, map_id) {
+                self.note_vote_ignored(id, map_id, reason);
+            } else {
+                self.vote_refusal.remove(&id);
+            }
         }
-        if let Some(player) = self.players.iter_mut().find(|p| p.id == id) {
+        enum Gate {
+            Skip,
+            Down {
+                weapon: Option<WeaponType>,
+                look: Option<LookAt>,
+            },
+            Apply,
+        }
+        let gate = {
+            let Some(player) = self.players.iter_mut().find(|p| p.id == id) else {
+                return;
+            };
             if player.is_campaign_companion() != companion_intent {
-                return;
-            }
-            if player.eliminated {
-                player.clear_input();
-                player.just_fired = false;
-                return;
-            }
-            if !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign) {
-                return;
-            }
-            if player.role == Role::Human {
+                Gate::Skip
+            } else if player.eliminated
+                || !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign)
+            {
+                let weapon = action.weapon_swap;
+                let look = action.look_at.clone();
+                if player.eliminated {
+                    player.clear_input();
+                    player.just_fired = false;
+                }
+                Gate::Down { weapon, look }
+            } else if player.role == Role::Human {
                 match (action.seq, player.last_received_seq) {
                     (Some(seq), Some(previous)) => {
                         let distance = seq.wrapping_sub(previous);
                         if distance == 0 || distance >= (1_u32 << 31) {
-                            return;
+                            Gate::Skip
+                        } else {
+                            player.last_received_seq = Some(seq);
+                            Gate::Apply
                         }
-                        player.last_received_seq = Some(seq);
                     }
-                    (Some(seq), None) => player.last_received_seq = Some(seq),
+                    (Some(seq), None) => {
+                        player.last_received_seq = Some(seq);
+                        Gate::Apply
+                    }
                     // A legacy human that never numbered inputs still plays.
                     // Once numbered, a mixed unnumbered Action cannot have a
                     // replayable selected sequence and must not change input.
-                    (None, Some(_)) => return,
-                    (None, None) => {}
+                    (None, Some(_)) => Gate::Skip,
+                    (None, None) => Gate::Apply,
                 }
+            } else {
+                Gate::Apply
+            }
+        };
+        match gate {
+            Gate::Skip => return,
+            Gate::Down { weapon, look } => {
+                if let Some(weapon) = weapon {
+                    self.note_weapon_refusal(
+                        id,
+                        weapon,
+                        "weapon selection is ignored while this body cannot act",
+                    );
+                }
+                if let Some(look) = look {
+                    self.note_look_miss(id, &look, "look_at is ignored while this body cannot act");
+                }
+                return;
+            }
+            Gate::Apply => {}
+        }
+        let waiting_weapon = {
+            let Some(player) = self.players.iter_mut().find(|p| p.id == id) else {
+                return;
+            };
+            if player.role == Role::Human {
                 // The view rides with the Action that carried it. A refused
                 // or absent view means this input's shots test the present.
                 player.view_lag = match action
@@ -2002,29 +2066,39 @@ impl GameState {
                 // Awaiting respawn: keep only the newest held state. Presses
                 // made while dead are not queued into the next life, and a
                 // trigger held now must be released after the respawn.
-                action.weapon_swap = None;
+                let waiting = action.weapon_swap.take();
                 action.seat = None;
                 player.fire_latched = action.fire;
                 player.fire_requested = false;
                 player.pending_action = action;
-                return;
+                waiting
+            } else {
+                // Continuous input takes the newest value. A discrete weapon choice
+                // must survive later frames until the simulation consumes it.
+                action.weapon_swap = action.weapon_swap.or(player.pending_action.weapon_swap);
+                action.seat = action.seat.or(player.pending_action.seat);
+                player.jump_requested |= action.jump;
+                player.dodge_requested |= action.dodge && !player.pending_action.dodge;
+                player.interaction_requested |= action.interact && !player.pending_action.interact;
+                player.throw_requested |=
+                    action.throw_grenade && !player.pending_action.throw_grenade;
+                player.place_requested |= action.place_mine && !player.pending_action.place_mine;
+                player.reload_requested |= action.reload && !player.pending_action.reload;
+                player.fire_requested |= action.fire && !player.pending_action.fire;
+                player.remote_place_requested |=
+                    action.place_remote_mine && !player.pending_action.place_remote_mine;
+                player.remote_trigger_requested |=
+                    action.trigger_remote_mines && !player.pending_action.trigger_remote_mines;
+                player.pending_action = action;
+                None
             }
-            // Continuous input takes the newest value. A discrete weapon choice
-            // must survive later frames until the simulation consumes it.
-            action.weapon_swap = action.weapon_swap.or(player.pending_action.weapon_swap);
-            action.seat = action.seat.or(player.pending_action.seat);
-            player.jump_requested |= action.jump;
-            player.dodge_requested |= action.dodge && !player.pending_action.dodge;
-            player.interaction_requested |= action.interact && !player.pending_action.interact;
-            player.throw_requested |= action.throw_grenade && !player.pending_action.throw_grenade;
-            player.place_requested |= action.place_mine && !player.pending_action.place_mine;
-            player.reload_requested |= action.reload && !player.pending_action.reload;
-            player.fire_requested |= action.fire && !player.pending_action.fire;
-            player.remote_place_requested |=
-                action.place_remote_mine && !player.pending_action.place_remote_mine;
-            player.remote_trigger_requested |=
-                action.trigger_remote_mines && !player.pending_action.trigger_remote_mines;
-            player.pending_action = action;
+        };
+        if let Some(weapon) = waiting_weapon {
+            self.note_weapon_refusal(
+                id,
+                weapon,
+                "weapon selection is ignored while this body cannot act",
+            );
         }
     }
 
@@ -2470,6 +2544,9 @@ impl GameState {
         // Sabotage muster: weapons are not live and nobody leaves the zone.
         self.hold_muster_fire();
         let muster = self.muster_hold();
+        let mut accepted_weapons = Vec::new();
+        let mut refused_weapons = Vec::new();
+        let mut down_weapons = Vec::new();
         for player in &mut self.players {
             player.just_fired = false;
             // Consumed by this tick in every case: a dead, waiting, inactive or
@@ -2477,6 +2554,9 @@ impl GameState {
             let fire_requested = std::mem::take(&mut player.fire_requested);
             player.fire_tap = false;
             if player.eliminated {
+                if let Some(weapon) = player.pending_action.weapon_swap {
+                    down_weapons.push((player.id, weapon));
+                }
                 player.clear_input();
                 continue;
             }
@@ -2546,7 +2626,12 @@ impl GameState {
             player.inventory.finish_reload(self.tick);
 
             if let Some(new_weapon) = player.pending_action.weapon_swap.take() {
-                player.select_weapon(new_weapon, arena_feel, self.tick);
+                if player.inventory.owns(new_weapon) {
+                    player.select_weapon(new_weapon, arena_feel, self.tick);
+                    accepted_weapons.push(player.id);
+                } else {
+                    refused_weapons.push((player.id, new_weapon));
+                }
             }
             if std::mem::take(&mut player.reload_requested)
                 && player.weapon_ready_at.is_none()
@@ -2714,6 +2799,20 @@ impl GameState {
                 player.yaw -= 2.0 * PI;
             }
         }
+        for id in accepted_weapons {
+            self.weapon_refusal.remove(&id);
+        }
+        for (id, weapon) in refused_weapons {
+            let wire = weapon_wire_id(weapon);
+            self.note_weapon_refusal(id, weapon, &format!("weapon {wire} is not owned"));
+        }
+        for (id, weapon) in down_weapons {
+            self.note_weapon_refusal(
+                id,
+                weapon,
+                "weapon selection is ignored while this body cannot act",
+            );
+        }
 
         self.tick_foundry_hazards();
         // Commit leap contacts from actual server movement, including both
@@ -2761,6 +2860,8 @@ impl GameState {
         } else {
             self.current_arena().solids.clone()
         };
+        let mut look_hits = Vec::new();
+        let mut look_misses: Vec<(Uuid, LookAt, &'static str)> = Vec::new();
         for (aimer_id, look) in look_intents {
             let target_point: Option<[f32; 3]> = if let Some(pid) = look.player_id {
                 let aimer = self.players.iter().find(|p| p.id == aimer_id);
@@ -2816,15 +2917,30 @@ impl GameState {
             } else {
                 None
             };
+            let mut aimed = false;
             if let Some(target) = target_point {
                 if let Some(aimer) = self.players.iter_mut().find(|p| p.id == aimer_id) {
                     let eye = fighter_eye(aimer);
                     if let Some((yaw, pitch)) = crate::combat::aim_at(eye, target) {
                         aimer.yaw = yaw;
                         aimer.pitch = pitch;
+                        aimed = true;
                     }
                 }
             }
+            if aimed {
+                look_hits.push(aimer_id);
+            } else if look.player_id.is_some() && target_point.is_none() {
+                look_misses.push((aimer_id, look, "player_id is not a living fighter"));
+            } else {
+                look_misses.push((aimer_id, look, "look_at could not change aim"));
+            }
+        }
+        for id in look_hits {
+            self.look_refusal.remove(&id);
+        }
+        for (id, look, reason) in look_misses {
+            self.note_look_miss(id, &look, reason);
         }
 
         self.tick_pickups();
@@ -5509,9 +5625,71 @@ impl GameState {
         std::mem::take(&mut self.events)
     }
 
+    pub(crate) fn take_input_ignored(&mut self) -> Vec<(Uuid, GameEvent)> {
+        std::mem::take(&mut self.input_ignored)
+    }
+
+    fn push_ignored(&mut self, id: Uuid, field: IgnoredAction, reason: &str) {
+        const CAP: usize = 64;
+        self.input_ignored.push((
+            id,
+            GameEvent::InputIgnored {
+                field,
+                reason: reason.to_string(),
+            },
+        ));
+        if self.input_ignored.len() > CAP {
+            let extra = self.input_ignored.len() - CAP;
+            self.input_ignored.drain(0..extra);
+        }
+    }
+
+    fn note_weapon_refusal(&mut self, id: Uuid, weapon: WeaponType, reason: &str) {
+        let key = (weapon, reason.to_string());
+        if self.weapon_refusal.get(&id) == Some(&key) {
+            return;
+        }
+        self.weapon_refusal.insert(id, key);
+        self.push_ignored(id, IgnoredAction::WeaponSwap, reason);
+    }
+
+    fn note_again_ignored(&mut self, id: Uuid) {
+        if !self.again_refusal.insert(id) {
+            return;
+        }
+        self.push_ignored(
+            id,
+            IgnoredAction::Again,
+            "again is ignored until the podium is open",
+        );
+    }
+
+    fn note_vote_ignored(&mut self, id: Uuid, map_id: u32, reason: &'static str) {
+        if self.vote_refusal.get(&id) == Some(&map_id) {
+            return;
+        }
+        self.vote_refusal.insert(id, map_id);
+        self.push_ignored(id, IgnoredAction::Vote, reason);
+    }
+
+    fn note_look_miss(&mut self, id: Uuid, look: &LookAt, reason: &'static str) {
+        if self.look_refusal.get(&id) == Some(look) {
+            return;
+        }
+        self.look_refusal.insert(id, look.clone());
+        self.push_ignored(id, IgnoredAction::LookAt, reason);
+    }
+
     pub fn push_event(&mut self, event: GameEvent) {
         self.events.push(event);
     }
+}
+
+fn weapon_wire_id(weapon: WeaponType) -> String {
+    serde_json::to_value(weapon)
+        .ok()
+        .and_then(|value| value.as_str().map(str::to_owned))
+        .unwrap_or_else(|| "weapon".to_owned())
 }
 
 impl Default for GameState {
@@ -5530,6 +5708,11 @@ impl Default for GameState {
             players: Vec::new(),
             vehicles: Vec::new(),
             events: Vec::new(),
+            input_ignored: Vec::new(),
+            weapon_refusal: HashMap::new(),
+            again_refusal: HashSet::new(),
+            vote_refusal: HashMap::new(),
+            look_refusal: HashMap::new(),
             bots: Vec::new(),
             scores: HashMap::new(),
             objective_tally: HashMap::new(),
