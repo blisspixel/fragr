@@ -271,6 +271,7 @@ impl Encounters {
                         .on_post()
                         .at_work_if(state.m18_group_at_work(index), state.tick)
                         .with_hover(placement.hover.clone())
+                        .with_lob(placement.lob)
                         .with_control(if absorbed && placement.kind.is_union_machine() {
                             crate::protocol::ControlDomain::Absorbed
                         } else {

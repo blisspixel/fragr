@@ -25,8 +25,8 @@ has [inspected correction evidence](evidence/presentation-corrections-20261008.m
 final human feel and integration retain their gates in
 [its plan](plans/arc-foundation-20261008.md). Article Blade is implemented
 with its M15 plinth and twelve-swing lifecycle. Denial remains planned.
-These additions are not in M01
-or the default arcade kit.
+These additions are not in M01. The arena grenade is the one counted device
+on a fresh multiplayer life, not a second gun.
 The order and the rules are
 [the readable arsenal](plans/readable-arsenal.md). Lobber and proximity tin in
 the proposal table below are that rocket launcher and that proximity mine, not
@@ -36,12 +36,14 @@ The canonical arsenal direction, pickup economy and sound roles. Current M01
 implements fists, found Tack and Flechette, owned selection and finite
 ammunition counts. The same inventory supports Scatter and Rail, tested
 through server fixtures but not placed in M01. Free-for-all (Nick, 2026-10-23)
-starts every life with the Pistol, its fifty Bullets and Fists; the Rifle,
-Shotgun and Railgun are owned only after their pad is taken, and death loses
-them. Team modes, Golden Rail and the `full-arsenal` host mutator keep the
-arena arsenal: a joined human reloads finite magazines from a spawn kit of 80
-bullets, 24 shells and 16 cells, and bots stay on the open count. A
-weapon-only mutator keeps one gun and no bag.
+starts every life with the Pistol, its fifty Bullets, Fists and one grenade;
+the Rifle, Shotgun and Railgun are owned only after their pad is taken, and
+death loses them and replaces the grenade with one. Team modes, Golden Rail
+and the `full-arsenal` host mutator keep the arena arsenal: a joined human
+reloads finite magazines from a spawn kit of 80 bullets, 24 shells and 16
+cells, and bots stay on the open count. Those lives carry the same one
+grenade. A weapon-only mutator keeps one gun and no bag, and no grenade.
+Sabotage keeps its own starts.
 Counted grenade projectiles are implemented in M05. The remaining arsenal,
 breakable weapons, competitive carry-limit proposal and sidearm trickle remain
 proposals. Implementation and evidence:

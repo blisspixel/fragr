@@ -150,10 +150,11 @@ impl GameState {
         let mut launched = Vec::new();
         for player in &mut self.players {
             let requested = std::mem::take(&mut player.throw_requested);
+            let enemy_lob = player.is_campaign_enemy();
             if !requested
                 || player.hp <= 0
                 || player.detached
-                || !player.is_participant()
+                || !(player.is_participant() || enemy_lob)
                 || player.grenade_cooldown > 0
                 || !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign)
                 || self.grenades.len() >= 64
@@ -179,7 +180,9 @@ impl GameState {
             let Some(serial) = self.projectile_serial.checked_add(1) else {
                 continue;
             };
-            if !player.inventory.try_throw() {
+            // A taught Continuance lob is paced by its tell and cooldown.
+            // It does not spend a participant's counted grenades.
+            if !enemy_lob && !player.inventory.try_throw() {
                 continue;
             }
             self.projectile_serial = serial;

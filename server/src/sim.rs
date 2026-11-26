@@ -5111,7 +5111,8 @@ impl GameState {
                     PickupKind::Weapon(weapon) => player.inventory.weapon_pad_useful(weapon),
                     PickupKind::Ammo { pool, .. } => player.inventory.needs_ammo(pool),
                     PickupKind::Grenade { .. } => {
-                        player.inventory.only().is_none() && player.inventory.grenades() < 6
+                        let cap = if self.arena_grenade_life() { 1 } else { 6 };
+                        player.inventory.only().is_none() && player.inventory.grenades() < cap
                     }
                     PickupKind::ProximityMine { .. } => {
                         player.inventory.only().is_none()
@@ -5186,6 +5187,7 @@ impl GameState {
                 _ => amount,
             };
 
+            let arena_grenade = self.arena_grenade_life();
             let Some(player) = self.players.iter_mut().find(|p| p.id == player_id) else {
                 continue;
             };
@@ -5197,7 +5199,11 @@ impl GameState {
             }
             let (weapon_wire, amount_wire, label) = match kind {
                 PickupKind::Grenade { count } => {
-                    let gained = player.inventory.grant_grenades(count);
+                    let gained = if arena_grenade {
+                        player.inventory.grant_grenades_capped(count, 1)
+                    } else {
+                        player.inventory.grant_grenades(count)
+                    };
                     (
                         String::new(),
                         Some(i32::from(gained)),

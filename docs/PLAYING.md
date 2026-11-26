@@ -347,11 +347,13 @@ panel and aim at it. The prompt under the crosshair names Use: F with a mouse,
 Enter on a keyboard, Y or Triangle on a pad. Q and E turn. Before that aim is true, the
 same spot says to aim at the panel. An open arena doorway is walked through.
 
-Grenades have a separate count, up to six, and do not replace the selected
-gun. A fresh press throws one device; holding the control does not repeat.
-It bounces on real world cover and explodes after two seconds with distance
-falloff and solid occlusion. Your own blast can hurt you. Arcade loadouts
-start without grenades; authored supply claims provide them where registered.
+Grenades have a separate count and do not replace the selected gun. A fresh
+press throws one device; holding the control does not repeat. It bounces on
+real world cover and explodes after two seconds with distance falloff and
+solid occlusion. Your own blast can hurt you. A free-for-all, duel or team
+arsenal life starts with one grenade, death takes it, and nothing in the
+arena raises that carry above one. Sabotage and weapon-only matches keep
+their own starts. Campaign supply still reaches six, from authored claims.
 
 ## Solo runs and local records
 

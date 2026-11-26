@@ -40,6 +40,10 @@ pub(crate) struct EnemyPlacement {
     /// restoration and only Union machines can be absorbed.
     #[serde(default)]
     pub control: ControlDomain,
+    /// This body lobs one grenade, after a tell, when a participant holds
+    /// cover. Absent on every placement except the one lesson that teaches it.
+    #[serde(default)]
+    pub lob: bool,
 }
 
 fn authored_armor<'de, D: serde::Deserializer<'de>>(decoder: D) -> Result<Option<u8>, D::Error> {

@@ -657,6 +657,7 @@ fn m10_actual_transit_bodies_stop_shots_and_unknown_people_do_not() {
                 armor: None,
                 hover: None,
                 control: Default::default(),
+                lob: false,
             });
             let rear_hp_before = state.players.iter().find(|p| p.id == rear).unwrap().hp;
             let owner = state.players.iter_mut().find(|p| p.id == shooter).unwrap();
