@@ -4,6 +4,13 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.12 - 2026-11-25
+
+- On the Gulch and at Tripoint, a free-for-all bot that is behind walks to
+  a gun the leader does not already own. The leader's gun remains when it
+  is the only one close enough. Every other map keeps the old walk. No
+  weapon damage, cooldown or spread changed.
+
 ## v0.99.11 - 2026-11-25
 
 - Negotiate MCP `2025-11-25` when the client offers it, and keep echoing
