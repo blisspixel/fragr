@@ -471,9 +471,17 @@ missing from the share), runs its rows in parallel and keeps only some rows with
   Gulch 2.83 to 3.00 lead changes at 21.4 frags a minute, Scatter 32 percent
   of shots; Tripoint 2.88 to 3.50, Tack 32 percent. The same walk on every
   free-for-all floor took Larak Lot from 3.13 to 2.75, so the other maps
-  keep the old route and Larak Lot stays 3.13. Directive 17, Holdfast and
-  Sector 9 were not in that pass. Team deathmatch lead changes moved both
-  ways inside their noise. The off-Larak Duels still barely fight; their
+  keep the old route and Larak Lot stays 3.13. Holdfast was not in that
+  pass. A later 24-seed survey on the shipped walk, which does not apply
+  on Directive 17 or Sector 9, measured Directive 17 at 95/24 lead
+  changes and Sector 9 at 45/24 at 11.2 frags a minute, Scatter 43
+  percent of shots, with 16.1 seconds from a spawn to the first landed
+  shot. Extending the walk onto
+  Sector 9 was 46/24. Also sending a bot that is behind to the Rail when
+  the leader does not own one was 51/24, and the Rail stayed near 10
+  percent of shots: about one living fighter already holds the only Rail.
+  Neither change reached 3 lead changes, and neither was kept. Team
+  deathmatch lead changes moved both ways inside their noise. The off-Larak Duels still barely fight; their
   gun shares are a handful of shots.
 
 `fragr-playtest --bot-survey --survey-maps --seed 1 --survey-seeds 8
