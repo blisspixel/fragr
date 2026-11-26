@@ -579,7 +579,7 @@ Send a short off-tick taunt/callout (not sticky Action). Rate-limited on the ser
 ```
 
 **Rules:**
-- `text` required string; trimmed; max 80 chars; no control characters
+- `text` required string; trimmed; max 80 chars; no control characters or hidden marks
 - Unknown fields -> schema error (`isError: true`)
 - Empty / overlong -> schema error (`isError: true`)
 - Rate-limited speak (mirrored ~3s / 60 ticks) -> `isError: true` (never a success toast on a no-op)

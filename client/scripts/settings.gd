@@ -422,12 +422,29 @@ static func clean_player_name(value: Variant) -> String:
 	if not value is String:
 		return DEFAULT_CALLSIGN
 	var clean: String = ""
-	for character in value:
-		var code: int = character.unicode_at(0)
-		if code >= 32 and code != 127:
+	for character: String in value:
+		if _name_scalar_allowed(character.unicode_at(0)):
 			clean += character
 	clean = clean.strip_edges().left(24)
 	return DEFAULT_CALLSIGN if clean.is_empty() else clean
+
+## Matches server `text_char_blocks`: a normal space stays, and controls,
+## other whitespace, and hidden or bidirectional marks do not.
+static func _name_scalar_allowed(code: int) -> bool:
+	if code == 32:
+		return true
+	if code < 32 or (code >= 127 and code <= 159):
+		return false
+	if code == 0x00A0 or code == 0x1680 or (code >= 0x2000 and code <= 0x200A) \
+			or code == 0x2028 or code == 0x2029 or code == 0x202F or code == 0x205F or code == 0x3000:
+		return false
+	if code == 0x00AD or code == 0x061C or code == 0x180E or code == 0xFEFF:
+		return false
+	if (code >= 0x200B and code <= 0x200F) or (code >= 0x202A and code <= 0x202E):
+		return false
+	if (code >= 0x2060 and code <= 0x2064) or (code >= 0x2066 and code <= 0x2069):
+		return false
+	return code < 0xFFF9 or code > 0xFFFB
 
 func player_name() -> String:
 	return clean_player_name(get_value("profile", "name"))

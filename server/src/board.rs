@@ -133,7 +133,7 @@ fn accept_line(raw: &str) -> Result<String, Fault> {
     let trimmed: String = raw.trim().chars().take(SPEAK_MAX_CHARS + 1).collect();
     if trimmed.is_empty()
         || trimmed.chars().count() > SPEAK_MAX_CHARS
-        || trimmed.chars().any(char::is_control)
+        || trimmed.chars().any(crate::protocol::text_char_blocks)
     {
         return Err(Fault::Rejected);
     }
@@ -211,7 +211,14 @@ mod tests {
     fn empty_control_and_long_lines_stay_off_the_board() {
         let mut board = Board::default();
         let who: IpAddr = "203.0.113.10".parse().unwrap();
-        for raw in ["", "   ", "line\nbreak", &"x".repeat(SPEAK_MAX_CHARS + 1)] {
+        for raw in [
+            "",
+            "   ",
+            "line\nbreak",
+            "still\u{2028}here",
+            "\u{202e}still",
+            &"x".repeat(SPEAK_MAX_CHARS + 1),
+        ] {
             assert_eq!(
                 board.post(who, "Probe", BOARD_NOTICES, raw, 0).unwrap_err(),
                 Fault::Rejected

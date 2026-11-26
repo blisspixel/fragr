@@ -1,6 +1,49 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+/// A scalar that must not appear in a name, callout, notice or agent chip.
+/// A normal space stays. Controls, line and paragraph separators, every other
+/// whitespace character, and hidden or bidirectional format characters do not.
+pub fn text_char_blocks(ch: char) -> bool {
+    if ch == ' ' {
+        return false;
+    }
+    ch.is_control() || ch.is_whitespace() || text_format_blocks(ch)
+}
+
+fn text_format_blocks(ch: char) -> bool {
+    matches!(
+        ch,
+        '\u{00AD}'
+            | '\u{061C}'
+            | '\u{180E}'
+            | '\u{FEFF}'
+            | '\u{200B}'..='\u{200F}'
+            | '\u{202A}'..='\u{202E}'
+            | '\u{2060}'..='\u{2064}'
+            | '\u{2066}'..='\u{2069}'
+            | '\u{FFF9}'..='\u{FFFB}'
+    )
+}
+
+#[cfg(test)]
+mod text_char_tests {
+    use super::text_char_blocks;
+
+    #[test]
+    fn hidden_breaks_and_controls_block_and_a_normal_space_does_not() {
+        for ch in [
+            '\n', '\t', '\u{0085}', '\u{00A0}', '\u{2028}', '\u{2029}', '\u{202E}', '\u{200B}',
+            '\u{FEFF}',
+        ] {
+            assert!(text_char_blocks(ch), "{ch:?}");
+        }
+        assert!(!text_char_blocks(' '));
+        assert!(!text_char_blocks('A'));
+        assert!(!text_char_blocks('é'));
+    }
+}
+
 mod actors;
 mod barks;
 pub use barks::{BarkRegister, CompanionBarkKind, EnemyBarkKind, BARK_VARIANTS};

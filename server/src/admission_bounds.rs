@@ -53,6 +53,23 @@ impl Bucket {
             false
         }
     }
+
+    /// True when this record is the same as an address that was never seen.
+    /// The wait is a full refill from empty. A shorter wait would throw away
+    /// a drained bucket and hand that address a new burst.
+    fn idle(&self, now: Instant, ip: IpAddr) -> bool {
+        let (per_sec, burst) = accept_rate(ip);
+        now.saturating_duration_since(self.updated)
+            >= std::time::Duration::from_secs_f32(burst / per_sec)
+    }
+}
+
+fn accept_rate(ip: IpAddr) -> (f32, f32) {
+    if is_loopback(ip) {
+        (ACCEPTS_PER_SEC_LOOPBACK, ACCEPT_BURST_LOOPBACK)
+    } else {
+        (ACCEPTS_PER_SEC_NORMAL, ACCEPT_BURST_NORMAL)
+    }
 }
 
 #[derive(Debug)]
@@ -119,11 +136,10 @@ impl PreclassGate {
     /// Fail immediately. This does not wait for the status classification budget.
     pub fn try_acquire(&self, ip: IpAddr, now: Instant) -> Result<PreclassPermit, &'static str> {
         let mut inner = self.lock();
-        let (per_sec, burst) = if is_loopback(ip) {
-            (ACCEPTS_PER_SEC_LOOPBACK, ACCEPT_BURST_LOOPBACK)
-        } else {
-            (ACCEPTS_PER_SEC_NORMAL, ACCEPT_BURST_NORMAL)
-        };
+        inner
+            .accepts
+            .retain(|seen, bucket| !bucket.idle(now, *seen));
+        let (per_sec, burst) = accept_rate(ip);
         let bucket = inner.accepts.entry(ip).or_insert(Bucket {
             level: burst,
             updated: now,
@@ -146,6 +162,11 @@ impl PreclassGate {
             ip,
             gate: self.clone(),
         })
+    }
+
+    #[cfg(test)]
+    fn tracked_accepts(&self) -> usize {
+        self.lock().accepts.len()
     }
 
     pub fn try_status(&self, ip: IpAddr) -> Result<StatusPermit, &'static str> {
@@ -218,13 +239,16 @@ impl Population {
         } else {
             JOINS_PER_WINDOW_NORMAL
         };
+        inner.joins.retain(|_, recent| {
+            while recent
+                .front()
+                .is_some_and(|at| now.saturating_duration_since(*at) > JOIN_WINDOW)
+            {
+                recent.pop_front();
+            }
+            !recent.is_empty()
+        });
         let recent = inner.joins.entry(ip).or_default();
-        while recent
-            .front()
-            .is_some_and(|at| now.saturating_duration_since(*at) > JOIN_WINDOW)
-        {
-            recent.pop_front();
-        }
         if recent.len() >= window {
             return Err("join_rate");
         }
@@ -276,6 +300,11 @@ impl Population {
 
     pub fn pawn_count(&self) -> usize {
         self.lock().pawns.len()
+    }
+
+    #[cfg(test)]
+    fn tracked_joins(&self) -> usize {
+        self.lock().joins.len()
     }
 
     pub fn spectator_count(&self) -> usize {
@@ -351,6 +380,9 @@ impl BoardBudget {
             .addresses
             .lock()
             .unwrap_or_else(|error| error.into_inner());
+        addresses.retain(|_, window| {
+            now.saturating_duration_since(window.stamp) < std::time::Duration::from_secs(1)
+        });
         let window = addresses.entry(ip).or_insert(ByteWindow {
             stamp: now,
             used: 0,
@@ -361,6 +393,14 @@ impl BoardBudget {
             session.used = session.used.saturating_sub(bytes);
             false
         }
+    }
+
+    #[cfg(test)]
+    fn tracked_addresses(&self) -> usize {
+        self.addresses
+            .lock()
+            .unwrap_or_else(|error| error.into_inner())
+            .len()
     }
 }
 
@@ -450,5 +490,70 @@ mod tests {
         assert!(origin_allowed(&allow, Some("https://play.example")));
         assert!(!origin_allowed(&allow, Some("https://other.example")));
         assert!(!origin_allowed(&[], Some("https://play.example")));
+    }
+
+    #[test]
+    fn idle_accept_records_are_forgotten_and_a_drained_bucket_is_not() {
+        let gate = PreclassGate::new();
+        let now = Instant::now();
+        let drained: IpAddr = "203.0.113.8".parse().unwrap();
+        let other: IpAddr = "203.0.113.9".parse().unwrap();
+        for _ in 0..ACCEPT_BURST_NORMAL as usize {
+            drop(gate.try_acquire(drained, now).unwrap());
+        }
+        assert!(gate.try_acquire(drained, now).is_err());
+        assert_eq!(gate.tracked_accepts(), 1);
+        let second = now + std::time::Duration::from_secs(1);
+        assert!(gate.try_acquire(drained, second).is_ok());
+        assert_eq!(gate.tracked_accepts(), 1);
+        let idle = second + std::time::Duration::from_secs(2);
+        let loopback = IpAddr::from([127, 0, 0, 1]);
+        assert!(gate.try_acquire(loopback, idle).is_ok());
+        assert!(gate.try_acquire(other, idle).is_ok());
+        assert_eq!(gate.tracked_accepts(), 2);
+        let later = idle + std::time::Duration::from_secs(1);
+        assert!(gate.try_acquire(other, later).is_ok());
+        assert_eq!(gate.tracked_accepts(), 1);
+    }
+
+    #[test]
+    fn join_windows_forget_an_address_after_the_window() {
+        let population = Population::default();
+        let now = Instant::now();
+        let first: IpAddr = "203.0.113.10".parse().unwrap();
+        let second: IpAddr = "203.0.113.11".parse().unwrap();
+        population
+            .reserve_pawn(Uuid::from_u128(1), first, now)
+            .unwrap();
+        assert_eq!(population.tracked_joins(), 1);
+        let later = now + std::time::Duration::from_secs(11);
+        population
+            .reserve_pawn(Uuid::from_u128(2), second, later)
+            .unwrap();
+        assert_eq!(population.tracked_joins(), 1);
+        for index in 0..JOINS_PER_WINDOW_NORMAL {
+            population
+                .reserve_pawn(Uuid::from_u128(1000 + index as u128), first, later)
+                .unwrap();
+        }
+        assert!(population
+            .reserve_pawn(Uuid::from_u128(2000), first, later)
+            .is_err());
+    }
+
+    #[test]
+    fn board_address_windows_forget_an_idle_address() {
+        let budget = BoardBudget::default();
+        let now = Instant::now();
+        let first: IpAddr = "203.0.113.20".parse().unwrap();
+        let second: IpAddr = "203.0.113.21".parse().unwrap();
+        let mut session = fresh_board_window(now);
+        assert!(budget.allow(first, &mut session, now, 8));
+        assert!(!budget.allow(first, &mut session, now, BOARD_SESSION_PER_SEC));
+        assert_eq!(budget.tracked_addresses(), 1);
+        let later = now + std::time::Duration::from_secs(2);
+        let mut other = fresh_board_window(later);
+        assert!(budget.allow(second, &mut other, later, 8));
+        assert_eq!(budget.tracked_addresses(), 1);
     }
 }

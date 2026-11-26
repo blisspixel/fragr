@@ -91,7 +91,9 @@ An adapter that never joined (`mcp --watch`) keeps the full live view, and its
 
 **Names and resume:** display names are not identity credentials. Joining
 never evicts an existing fighter by name. The server removes control characters,
-trims names to 24 Unicode scalars, uses `Player` for an empty result, and appends
+line and paragraph separators, other whitespace except a normal space, and
+hidden or bidirectional format characters. It trims names to 24 Unicode scalars,
+uses `Player` for an empty result, and appends
 ` #2`, ` #3`, etc. on collisions, including collisions with rule bots. The final
 label appears in snapshots and events; use player UUIDs for ownership. A client
 that sends `resume` keeps that same pawn across a dropped socket for 200 ticks
@@ -1177,7 +1179,7 @@ Agent-only observe chip. Echoed into Snapshot `PlayerState.behavior`. Never trus
 ```
 
 **Rules:**
-- `behavior` required; trimmed; max 32 Unicode scalars; no control characters; deny unknown fields
+- `behavior` required; trimmed; max 32 Unicode scalars; no control characters, line breaks, or hidden or bidirectional marks; deny unknown fields
 - Accepted only for `agent` role players that are not server rule bots
 - Humans and spectators are ignored
 - Brain clients publish stance names: `push_enemy`, `fall_back_heal`, `hold_angle`, `kite_distance`
@@ -1197,7 +1199,7 @@ Off-tick callout / taunt from a human or agent. Not sticky Action. Control-plane
 ```
 
 **Rules:**
-- `text` required; trimmed; max 80 Unicode scalars; no control characters; deny unknown fields
+- `text` required; trimmed; max 80 Unicode scalars; no control characters, line breaks, or hidden or bidirectional marks; deny unknown fields
 - Server rate-limits to one successful speak per player per 60 ticks (~3s)
 - Rejected speaks emit no Speak event; the speaker receives a unicast `error` (`speak_rate_limited` or `speak_rejected`)
 - MCP adapter mirrors the cooldown and returns tool `isError` (never a success toast on a no-op)
@@ -1220,7 +1222,7 @@ asked, because the answer is a unicast.
 
 `op` is `list`, `read`, or `post`. `board` is `floor` or `notices` when the
 op needs one. `text` is the notice. Unknown fields are refused. The same 80
-scalar and control-character rules as speak apply to a notice. A notice waits
+scalar and hidden-character rules as speak apply to a notice. A notice waits
 60 ticks per address, counted on its own, so a callout does not spend it and
 a new socket from the same address does not reset it. The process also
 accepts at most eight notices per second. A post that would exceed the

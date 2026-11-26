@@ -286,11 +286,16 @@ func _b64url(text: String) -> String:
 	return Marshalls.raw_to_base64(text.to_utf8_buffer()).replace("+", "-").replace("/", "_").trim_suffix("=")
 
 func _private_host(host: String) -> bool:
-	if host == "::1":
-		return true
 	var text: String = host.to_lower()
-	if text.begins_with("fc") or text.begins_with("fd") or text.begins_with("fe8") or text.begins_with("fe9") or text.begins_with("fea") or text.begins_with("feb"):
+	if text == "localhost" or text.ends_with(".localhost"):
 		return true
+	if text.contains(":"):
+		if text == "::1":
+			return true
+		# Unique-local is fc00::/7. Link-local is fe80::/10.
+		if text.begins_with("fc") or text.begins_with("fd"):
+			return true
+		return text.begins_with("fe8") or text.begins_with("fe9") or text.begins_with("fea") or text.begins_with("feb")
 	var parts: PackedStringArray = text.split(".", false)
 	if parts.size() != 4:
 		return false
@@ -298,7 +303,10 @@ func _private_host(host: String) -> bool:
 	for part: String in parts:
 		if not part.is_valid_int():
 			return false
-		octets.append(part.to_int())
+		var octet: int = part.to_int()
+		if octet < 0 or octet > 255:
+			return false
+		octets.append(octet)
 	if octets[0] == 10 or octets[0] == 127:
 		return true
 	if octets[0] == 169 and octets[1] == 254:

@@ -224,7 +224,7 @@ impl GameSession {
             .collect();
         if trimmed.is_empty()
             || trimmed.chars().count() > crate::sim::SPEAK_MAX_CHARS
-            || trimmed.chars().any(char::is_control)
+            || trimmed.chars().any(crate::protocol::text_char_blocks)
         {
             return "That line does not go out.".into();
         }
@@ -625,6 +625,14 @@ mod tests {
         );
         assert_eq!(
             session.desk(DeskVerb::Say { text: "\n".into() }).text(),
+            "That line does not go out."
+        );
+        assert_eq!(
+            session
+                .desk(DeskVerb::Say {
+                    text: "doors\u{2028}elsewhere".into(),
+                })
+                .text(),
             "That line does not go out."
         );
         let long = "x".repeat(crate::sim::SPEAK_MAX_CHARS + 1);
