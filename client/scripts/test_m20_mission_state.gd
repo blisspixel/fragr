@@ -98,6 +98,18 @@ func _run() -> void:
 		_check(saw.has(stage), "fixture covers completed count %d" % stage)
 	var last: Dictionary = fixture["messages"].back()
 	_check(last["state"]["phase"] == "departed", "fixture ends departed")
+	var resumed: Dictionary = {}
+	for message: Dictionary in fixture["messages"]:
+		if message["state"]["phase"] == "in_progress" and message["state"]["m20"]["completed"].is_empty():
+			resumed = message
+			break
+	_check(not resumed.is_empty(), "an entry in-progress message exists")
+	if not resumed.is_empty():
+		var geometry: Dictionary = open_geometry if resumed["state"]["m20"]["gate_open"] else shut_geometry
+		_check(MissionState.validation_error(resumed, geometry, {}).is_empty(), "entry in-progress is a valid M20 state")
+		var wrong: Dictionary = resumed.duplicate(true)
+		wrong["state"]["phase"] = "find_transfer"
+		_rejected(wrong, geometry, {}, "M01 find_transfer is not a valid M20 phase")
 
 	# The pier clock is derived, never sent per tick.
 	var during: Dictionary = {}

@@ -3,7 +3,10 @@
 use super::*;
 use crate::maps::AuthoredSource;
 use crate::mission::run_file::{M16Outcome, M17Outcome, SavedStep};
-use crate::protocol::{Action, CampaignActor, LookAt, MissionPhase, MissionReady, Role};
+use crate::protocol::{
+    Action, CampaignActor, CampaignRunStatus, LookAt, MissionContinue, MissionPhase, MissionReady,
+    Role,
+};
 use crate::session::GameSession;
 use crate::sim::PLAYER_FLOOR_Y;
 
@@ -739,4 +742,86 @@ fn write_survival_run_for_review() {
     let hashes = CAMPAIGN_MISSIONS.map(AuthoredSource::bundled_content_sha256);
     let store = RunStore::open_with_hashes(Path::new(&directory), hashes).unwrap();
     store.save(&bundled_victory()).unwrap();
+}
+
+/// A saved death on the finale used to publish Level 1's phase. The reopened
+/// state has to be a valid pending Continue, and one Continue spends the
+/// allowance once without rewriting the carried run.
+#[test]
+fn reopening_m20_pending_continue_stays_in_progress_and_spends_once() {
+    let map = AuthoredSource::Mission(MissionId::LocalException)
+        .load()
+        .unwrap();
+    let mut session = GameSession::with_authored_map(map);
+    let hash = session.state.map.content_sha256().unwrap();
+    let mut saved = awaiting_local_exception()
+        .promote_next(MissionId::LocalException, hash)
+        .unwrap();
+    let SavedStep::MissionEntry { entry, .. } = saved.step.clone() else {
+        panic!("promotion enters the level");
+    };
+    assert!(saved.level_start_continues >= 1);
+    saved.remaining_continues = 1;
+    let carried = saved.m19_outcome.clone();
+    saved.step = SavedStep::PendingContinue {
+        mission: MissionId::LocalException,
+        entry: entry.clone(),
+    };
+    saved.validate(hash).unwrap();
+    session.state.load_campaign_run(&saved).unwrap();
+    let owner = Uuid::from_u128(2020);
+    session
+        .state
+        .add_player(owner, "Pier operative".into(), Role::Human);
+    let published = session.state.mission_state().unwrap();
+    assert_eq!(published.phase, MissionPhase::InProgress);
+    assert_eq!(published.run.unwrap().status, CampaignRunStatus::Continue);
+    assert_eq!(published.run.unwrap().continues, 1);
+    published.validate(session.state.tick).unwrap();
+    let persons = published.m20.unwrap().refuge.persons;
+    assert!(persons > 400, "the carried rescues are on the pier");
+    assert_eq!(
+        session
+            .state
+            .players
+            .iter()
+            .find(|player| player.id == owner)
+            .unwrap()
+            .hp,
+        0
+    );
+    let request = MissionContinue {
+        id: MissionId::LocalException,
+        run_id: saved.id,
+        attempt: published.attempt,
+    };
+    assert!(session.state.continue_mission(owner, request));
+    assert!(!session.state.continue_mission(owner, request));
+    let player = session
+        .state
+        .players
+        .iter()
+        .find(|player| player.id == owner)
+        .unwrap();
+    assert_eq!(player.hp, entry.hp);
+    assert_eq!(player.armor, entry.armor);
+    assert_eq!(player.inventory.grenades(), entry.equipment.grenades);
+    assert_eq!(
+        player
+            .inventory
+            .saved_equipment(player.weapon)
+            .unwrap()
+            .weapons,
+        entry.equipment.weapons
+    );
+    let after = session.state.mission_state().unwrap();
+    assert_eq!(after.phase, MissionPhase::InProgress);
+    after.validate(session.state.tick).unwrap();
+    let run = after.run.unwrap();
+    assert_eq!(run.status, CampaignRunStatus::Playing);
+    assert_eq!(run.continues, 0);
+    assert_eq!(after.m20.unwrap().refuge.persons, persons);
+    let stored = session.state.campaign_run_document().unwrap().unwrap();
+    assert_eq!(stored.m19_outcome, carried);
+    assert_eq!(stored.remaining_continues, 0);
 }

@@ -200,6 +200,16 @@ impl MissionId {
         Self::LocalException,
     ];
 
+    /// Phase of a live attempt once the party is ready. Recall Notice opens
+    /// on the transfer record. Every later stage, including a pending
+    /// Continue reopened from disk, is already in progress.
+    pub const fn ready_phase(self) -> MissionPhase {
+        match self {
+            Self::RecallNotice => MissionPhase::FindTransfer,
+            _ => MissionPhase::InProgress,
+        }
+    }
+
     /// Every bundled mission a local child can run and a participant can
     /// ready for: the campaign stages, then the epilogue.
     pub const PLAYABLE: [Self; 21] = {

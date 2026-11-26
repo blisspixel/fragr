@@ -4,6 +4,12 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.9 - 2026-11-25
+
+- Reopening a saved Continue on Local Exception keeps the finale in progress.
+  Recall Notice still returns to the transfer record. One Continue spends the
+  allowance once and keeps the carried run.
+
 ## v0.99.8 - 2026-11-25
 
 - Refuse agent act requests the latest snapshot already shows cannot apply,

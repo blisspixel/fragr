@@ -1,6 +1,6 @@
 use super::*;
 use crate::maps::{AuthoredMap, AuthoredSource};
-use crate::protocol::{Action, AmmoPool, CampaignRunStatus, MissionId, Role};
+use crate::protocol::{Action, AmmoPool, CampaignRunStatus, MissionId, MissionPhase, Role};
 
 fn run() -> (GameState, Uuid) {
     let map = AuthoredMap::read(
@@ -342,6 +342,18 @@ fn retry_seed_is_a_pure_function_of_process_seed_run_and_attempt() {
         assert_ne!(seed, other, "every input moves the stream");
     }
     assert_ne!(retry_seed(1, run, 1), 1, "never the process seed itself");
+}
+
+#[test]
+fn ready_phase_is_find_transfer_only_for_recall_notice() {
+    for id in MissionId::PLAYABLE {
+        let phase = id.ready_phase();
+        if id == MissionId::RecallNotice {
+            assert_eq!(phase, MissionPhase::FindTransfer);
+        } else {
+            assert_eq!(phase, MissionPhase::InProgress, "{id:?}");
+        }
+    }
 }
 
 /// Recall Notice's local child: the default process seed and a fresh run.
