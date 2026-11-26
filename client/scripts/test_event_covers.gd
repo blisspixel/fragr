@@ -216,6 +216,8 @@ func _host_and_identity() -> void:
 	_check(hud.own_lives == 3, "another same-named modern victim cannot consume local lives")
 	game._on_event_received({"event":"frag","killer":"Same","victim":"Same","victim_id":42})
 	_check(hud.own_lives == 3, "malformed supplied victim identity cannot fall back to a name")
+	game._on_event_received({"event":"frag","killer":"Other","victim":"Same","killer_id":B,"victim_id":A})
+	_check(hud.own_lives == 3, "a frag does not spend a life the snapshot already counted")
 	game.is_human_player = false
 	game._refresh_ui_context([])
 	_check(hud.board_id.is_empty(), "spectator context has no local ownership")

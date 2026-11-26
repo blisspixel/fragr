@@ -4,6 +4,11 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.14 - 2026-11-26
+
+- The lives chip follows the snapshot. A frag no longer spends a second
+  life, so Two Lives does not flash out of lives while one remains.
+
 ## v0.99.13 - 2026-11-26
 
 - Names, callouts, notices, agent chips and brain log lines drop hidden

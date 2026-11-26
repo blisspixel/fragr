@@ -3500,8 +3500,8 @@ func _on_event_received(data):
 		var victim_name: String = FragFeed._name(data.get("victim"))
 		var killer_id: String = _frag_identity.resolve(data, "killer_id", killer_name)
 		var victim_id: String = _frag_identity.resolve(data, "victim_id", victim_name)
-		if is_human_player and hud.own_lives > 0 and _is_local_victim(victim_id):
-			hud.set_own_lives(hud.own_lives - 1)
+		# Lives stay on the snapshot. That snapshot is sent before this frag
+		# and already counts the death, so spending one here shows a life too few.
 		hud.show_frag_event(data, killer_id, victim_id)
 		if not killer_id.is_empty() and players.has(killer_id) and is_instance_valid(players[killer_id]):
 			players[killer_id].show_winner_glow()
