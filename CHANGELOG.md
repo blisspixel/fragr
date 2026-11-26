@@ -4,6 +4,17 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.13 - 2026-11-26
+
+- Names, callouts, notices, agent chips and brain log lines drop hidden
+  and bidirectional characters and line breaks. A cleartext join ticket goes only to a
+  loopback, link-local, unique-local or private address, including
+  localhost, and not to a public name that merely starts with the same
+  letters.
+- Idle per-address admission records are dropped once their rate window
+  has refilled, so a long-running host does not keep every address it
+  has ever seen.
+
 ## v0.99.12 - 2026-11-25
 
 - On the Gulch and at Tripoint, a free-for-all bot that is behind walks to

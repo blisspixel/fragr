@@ -118,6 +118,18 @@ func _initialize() -> void:
 	if s.player_name() != "Patch":
 		push_error("test_settings: callsign control characters must be removed")
 		ok = false
+	s.set_value("profile", "name", "Pa\u200btch\u2028x")
+	if s.player_name() != "Patchx":
+		push_error("test_settings: hidden marks and line breaks must leave the callsign")
+		ok = false
+	s.set_value("profile", "name", "\u202e")
+	if s.player_name() != "Meat Proxy":
+		push_error("test_settings: a callsign of only hidden marks needs the default")
+		ok = false
+	s.set_value("profile", "name", "A\u0085B")
+	if s.player_name() != "AB":
+		push_error("test_settings: a C1 control must leave the callsign")
+		ok = false
 	s.set_value("profile", "name", "x".repeat(80))
 	if s.player_name().length() != 24:
 		push_error("test_settings: callsign must fit its display contract")

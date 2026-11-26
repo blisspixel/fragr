@@ -338,7 +338,10 @@ impl GameSession {
 
     /// Names are display labels, never credentials for reclaiming another seat.
     fn available_display_name(&self, requested: &str) -> String {
-        let cleaned: String = requested.chars().filter(|c| !c.is_control()).collect();
+        let cleaned: String = requested
+            .chars()
+            .filter(|c| !crate::protocol::text_char_blocks(*c))
+            .collect();
         let mut base: String = cleaned.trim().chars().take(24).collect();
         if base.is_empty() {
             base = "Player".to_string();
@@ -2609,6 +2612,22 @@ mod session_tests {
             "overlong speak must Error unicast, got {:?}",
             u
         );
+
+        session.apply_command(GameCommand::Speak {
+            player_id,
+            text: "hi\u{2028}there".into(),
+        });
+        assert!(session.state.take_events().is_empty());
+        let u = session.take_unicasts();
+        assert!(
+            matches!(
+                &u[..],
+                [(pid, ServerMessage::Error { code, .. })]
+                    if *pid == Recipient::Player(player_id) && code == "speak_rejected"
+            ),
+            "a line break inside a callout must Error unicast, got {:?}",
+            u
+        );
     }
 
     #[test]
@@ -2623,6 +2642,19 @@ mod session_tests {
             name: "Brain-1".into(),
             player_id: Some(player),
         });
+        session.apply_command(GameCommand::SetDisplayBehavior {
+            player_id: player,
+            behavior: "hold\u{202e}angle".into(),
+        });
+        assert!(session
+            .state
+            .snapshot()
+            .players
+            .iter()
+            .find(|p| p.id == player)
+            .unwrap()
+            .behavior
+            .is_none());
         session.apply_command(GameCommand::SetDisplayBehavior {
             player_id: player,
             behavior: "push_enemy".into(),
@@ -2805,6 +2837,11 @@ mod session_tests {
         let mut session = GameSession::new();
         assert_eq!(session.available_display_name("  \n\t  "), "Player");
         assert_eq!(session.available_display_name("  Patch\n\t "), "Patch");
+        assert_eq!(
+            session.available_display_name("Pa\u{200b}tch\u{2028}x"),
+            "Patchx"
+        );
+        assert_eq!(session.available_display_name("\u{202e}"), "Player");
         assert_eq!(
             session
                 .available_display_name(&"x".repeat(100))

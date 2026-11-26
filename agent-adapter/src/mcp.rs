@@ -460,8 +460,11 @@ pub fn validate_speak_arguments(arguments: &Value) -> Result<Speak, String> {
             SPEAK_MAX_CHARS
         ));
     }
-    if trimmed.chars().any(|c| c.is_control()) {
-        return Err("schema error: speak.text must not contain control characters".to_string());
+    if trimmed.chars().any(protocol::text_char_blocks) {
+        return Err(
+            "schema error: speak.text must not contain control characters or hidden marks"
+                .to_string(),
+        );
     }
 
     Ok(Speak {
@@ -986,7 +989,7 @@ fn tools_list_body() -> Value {
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "text": {"type": "string", "description": "Callout text (trimmed, max 80 chars, no control characters)"}
+                        "text": {"type": "string", "description": "Callout text (trimmed, max 80 chars, no control characters or hidden marks)"}
                     },
                     "required": ["text"],
                     "additionalProperties": false
@@ -5094,6 +5097,18 @@ mod mcp_tests {
         let result = out.response.result.unwrap();
         assert_eq!(result["isError"], true);
         assert!(state.last_speak_tick.is_none());
+        let hidden = handle_mcp_request(
+            req(
+                "tools/call",
+                Some(serde_json::json!({
+                    "name": "speak",
+                    "arguments": {"text": "hi\u{2028}there"}
+                })),
+            ),
+            &mut state,
+        );
+        assert!(hidden.pending_speak.is_none());
+        assert_eq!(hidden.response.result.unwrap()["isError"], true);
     }
 
     #[test]

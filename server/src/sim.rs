@@ -2120,7 +2120,7 @@ impl GameState {
         if trimmed.is_empty() || trimmed.chars().count() > Self::DISPLAY_BEHAVIOR_MAX_CHARS {
             return false;
         }
-        if trimmed.chars().any(|c| c.is_control()) {
+        if trimmed.chars().any(crate::protocol::text_char_blocks) {
             return false;
         }
         let Some(player) = self.players.iter_mut().find(|p| p.id == id) else {
@@ -5599,7 +5599,7 @@ impl GameState {
         if trimmed.chars().count() > SPEAK_MAX_CHARS {
             return SpeakOutcome::Rejected;
         }
-        if trimmed.chars().any(|c| c.is_control()) {
+        if trimmed.chars().any(crate::protocol::text_char_blocks) {
             return SpeakOutcome::Rejected;
         }
 

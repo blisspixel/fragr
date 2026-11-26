@@ -315,10 +315,13 @@ impl Transport for HttpTransport {
     }
 }
 
-/// Untrusted text made safe for a log line: control characters stripped,
-/// at most 200 characters, a marker when cut.
+/// Untrusted text made safe for a log line: controls, line breaks and hidden
+/// marks stripped, at most 200 characters, a marker when cut.
 fn shorten(text: &str) -> String {
-    let cleaned: String = text.chars().filter(|c| !c.is_control()).collect();
+    let cleaned: String = text
+        .chars()
+        .filter(|c| !localexception_server::protocol::text_char_blocks(*c))
+        .collect();
     let trimmed = cleaned.trim();
     let mut short: String = trimmed.chars().take(200).collect();
     if short.chars().count() < trimmed.chars().count() {
@@ -798,6 +801,8 @@ mod tests {
         assert_eq!(shown.len(), 203, "JSON paths are bounded too");
         assert!(!shown.contains('\u{7}'));
         assert_eq!(api_error_message(b"\x1b[31mred\x1b[0m"), "[31mred[0m");
+        assert_eq!(api_error_message("hi\u{2028}there".as_bytes()), "hithere");
+        assert_eq!(api_error_message("pa\u{200b}tch".as_bytes()), "patch");
     }
 
     #[test]

@@ -369,7 +369,7 @@ fn bounded(response: &HttpResponse) -> Result<(), Error> {
 
 fn shown(text: &str) -> String {
     text.chars()
-        .filter(|c| !c.is_control())
+        .filter(|c| !localexception_server::protocol::text_char_blocks(*c))
         .take(24)
         .collect::<String>()
 }
