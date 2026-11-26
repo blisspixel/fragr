@@ -4,6 +4,13 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.11 - 2026-11-25
+
+- Negotiate MCP `2025-11-25` when the client offers it, and keep echoing
+  `2024-11-05` and `2025-06-18`. Any other offer gets `2025-11-25`.
+- Give every adapter tool a title. Mark observe, recent events and round
+  state read-only so a host can approve those calls on their own.
+
 ## v0.99.10 - 2026-11-25
 
 - Issue one grenade on each free-for-all, duel, team deathmatch, capture the

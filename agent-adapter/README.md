@@ -89,7 +89,7 @@ not received (the Custody Plate excepted). Its own shots and the ones that
 hit it stay whole. An adapter that never joined watches, and keeps the full
 world. Shapes: `docs/protocol.md`, "Interest filtering (capability 66)".
 
-`--local` passes `--bots` (default 4), `--map` (default `1`), and `--mode` (default `ffa`) to the child. An explicit `--server` conflicts with `--local`. `localexception-agent-adapter --version` prints the same build string as `localexception-server --version` and `/status` `build.release`. JSON-RPC `ping` returns an empty result. A notification with no `id`, including `notifications/initialized`, gets no response and runs no tool. The protocol version stays `2024-11-05`.
+`--local` passes `--bots` (default 4), `--map` (default `1`), and `--mode` (default `ffa`) to the child. An explicit `--server` conflicts with `--local`. `localexception-agent-adapter --version` prints the same build string as `localexception-server --version` and `/status` `build.release`. JSON-RPC `ping` returns an empty result. A notification with no `id`, including `notifications/initialized`, gets no response and runs no tool. Initialize echoes `2024-11-05`, `2025-06-18` or `2025-11-25` when the client offers one of those, and answers `2025-11-25` for any other offer. Every tool has a title. `observe`, `get_events` and `round_state` set `readOnlyHint`.
 
 ## Quick Start
 
@@ -1001,7 +1001,7 @@ cargo run -- mcp < test_input.jsonl
 
 Example `test_input.jsonl`:
 ```json
-{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05"}}
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25"}}
 {"jsonrpc":"2.0","id":2,"method":"tools/list"}
 {"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"observe","arguments":{}}}
 {"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"act","arguments":{"forward":true,"fire":true}}}
