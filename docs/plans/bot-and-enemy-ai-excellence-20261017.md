@@ -527,7 +527,7 @@ Team deathmatch starts every life with the Rifle, Shotgun and Railgun (`rules::S
 | Plus every personality takes the Shotgun inside its 8 m band | 61 % top | Shotgun 52 % of kills | no: moves the dominance and broke Headliner over Regular (82 %) |
 | Zone aim plus a Rifle cadence of 5 ticks, not 4 (branch-local experiment) | 55 to 67 % (60.5) | 48 to 56 % (51.4) | no: Nick's call; kill time rises 0.3 to 0.7 s |
 
-No bot choice brings the Rifle under 45 % of shots while it is the Arsenal's middle gun at five rounds a second. The levers left are rules, not bots: the Rifle's cadence or damage, or a team kit that starts lighter and puts the Railgun and Shotgun on pads.
+No bot choice brings the Rifle under 45 % of shots while it is the Arsenal's middle gun at five rounds a second. The levers left are rules, not bots: the Rifle's cadence or damage, or a team kit that starts lighter and puts the Railgun and Shotgun on pads. The lighter kit was measured on seeds 1 to 24 and not kept. Larak Lot team deathmatch moves from 64 percent Rifle at 16.9 frags a minute to 32 percent Rifle and 34 percent Pistol at 16.2. Sector 9 falls from 17.4 to 9.7, and Holdfast from 60.4 to 18.8 with the Pistol at 60 percent of shots. Gulch and Tripoint, whose first landed shot was already outside 6 to 15 seconds, move to about 24 seconds. Free-for-all on Larak Lot was unchanged.
 
 #### Sector 9 at five a side
 
