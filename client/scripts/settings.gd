@@ -442,7 +442,11 @@ static func _name_scalar_allowed(code: int) -> bool:
 		return false
 	if (code >= 0x200B and code <= 0x200F) or (code >= 0x202A and code <= 0x202E):
 		return false
-	if (code >= 0x2060 and code <= 0x2064) or (code >= 0x2066 and code <= 0x2069):
+	if code >= 0x2060 and code <= 0x206F:
+		return false
+	if (code >= 0x1BCA0 and code <= 0x1BCA3) or (code >= 0x1D173 and code <= 0x1D17A):
+		return false
+	if code == 0xE0001 or (code >= 0xE0020 and code <= 0xE007F):
 		return false
 	return code < 0xFFF9 or code > 0xFFFB
 

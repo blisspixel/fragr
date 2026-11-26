@@ -4,6 +4,12 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.15 - 2026-11-26
+
+- Names, callouts, notices and log lines also drop the deprecated format
+  controls and tag characters that can still hide inside a callsign.
+  Variation selectors stay.
+
 ## v0.99.14 - 2026-11-26
 
 - The lives chip follows the snapshot. A frag no longer spends a second

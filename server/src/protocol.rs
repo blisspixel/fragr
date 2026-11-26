@@ -20,9 +20,12 @@ fn text_format_blocks(ch: char) -> bool {
             | '\u{FEFF}'
             | '\u{200B}'..='\u{200F}'
             | '\u{202A}'..='\u{202E}'
-            | '\u{2060}'..='\u{2064}'
-            | '\u{2066}'..='\u{2069}'
+            | '\u{2060}'..='\u{206F}'
             | '\u{FFF9}'..='\u{FFFB}'
+            | '\u{1BCA0}'..='\u{1BCA3}'
+            | '\u{1D173}'..='\u{1D17A}'
+            | '\u{E0001}'
+            | '\u{E0020}'..='\u{E007F}'
     )
 }
 
@@ -33,14 +36,30 @@ mod text_char_tests {
     #[test]
     fn hidden_breaks_and_controls_block_and_a_normal_space_does_not() {
         for ch in [
-            '\n', '\t', '\u{0085}', '\u{00A0}', '\u{2028}', '\u{2029}', '\u{202E}', '\u{200B}',
+            '\n',
+            '\t',
+            '\u{0085}',
+            '\u{00A0}',
+            '\u{2028}',
+            '\u{2029}',
+            '\u{202E}',
+            '\u{200B}',
             '\u{FEFF}',
+            '\u{2065}',
+            '\u{206A}',
+            '\u{206F}',
+            '\u{1BCA0}',
+            '\u{1D173}',
+            '\u{E0001}',
+            '\u{E0020}',
+            '\u{E007F}',
         ] {
             assert!(text_char_blocks(ch), "{ch:?}");
         }
         assert!(!text_char_blocks(' '));
         assert!(!text_char_blocks('A'));
         assert!(!text_char_blocks('é'));
+        assert!(!text_char_blocks('\u{FE0F}'));
     }
 }
 

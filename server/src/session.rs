@@ -2843,6 +2843,10 @@ mod session_tests {
         );
         assert_eq!(session.available_display_name("\u{202e}"), "Player");
         assert_eq!(
+            session.available_display_name("Pa\u{206A}tch\u{E0001}"),
+            "Patch"
+        );
+        assert_eq!(
             session
                 .available_display_name(&"x".repeat(100))
                 .chars()

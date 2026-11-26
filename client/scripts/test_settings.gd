@@ -130,6 +130,14 @@ func _initialize() -> void:
 	if s.player_name() != "AB":
 		push_error("test_settings: a C1 control must leave the callsign")
 		ok = false
+	s.set_value("profile", "name", "Pa" + String.chr(0x206A) + "tch" + String.chr(0xE0001))
+	if s.player_name() != "Patch":
+		push_error("test_settings: deprecated format controls and tag characters must leave the callsign")
+		ok = false
+	s.set_value("profile", "name", "A" + String.chr(0xFE0F))
+	if s.player_name() != "A" + String.chr(0xFE0F):
+		push_error("test_settings: a variation selector stays in the callsign")
+		ok = false
 	s.set_value("profile", "name", "x".repeat(80))
 	if s.player_name().length() != 24:
 		push_error("test_settings: callsign must fit its display contract")
