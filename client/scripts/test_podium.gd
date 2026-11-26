@@ -210,6 +210,12 @@ func _run() -> void:
 	wire.send_hello()
 	wire.send_hello()
 	_check(wire.sent.size() == 2 and wire.sent[0].get("seat") == "0123abcd" and not wire.sent[1].has("seat"), "the token rides one Hello: %s" % str(wire.sent))
+	wire.server_url = "ws://203.0.113.8:6767"
+	wire.seat_token = "89abcdef"
+	wire.server_url = "ws://198.51.100.8:6767"
+	wire.sent.clear()
+	wire.send_hello()
+	_check(wire.sent.size() == 1 and not wire.sent[0].has("seat") and wire.seat_token == "", "a seat token stays off another server: %s" % str(wire.sent))
 	# The server's private place and a full line's refusal reach the watcher.
 	wire.role = "spectator"
 	wire._handle_message(JSON.stringify({"type": "queue_place", "place": 3, "of": 4}))
