@@ -1555,3 +1555,118 @@ fn a_rung_that_goes_for_the_head_pitches_at_the_head_band_and_a_tourist_at_the_t
     }
     panic!("no sighting drew the head for the top rung: {checked:?}");
 }
+
+fn placed_gun(weapon: WeaponType, x: f32) -> crate::sim::ArenaPickup {
+    crate::sim::ArenaPickup {
+        claim: crate::protocol::SupplyClaim::Contested,
+        id: format!("{weapon:?}"),
+        kind: crate::sim::PickupKind::Weapon(weapon),
+        amount: 0,
+        x,
+        y: 0.4,
+        z: 0.0,
+        floor: 0.0,
+        available: true,
+        respawn_timer: None,
+        secret: false,
+    }
+}
+
+/// Nightfall times the Railgun. The Rail pad is the cheaper appointment
+/// until somebody is strictly ahead and already owns one.
+fn gulch_choice(state: &GameState, bot: &BotController) -> Option<[f32; 3]> {
+    bot.pad_plan(state, &state.players[0], true, false)
+        .map(|plan| plan.feet)
+}
+
+#[test]
+fn a_trailing_free_for_all_bot_walks_to_a_gun_the_leader_does_not_own() {
+    let (mut state, bot) = pair(2);
+    state.config.rules = crate::rules::RuleSet::new(GameMode::Ffa, &[], false).unwrap();
+    let trailer = state.players[0].id;
+    let leader = state.players[1].id;
+    state.players[0].name = "Nightfall".into();
+    state.players[0].x = 0.0;
+    state.players[0].z = 0.0;
+    state.players[0].inventory = full_bag(&[WeaponType::Flechette]);
+    state.players[0].weapon = WeaponType::Flechette;
+    state.players[1].inventory = full_bag(&[WeaponType::Rail]);
+    state.players[1].weapon = WeaponType::Rail;
+    state.scores.insert(trailer, 1);
+    state.scores.insert(leader, 4);
+    // Forty metres of Rail, timed at 0.3, costs 12. Seventy metres of
+    // Scatter, a power pad at 0.8, costs 56. The appointment wins until
+    // the leader already owns the Rail, which then costs 80. Larak Lot
+    // keeps the appointment: the walk is only on the two short floors.
+    let rail = [40.0, 0.0, 0.0];
+    let scatter = [70.0, 0.0, 0.0];
+    state.pickups = vec![
+        placed_gun(WeaponType::Rail, rail[0]),
+        placed_gun(WeaponType::Scatter, scatter[0]),
+    ];
+    assert_eq!(gulch_choice(&state, &bot), Some(rail));
+    state.map = crate::maps::RuntimeMap::BuiltIn(crate::sim::MapKind::ReclamationGulch);
+    assert_eq!(gulch_choice(&state, &bot), Some(scatter));
+    state.map = crate::maps::RuntimeMap::BuiltIn(crate::sim::MapKind::TripointWorks);
+    assert_eq!(gulch_choice(&state, &bot), Some(scatter));
+    state.map = crate::maps::RuntimeMap::BuiltIn(crate::sim::MapKind::ReclamationGulch);
+
+    // Level on the board: the appointment stands.
+    state.scores.insert(leader, 1);
+    assert_eq!(gulch_choice(&state, &bot), Some(rail));
+
+    // Behind, and the leader owns the Scatter instead: still time the Rail.
+    state.scores.insert(leader, 4);
+    state.players[1].inventory = full_bag(&[WeaponType::Scatter]);
+    state.players[1].weapon = WeaponType::Scatter;
+    assert_eq!(gulch_choice(&state, &bot), Some(rail));
+
+    // Behind with the Rail again, but the other gun is across the map.
+    state.players[1].inventory = full_bag(&[WeaponType::Rail]);
+    state.players[1].weapon = WeaponType::Rail;
+    state.pickups[1].x = 200.0;
+    assert_eq!(gulch_choice(&state, &bot), Some(rail));
+
+    // A full arsenal owns every gun, which names nothing to walk away from.
+    state.pickups[1].x = scatter[0];
+    state.players[1].inventory =
+        crate::inventory::Inventory::new(crate::protocol::EquipmentPolicy::FullArsenal);
+    assert_eq!(gulch_choice(&state, &bot), Some(rail));
+
+    // The same lead in a team fight does not move the appointment.
+    state.players[1].inventory = full_bag(&[WeaponType::Rail]);
+    state.players[1].weapon = WeaponType::Rail;
+    state.config.rules = crate::rules::RuleSet::new(GameMode::Tdm, &[], false).unwrap();
+    assert_eq!(gulch_choice(&state, &bot), Some(rail));
+}
+
+#[test]
+fn a_trailing_bot_leaves_the_leaders_dropped_gun_when_another_is_useful() {
+    let (mut state, bot) = pair(2);
+    state.config.rules = crate::rules::RuleSet::new(GameMode::Ffa, &[], false).unwrap();
+    let trailer = state.players[0].id;
+    let leader = state.players[1].id;
+    state.players[0].name = "Nightfall".into();
+    state.players[0].x = 0.0;
+    state.players[0].z = 0.0;
+    state.players[0].inventory = full_bag(&[WeaponType::Flechette]);
+    state.players[0].weapon = WeaponType::Flechette;
+    state.players[1].inventory = full_bag(&[WeaponType::Rail]);
+    state.players[1].weapon = WeaponType::Rail;
+    state.scores.insert(trailer, 1);
+    state.scores.insert(leader, 4);
+    state.pickups = vec![placed_gun(WeaponType::Scatter, 50.0)];
+    // A Rail on the ground thirty metres off is the habit, cost 15, against
+    // a Scatter pad fifty metres off, cost 40. On the Gulch, once the leader
+    // owns a Rail the drop costs 60. On Larak Lot the habit still wins.
+    let drop = [30.0, 0.0, 0.0];
+    state.players[0]
+        .bot_senses
+        .pads
+        .remember_drop(WeaponType::Rail, drop);
+    assert_eq!(gulch_choice(&state, &bot), Some(drop));
+    state.map = crate::maps::RuntimeMap::BuiltIn(crate::sim::MapKind::ReclamationGulch);
+    assert_eq!(gulch_choice(&state, &bot), Some([50.0, 0.0, 0.0]));
+    state.scores.insert(leader, 1);
+    assert_eq!(gulch_choice(&state, &bot), Some(drop));
+}

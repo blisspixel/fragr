@@ -81,6 +81,11 @@ const ROCKET_FROM_ABOVE_REACH: f32 = 24.0;
 /// A dropped Rocket the bot has seen this close, while it holds none,
 /// outranks a fight across the lot the way a timed power pad does.
 const ROCKET_DROP_REACH: f32 = 15.0;
+/// A gun the sole free-for-all leader already owns, for a bot that is
+/// behind. Above every habit discount and above a plain pad, so a different
+/// gun at the same distance is the walk. The leader's gun remains when it
+/// is the only one close enough to matter.
+const LEADER_OWNED_WEIGHT: f32 = 2.0;
 /// The furthest a bot leads a rocket, in metres.
 const ROCKET_MAX_LEAD: f32 = 4.0;
 /// Height above the feet a bot aims the Rocket at: the shins. High error
@@ -485,6 +490,68 @@ fn timed(habits: Habits, bot: &Player, kind: super::PickupKind) -> bool {
     own || (kind == super::PickupKind::Plate && bot.inventory.usable(habits.favourite))
 }
 
+/// Cost of a pad or a seen drop. A gun the leader already owns sits above
+/// every discount, including a plain pad.
+fn pad_weight(timed: bool, habitual: bool, favourite: bool, power: bool, stacked: bool) -> f32 {
+    if stacked {
+        return LEADER_OWNED_WEIGHT;
+    }
+    if timed {
+        0.3
+    } else if habitual {
+        0.5
+    } else if favourite {
+        0.6
+    } else if power {
+        0.8
+    } else {
+        1.0
+    }
+}
+
+/// Guns the sole free-for-all leader already owns, when `bot` is strictly
+/// behind on the Gulch or at Tripoint. Empty on every other map: the same
+/// walk took a floor that already met the lead-change bar back under it.
+/// Also empty when the scores are level, this bot leads, the mode is not
+/// free-for-all, or the leader carries a full arsenal. The scoreboard is
+/// public, and the body is the same sole leader the lead-change count names.
+fn guns_the_leader_already_owns(state: &GameState, bot: &Player) -> [bool; WeaponType::ALL.len()] {
+    let mut owned = [false; WeaponType::ALL.len()];
+    if state.config.rules.mode() != GameMode::Ffa
+        || (state.map != super::MapKind::ReclamationGulch
+            && state.map != super::MapKind::TripointWorks)
+    {
+        return owned;
+    }
+    let mine = state.scores.get(&bot.id).copied().unwrap_or(0);
+    let mut best: Option<(Uuid, u32)> = None;
+    let mut level = false;
+    for player in state.players.iter().filter(|player| !player.is_boss) {
+        let score = state.scores.get(&player.id).copied().unwrap_or(0);
+        match best {
+            Some((_, top)) if score < top => {}
+            Some((_, top)) if score == top => level = true,
+            _ => {
+                best = Some((player.id, score));
+                level = false;
+            }
+        }
+    }
+    let Some((leader_id, _)) = best.filter(|(_, top)| !level && *top > mine) else {
+        return owned;
+    };
+    let Some(leader) = state.players.iter().find(|player| player.id == leader_id) else {
+        return owned;
+    };
+    if leader.inventory.policy() != EquipmentPolicy::Discovery {
+        return owned;
+    }
+    for weapon in WeaponType::ALL {
+        owned[weapon.index()] = leader.inventory.owns(weapon);
+    }
+    owned
+}
+
 impl BotSenses {
     /// A new body: no target, no hurt, no flinch. Pad memory survives.
     pub(super) fn forget_fighters(&mut self) {
@@ -831,6 +898,7 @@ impl BotController {
             return None;
         }
         let habits = self.habits(bot);
+        let ahead = guns_the_leader_already_owns(state, bot);
         let pistol_only = !GUNS
             .into_iter()
             .any(|gun| gun != WeaponType::Tack && bot.inventory.usable(gun));
@@ -860,7 +928,13 @@ impl BotController {
             let near = (pad.x - bot.x).hypot(pad.z - bot.z) <= HABIT_REACH;
             // The power pad a callsign times is an appointment from anywhere
             // on the map; its other habits only when they are close.
-            let timed = self.skill.profile().keeps_time && timed(habits, bot, pad.kind);
+            // A gun the leader already owns is not that appointment: leaving
+            // a fight to collect another copy is how one lead sticks.
+            let owned = pad
+                .kind
+                .weapon()
+                .is_some_and(|weapon| ahead[weapon.index()]);
+            let timed = self.skill.profile().keeps_time && timed(habits, bot, pad.kind) && !owned;
             let habitual = habit(habits, pad.kind);
             let wanted = !urgent || gain || timed || (habitual && near);
             if !useful || !wanted {
@@ -886,17 +960,7 @@ impl BotController {
             // The favourite gun is worth a detour while the hand lacks it.
             let favourite = pad.kind.weapon() == Some(habits.favourite)
                 && !bot.inventory.usable(habits.favourite);
-            let weight = if timed {
-                0.3
-            } else if habitual {
-                0.5
-            } else if favourite {
-                0.6
-            } else if pad.kind.is_power() {
-                0.8
-            } else {
-                1.0
-            };
+            let weight = pad_weight(timed, habitual, favourite, pad.kind.is_power(), owned);
             // Time to the claim, walking or waiting, in metres: never cheaper
             // for walking away. Weighing the walk but not the wait made a
             // pad due later look cheaper with every step away from it.
@@ -928,20 +992,16 @@ impl BotController {
             if urgent && !gain && !(habitual && distance <= HABIT_REACH) {
                 continue;
             }
-            let weight = if habitual {
-                0.5
-            } else if favourite {
-                0.6
-            } else if kind.is_power() {
-                0.8
-            } else {
-                1.0
-            };
+            let owned = ahead[weapon.index()];
+            let weight = pad_weight(false, habitual, favourite, kind.is_power(), owned);
             let cost = distance * weight;
             let plan = PadPlan {
                 feet: gun.feet,
                 waiting: false,
-                timed: weapon == WeaponType::Rocket && gain && distance <= ROCKET_DROP_REACH,
+                timed: !owned
+                    && weapon == WeaponType::Rocket
+                    && gain
+                    && distance <= ROCKET_DROP_REACH,
                 arms: pistol_only,
                 mend: false,
             };

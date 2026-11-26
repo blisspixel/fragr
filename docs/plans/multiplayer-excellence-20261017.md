@@ -460,13 +460,21 @@ missing from the share), runs its rows in parallel and keeps only some rows with
   9 2.7 to 2.0) and put the Rocket at a quarter of frags; a Shotgun-only
   Tripoint gave the Shotgun 51 percent; keeping one corridor Rifle on
   Directive 17 left the Rifle at 52.
-- **Open.** The Gulch's free-for-all lead changes stay under 3 (2.6 before,
-  2.2 to 2.5 after across runs) and Directive 17's fell from about 4.3 to
-  3.1 to 3.4, Tripoint's 3.3 to 2.8 and Holdfast's 4.0 to 3.6 at 24 seeds:
-  likely because the Railgun and Rocket that replaced Rifles drop on death
-  and go to the fight's winner, where a Rifle stayed behind (unmeasured).
-  Team deathmatch lead changes moved both ways inside their noise. The
-  off-Larak Duels still barely fight; their gun shares are a handful of shots.
+- **Open, later closed for the Gulch and Tripoint (#557).** This lane left
+  the Gulch under 3 lead changes (2.6 before, 2.2 to 2.5 after across runs)
+  and dropped Directive 17 from about 4.3 to 3.1 to 3.4, Tripoint from 3.3
+  to 2.8 and Holdfast from 4.0 to 3.6 at 24 seeds, likely because the
+  Railgun and Rocket that replaced Rifles drop on death and go to the
+  fight's winner, where a Rifle stayed behind (unmeasured then). A later
+  walk sends a bot that is behind, on the Gulch and at Tripoint only, to a
+  gun the leader does not already own. Seeds 1 to 24 on that tree: the
+  Gulch 2.83 to 3.00 lead changes at 21.4 frags a minute, Scatter 32 percent
+  of shots; Tripoint 2.88 to 3.50, Tack 32 percent. The same walk on every
+  free-for-all floor took Larak Lot from 3.13 to 2.75, so the other maps
+  keep the old route and Larak Lot stays 3.13. Directive 17, Holdfast and
+  Sector 9 were not in that pass. Team deathmatch lead changes moved both
+  ways inside their noise. The off-Larak Duels still barely fight; their
+  gun shares are a handful of shots.
 
 `fragr-playtest --bot-survey --survey-maps --seed 1 --survey-seeds 8
 --time-limit-seconds 150`, release, on the tree with the rebuilt Compliance
