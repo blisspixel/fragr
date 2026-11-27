@@ -36,7 +36,8 @@ func _run() -> void:
 		"ws://127.0.0.1:6767", "ws://localhost:6767", "ws://api.localhost:6767",
 		"ws://10.1.2.3:6767", "ws://192.168.1.9:6767", "ws://172.16.5.5:6767",
 		"ws://169.254.1.1:6767", "ws://172.31.0.1:6767", "ws://LOCALHOST:6767",
-		"ws://[::1]:6767", "ws://[fc00::1]:6767", "ws://[fd00::1]:6767",
+		"ws://[::1]:6767", "ws://[0::1]:6767", "ws://[0:0:0:0:0:0:0:1]:6767",
+		"ws://[fc00::1]:6767", "ws://[fd00::1]:6767", "ws://[fdff::1]:6767",
 		"ws://[fe80::1]:6767", "ws://[FE80::1]:6767", "ws://[febf::1]:6767",
 	]
 	for url: String in clear_private:
@@ -45,7 +46,10 @@ func _run() -> void:
 		"ws://fc.example.com:6767", "ws://fd.example.com:6767", "ws://federal.example:6767",
 		"ws://fe80.example.com:6767", "ws://example.com:6767", "ws://8.8.8.8:6767",
 		"ws://172.15.0.1:6767", "ws://172.32.0.1:6767", "ws://11.0.0.1:6767",
-		"ws://[fec0::1]:6767", "ws://[::ffff:127.0.0.1]:6767",
+		"ws://[fec0::1]:6767", "ws://[::ffff:127.0.0.1]:6767", "ws://[::ffff:192.168.0.1]:6767",
+		"ws://[fc::1]:6767", "ws://[fc0::1]:6767", "ws://[fd::1]:6767", "ws://[fd0::1]:6767",
+		"ws://[fe8::1]:6767", "ws://[fe9::1]:6767", "ws://[fea::1]:6767", "ws://[feb::1]:6767",
+		"ws://[fe7f::1]:6767", "ws://[2001:db8::1]:6767", "ws://[::]:6767",
 	]
 	for url: String in clear_public:
 		_check(not network.ticket_transport_allowed(url), "cleartext ticket stays off a public host: " + url)

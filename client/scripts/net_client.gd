@@ -301,12 +301,7 @@ func _private_host(host: String) -> bool:
 	if text == "localhost" or text.ends_with(".localhost"):
 		return true
 	if text.contains(":"):
-		if text == "::1":
-			return true
-		# Unique-local is fc00::/7. Link-local is fe80::/10.
-		if text.begins_with("fc") or text.begins_with("fd"):
-			return true
-		return text.begins_with("fe8") or text.begins_with("fe9") or text.begins_with("fea") or text.begins_with("feb")
+		return _ipv6_private(text)
 	var parts: PackedStringArray = text.split(".", false)
 	if parts.size() != 4:
 		return false
@@ -325,6 +320,75 @@ func _private_host(host: String) -> bool:
 	if octets[0] == 172 and octets[1] >= 16 and octets[1] <= 31:
 		return true
 	return octets[0] == 192 and octets[1] == 168
+
+## Loopback, unique-local fc00::/7, or link-local fe80::/10.
+## The range is the address. `fc::1` and `fe8::1` are not in those blocks.
+static func _ipv6_private(host: String) -> bool:
+	var groups: Array[int] = _ipv6_groups(host)
+	if groups.size() != 8:
+		return false
+	var loopback: bool = true
+	for index: int in 7:
+		if groups[index] != 0:
+			loopback = false
+			break
+	if loopback and groups[7] == 1:
+		return true
+	var first: int = groups[0]
+	if first >= 0xFC00 and first <= 0xFDFF:
+		return true
+	return first >= 0xFE80 and first <= 0xFEBF
+
+static func _ipv6_groups(host: String) -> Array[int]:
+	if host.contains("."):
+		return []
+	var halves: PackedStringArray = host.split("::", true)
+	if halves.size() > 2:
+		return []
+	var left: Array[int] = _ipv6_side(halves[0])
+	if not left.is_empty() and left[0] < 0:
+		return []
+	if halves.size() == 1:
+		return left if left.size() == 8 else []
+	var right: Array[int] = _ipv6_side(halves[1])
+	if not right.is_empty() and right[0] < 0:
+		return []
+	var missing: int = 8 - left.size() - right.size()
+	if missing < 1:
+		return []
+	var groups: Array[int] = []
+	groups.append_array(left)
+	for _pad: int in missing:
+		groups.append(0)
+	groups.append_array(right)
+	return groups
+
+static func _ipv6_side(text: String) -> Array[int]:
+	var groups: Array[int] = []
+	if text.is_empty():
+		return groups
+	for part: String in text.split(":", true):
+		var value: int = _hex_group(part)
+		if value < 0:
+			return [-1]
+		groups.append(value)
+	return groups
+
+static func _hex_group(part: String) -> int:
+	if part.is_empty() or part.length() > 4:
+		return -1
+	var value: int = 0
+	for index: int in part.length():
+		var code: int = part.unicode_at(index)
+		var digit: int = -1
+		if code >= 48 and code <= 57:
+			digit = code - 48
+		elif code >= 97 and code <= 102:
+			digit = code - 87
+		if digit < 0:
+			return -1
+		value = value * 16 + digit
+	return value
 
 func _try_resume() -> bool:
 	if _leaving or _resume_used or _resume_token == "" or (role != "human" and role != "agent"):
