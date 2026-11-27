@@ -117,6 +117,8 @@ var requested_dress: Dictionary = {}
 ## before Welcome. A resumed pawn keeps its own, whatever was requested.
 var accepted_body: String = ""
 var _resume_token: String = ""
+## Canonical server URL that issued `_resume_token`. Empty refuses presentation.
+var _resume_audience: String = ""
 var _leaving: bool = false
 var _resume_used: bool = false
 var _version_told: bool = false
@@ -136,8 +138,16 @@ signal queue_refused(message: String)
 ## and the line's length. The shared `duel_queue` names can repeat.
 var queue_place: int = 0
 var queue_of: int = 0
-## Sent once in the next fighter Hello, then forgotten.
-var seat_token: String = ""
+## Sent once in the next fighter Hello to the server that called the seat,
+## then forgotten. A Hello to any other server forgets it without sending it.
+var seat_token: String:
+	get:
+		return _seat_token
+	set(value):
+		_seat_token = value
+		_seat_audience = "" if value.is_empty() else audience_for(server_url)
+var _seat_token: String = ""
+var _seat_audience: String = ""
 const SEAT_PASSED: String = "duel_seat_passed"
 
 func _ready():
@@ -195,6 +205,7 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 func leave_match() -> void:
 	_leaving = true
 	_resume_token = ""
+	_resume_audience = ""
 	if connection_state == WebSocketPeer.STATE_OPEN:
 		send_json({"type": "leave"})
 	disconnect_from_server()
@@ -342,16 +353,29 @@ func send_hello():
 	if ticket != "":
 		hello["ticket"] = ticket
 	if role == "human" or role == "agent":
-		hello["resume"] = _resume_token
+		hello["resume"] = _resume_for_this_server()
 		hello["body"] = PlayerBody.preference(requested_body)
 		var dress: Dictionary = FighterLooks.request(int(requested_dress.get("look", FighterLooks.AUTO)),
 			int(requested_dress.get("accent", FighterLooks.AUTO)), PlayerBody.preference(requested_body))
 		if not dress.is_empty():
 			hello["dress"] = dress
-		if not seat_token.is_empty():
+		if _seat_for_this_server():
 			hello["seat"] = seat_token
 	seat_token = ""
 	send_json(hello)
+
+## The stored resume token, or empty when this Hello is for a different server.
+## An empty string asks that server for its own token and keeps the old one.
+func _resume_for_this_server() -> String:
+	if _resume_token.is_empty() or _resume_audience.is_empty():
+		return ""
+	if _resume_audience != audience_for(server_url):
+		return ""
+	return _resume_token
+
+## True only for the server that put this one-time seat token in our hand.
+func _seat_for_this_server() -> bool:
+	return not seat_token.is_empty() and not _seat_audience.is_empty() and _seat_audience == audience_for(server_url)
 
 ## A watcher asks to wait for a Duel seat, or leaves the queue.
 func send_queue(wait: bool) -> void:
@@ -374,6 +398,7 @@ static func valid_seat_token(value: Variant) -> bool:
 
 func _pass_seat() -> void:
 	_resume_token = ""
+	_resume_audience = ""
 	disconnect_from_server()
 	seat_passed.emit()
 
@@ -645,6 +670,7 @@ func _handle_message(text: String):
 			accepted_body = PlayerBody.accepted(data, role)
 			if data.get("resume") is String and str(data["resume"]) != "":
 				_resume_token = str(data["resume"])
+				_resume_audience = audience_for(server_url)
 			_resume_used = false
 			equipment.clear()
 			aim.clear()

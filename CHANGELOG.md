@@ -4,6 +4,12 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.16 - 2026-11-26
+
+- A resume token and a one-time Duel seat token are presented only to the
+  server that issued them. A different address receives an empty resume and
+  is asked for its own token.
+
 ## v0.99.15 - 2026-11-26
 
 - Names, callouts, notices and log lines also drop the deprecated format

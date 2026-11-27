@@ -147,13 +147,19 @@ Initial handshake message. Must be sent immediately after connection.
   string asks for a resume token on `Welcome`. A token rebinds the parked pawn
   and the server answers with a new token. A bad or expired token is
   `resume_rejected` and does not create a second pawn. Spectators omit it.
+  The native client stores the token with the canonical server URL that issued
+  it and presents that token only when this hello names the same URL. A
+  different server receives an empty string and is asked for its own token.
+  The stored token stays until a new one arrives or the fighter leaves.
 - `seat`: optional, gameplay 59. The one-time token from a Duel `seat_call`
   (below, under Queue). While a Duel seat is held for a called watcher and
   it is the only free seat, a `human` or `agent` hello without that token is
   refused with `match_full`; a second free seat is anybody's. The hello
   carrying the token waits up to 2.5 s for the passing fighter's socket to
   let the seat go, and the hold is spent only once its seat is taken. A
-  lapsed call (ten seconds) holds nothing. Never logged.
+  lapsed call (ten seconds) holds nothing. Never logged. The native client
+  attaches the token only when this hello names the server that sent
+  `seat_call`. A hello to any other server forgets the token without sending it.
 - `geometry_version`: Maximum understood solid format, including earlier formats.
   Current clients send `2`; omission means `1`. A shared arcade room requires `2`.
   A campaign map keeps that map's floor. Before `Welcome`, the server sends

@@ -21,11 +21,19 @@ func _run() -> void:
 		_fail("a new human hello must ask for a resume token")
 		return
 	network._resume_token = "v1.kept"
+	network._resume_audience = network.audience_for(network.server_url)
 	network.sent.clear()
 	network.send_hello()
 	if network.sent[0].get("resume") != "v1.kept":
 		_fail("a drop hello must present the resume token")
 		return
+	network._resume_audience = ""
+	network.sent.clear()
+	network.send_hello()
+	if network.sent[0].get("resume") != "":
+		_fail("a resume token with no issuing server must stay off the hello")
+		return
+	network._resume_audience = network.audience_for(network.server_url)
 	network.role = "spectator"
 	network.sent.clear()
 	network.send_hello()
@@ -39,8 +47,25 @@ func _run() -> void:
 	if network.sent.is_empty() or network.sent[0].get("type") != "leave":
 		_fail("leave must be explicit before the socket closes")
 		return
-	if network._resume_token != "":
+	if network._resume_token != "" or network._resume_audience != "":
 		_fail("leave kept a resume token")
+		return
+	network.server_url = "ws://203.0.113.8:6767"
+	network._handle_message(JSON.stringify({"type": "welcome", "role": "human", "player_id": "pawn", "body": "human", "resume": "v1.issued"}))
+	if network._resume_token != "v1.issued" or network._resume_audience != "ws://203.0.113.8:6767":
+		_fail("welcome did not bind the resume token to its server")
+		return
+	network.server_url = "ws://198.51.100.8:6767"
+	network.sent.clear()
+	network.send_hello()
+	if network.sent[0].get("resume") != "" or network._resume_token != "v1.issued":
+		_fail("a different server received the previous resume token")
+		return
+	network.server_url = "ws://203.0.113.8:6767"
+	network.sent.clear()
+	network.send_hello()
+	if network.sent[0].get("resume") != "v1.issued":
+		_fail("the issuing server did not receive its resume token")
 		return
 	var seen: Array[String] = []
 	network._leaving = false
