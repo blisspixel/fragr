@@ -226,6 +226,8 @@ func _run() -> void:
 	wire.queue_refused.connect(func(message: String) -> void: refusals.append(message))
 	wire._handle_message(JSON.stringify({"type": "error", "code": "queue_full", "message": "The line for this duel is full."}))
 	_check(refusals == ["The line for this duel is full."], "a full line says so without closing")
+	wire._handle_message(JSON.stringify({"type": "error", "code": "queue_full", "message": "The line\u2028is full."}))
+	_check(refusals.size() == 2 and not refusals[1].contains(String.chr(0x2028)) and refusals[1] == tr("NET_QUEUE_FULL"), "a broken line uses the client's own sentence: %s" % str(refusals))
 	var passed: Array[int] = [0]
 	wire.seat_passed.connect(func() -> void: passed[0] += 1)
 	wire._handle_message(JSON.stringify({"type": "error", "code": "duel_seat_passed", "message": "Winner stays."}))

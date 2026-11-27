@@ -559,24 +559,35 @@ static func release_check() -> String:
 	return "Download a matching client from %s and check the archive against SHA256SUMS.txt." % RELEASES_URL
 
 ## The server sentence when it is one plain line. An older server that only
-## says to update gains the releases page. Anything else uses the close text.
+## says to update gains the releases page. A line break or a hidden mark
+## uses the close text instead of the offered sentence.
 func _version_refusal_text(message: Variant) -> String:
 	var fallback: String = _close_message("unsupported_gameplay")
-	if not message is String:
-		return fallback
-	var offered: String = str(message).strip_edges()
-	if offered.is_empty() or offered.length() > 300 or not _plain_sentence(offered):
+	var offered: String = _one_plain_line(message, 300)
+	if offered.is_empty():
 		return fallback
 	if offered.contains("update your client") and not offered.contains(RELEASES_URL):
 		return "%s %s" % [offered, release_check()]
 	return offered
 
-func _plain_sentence(text: String) -> bool:
+## Trimmed text when every scalar may sit on one status line, else "".
+## `limit` counts Unicode scalars after trimming.
+func _one_plain_line(message: Variant, limit: int) -> String:
+	if not message is String:
+		return ""
+	var text: String = str(message).strip_edges()
+	if text.is_empty() or text.length() > limit:
+		return ""
 	for index: int in text.length():
-		var code: int = text.unicode_at(index)
-		if code < 32 or code == 127:
-			return false
-	return true
+		if not LocalExceptionSettings.plain_scalar(text.unicode_at(index)):
+			return ""
+	return text
+
+## A full Duel line. The server's sentence is shown only when it is one short
+## plain line; anything else keeps the socket open and uses our own wording.
+func _queue_full_line(message: Variant) -> String:
+	var offered: String = _one_plain_line(message, 160)
+	return offered if not offered.is_empty() else tr("NET_QUEUE_FULL")
 
 ## Localized text for a stable close/error code, or "" when the code is not
 ## one of ours. Shared by the hard-stop path below and the idle_timeout drop,
@@ -866,7 +877,7 @@ func _handle_message(text: String):
 					_pass_seat()
 					return
 				if code == "queue_full":
-					queue_refused.emit(str(data.get("message", "")) if data.get("message") is String else "")
+					queue_refused.emit(_queue_full_line(data.get("message", "")))
 					return
 				if code == "unsupported_gameplay" or code == "unsupported_geometry":
 					if not _version_told:

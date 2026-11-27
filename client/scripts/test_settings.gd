@@ -138,6 +138,10 @@ func _initialize() -> void:
 	if s.player_name() != "A" + String.chr(0xFE0F):
 		push_error("test_settings: a variation selector stays in the callsign")
 		ok = false
+	if not LocalExceptionSettings.plain_scalar(32) or not LocalExceptionSettings.plain_scalar(0xFE0F) \
+			or LocalExceptionSettings.plain_scalar(0x2028) or LocalExceptionSettings.plain_scalar(0x202E):
+		push_error("test_settings: a plain line keeps a space and a variation selector, and drops line and bidi marks")
+		ok = false
 	s.set_value("profile", "name", "x".repeat(80))
 	if s.player_name().length() != 24:
 		push_error("test_settings: callsign must fit its display contract")
