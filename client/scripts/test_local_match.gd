@@ -1,5 +1,36 @@
 extends SceneTree
 
+## The preview child flushes its one line as it exits. The first read in a
+## poll can still be empty; the line arrives on the read after running()
+## reports that exit.
+class ExitFlushProcess extends LocalProcess:
+	var head: PackedByteArray = PackedByteArray()
+	var tail: PackedByteArray = PackedByteArray()
+	var phase: int = 0
+	func start(_executable: String, arguments: PackedStringArray) -> bool:
+		assert(arguments == PackedStringArray(["--local-run-preview"]))
+		phase = 0
+		return true
+	func running() -> bool:
+		if phase == 1:
+			phase = 2
+			return false
+		return phase < 2
+	func read_output() -> PackedByteArray:
+		if phase == 0:
+			phase = 1
+			return head
+		if phase == 2:
+			phase = 3
+			var bytes: PackedByteArray = tail
+			tail = PackedByteArray()
+			return bytes
+		return PackedByteArray()
+	func drain_errors() -> void:
+		pass
+	func dispose() -> void:
+		phase = 3
+
 class FakeProcess extends LocalProcess:
 	var alive: bool = false
 	var starts: int = 0
@@ -172,6 +203,7 @@ func _run() -> void:
 	awaiting["mission"] = "other"
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).is_empty(), "unknown pending destination is rejected")
 	_expect(LocalMatch.parse_run_preview('{"status":"corrupt"}'.to_ascii_buffer()).get("status") == "corrupt", "preview distinguishes corrupt save")
+	_preview_exit_flush(fixture)
 	for patch: Dictionary in [{"version":true}, {"version":1.5}, {"mission":"calibration"}, {"extra":1},
 		{"gameplay_version":4}, {"gameplay_version":5.5}, {"gameplay_version":10}, {"gameplay_version":11}, {"url":"ws://localhost:12345"}, {"url":"ws://127.0.0.1:0"},
 		{"url":"ws://127.0.0.1:65536"}, {"url":"ws://127.0.0.1:0123"}, {"url":"ws://127.0.0.1:123/x"}, {"url":42}]:
@@ -182,6 +214,51 @@ func _run() -> void:
 	if failures == 0:
 		print("test_local_match: PASS")
 	quit(0 if failures == 0 else 1)
+
+func _preview_exit_flush(fixture: Fixture) -> void:
+	var awaiting: Dictionary = {"status": "awaiting_mission", "mission": MissionState.M08_ID, "difficulty": "standard", "continues": 1, "body": null, "dress": null}
+	var line: PackedByteArray = JSON.stringify(awaiting).to_ascii_buffer()
+	line.append(10)
+	var late: ExitFlushProcess = ExitFlushProcess.new()
+	fixture._preview_process = late
+	fixture.refresh_run_preview()
+	late.tail = line
+	_expect(fixture.run_preview.get("status") == "loading", "preview stays loading until the child answers")
+	fixture._process(0)
+	_expect(fixture.run_preview.get("status") == "awaiting_mission" and fixture.run_preview.get("mission") == MissionState.M08_ID, "preview keeps the line flushed as the child exits")
+	_expect(not fixture._preview_active, "accepted preview closes the pipe")
+	var split: ExitFlushProcess = ExitFlushProcess.new()
+	fixture._preview_process = split
+	fixture.refresh_run_preview()
+	split.head = line.slice(0, line.size() - 1)
+	split.tail = PackedByteArray([10])
+	fixture._process(0)
+	_expect(fixture.run_preview.get("status") == "awaiting_mission", "preview joins a partial line with the byte flushed at exit")
+	var junk: ExitFlushProcess = ExitFlushProcess.new()
+	fixture._preview_process = junk
+	fixture.refresh_run_preview()
+	junk.tail = line + "x".to_ascii_buffer()
+	fixture._process(0)
+	_expect(fixture.run_preview.get("status") == "unavailable", "bytes after the preview line still fail closed")
+	var silent: ExitFlushProcess = ExitFlushProcess.new()
+	fixture._preview_process = silent
+	fixture.refresh_run_preview()
+	fixture._process(0)
+	_expect(fixture.run_preview.get("status") == "unavailable", "a child that exits without a line stays unavailable")
+	var early: FakeProcess = FakeProcess.new()
+	early.expected = PackedStringArray(["--local-run-preview"])
+	fixture._preview_process = early
+	fixture.refresh_run_preview()
+	early.output = line
+	fixture._process(0)
+	_expect(fixture.run_preview.get("status") == "awaiting_mission" and not fixture._preview_active, "a line already in the pipe is accepted before the child exits")
+	early.output = PackedByteArray()
+	fixture._preview_process = early
+	fixture.refresh_run_preview()
+	fixture._preview_deadline = 0
+	fixture._process(0)
+	_expect(fixture.run_preview.get("status") == "unavailable" and not fixture._preview_active, "a silent child past the deadline stays unavailable")
+	early.expected = PackedStringArray(["--local-mission", "recall_notice", "--run-mode", "new", "--difficulty", "standard"])
 
 ## M02 development and durable resume share the current rules capability.
 func _development(fixture: Fixture, child: FakeProcess) -> void:

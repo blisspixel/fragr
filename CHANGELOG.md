@@ -9,6 +9,8 @@ Release history, newest first. Planned work stays in
 - A full Duel line and a version refusal show the server's sentence only
   when it is one plain line. A line break or a hidden mark is replaced by
   the client's own wording.
+- The saved-run preview reads the child's one line after that child exits,
+  so a fast exit no longer looks like a missing campaign.
 
 ## v0.99.16 - 2026-11-26
 

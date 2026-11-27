@@ -204,6 +204,15 @@ func _poll_run_preview() -> void:
 		_finish_run_preview({"status": "unavailable"})
 		return
 	var newline: int = _preview_pending.find(10)
+	# The preview child writes one line and exits. Stdout stays buffered until
+	# that exit, so the read above can miss the line. Read once more before
+	# the pipe is closed.
+	if newline < 0 and not _preview_process.running():
+		_preview_pending.append_array(_preview_process.read_output())
+		if _preview_pending.size() > MAX_READY_BYTES:
+			_finish_run_preview({"status": "unavailable"})
+			return
+		newline = _preview_pending.find(10)
 	if newline >= 0:
 		var parsed: Dictionary = parse_run_preview(_preview_pending.slice(0, newline))
 		if newline != _preview_pending.size() - 1 or parsed.is_empty():
