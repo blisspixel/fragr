@@ -422,7 +422,9 @@ arcade room, including free-for-all, team play, capture the flag, Sabotage,
 and the night list, requires the current gameplay contract (`69`) and geometry `2`. An older hello
 and a newer hello are both refused before `Welcome`, with
 `unsupported_gameplay` or `unsupported_geometry`. The message names version
-69 or geometry 2. An older hello is also sent to
+69 or geometry 2. The native client repeats that sentence only when it is
+one plain line of at most 300 characters. A line break, a hidden mark or
+any other non-space whitespace is replaced by the release check. An older hello is also sent to
 `https://github.com/blisspixel/fragr/releases/latest` and told to check the
 archive against `SHA256SUMS.txt` on that page. Join does not fetch the page.
 The join page can offer to download that archive after the player asks.
@@ -1146,7 +1148,10 @@ steps out of it:
 Only a spectator connection on a `--mode duel` server is heard; a fighter's
 queue and any queue outside Duel are ignored. The line holds at most 16 and
 is first come, first served; a seventeenth watcher is answered with an
-`error` `queue_full` that does not close the connection. Each queued watcher
+`error` `queue_full` that does not close the connection. The native client
+shows that message only when it is one plain line of at most 160 characters.
+A line break, a hidden mark, other non-space whitespace, or a longer
+message is replaced by the client's own sentence. Each queued watcher
 is told its own place, unicast, whenever it changes (names on the shared
 line can repeat):
 

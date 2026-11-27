@@ -450,6 +450,10 @@ static func _name_scalar_allowed(code: int) -> bool:
 		return false
 	return code < 0xFFF9 or code > 0xFFFB
 
+## A scalar that may sit in a callsign or in one line copied from the server.
+static func plain_scalar(code: int) -> bool:
+	return _name_scalar_allowed(code)
+
 func player_name() -> String:
 	return clean_player_name(get_value("profile", "name"))
 

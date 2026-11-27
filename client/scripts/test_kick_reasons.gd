@@ -66,6 +66,16 @@ func _check_version_refusal() -> bool:
 		_fail("a junk sentence replaced the release check: " + junk)
 		network.free()
 		return false
+	var hidden: String = str(network.call("_version_refusal_text", "This server speaks gameplay version 37." + String.chr(0x202E) + "rewritten"))
+	if hidden.contains(String.chr(0x202E)) or hidden.contains("rewritten") or not hidden.contains(link):
+		_fail("a hidden mark kept the server sentence: " + hidden)
+		network.free()
+		return false
+	var broken: String = str(network.call("_version_refusal_text", "This server speaks gameplay version 37." + String.chr(0x2028)))
+	if broken.contains(String.chr(0x2028)) or not broken.contains(link):
+		_fail("a line separator kept the server sentence: " + broken)
+		network.free()
+		return false
 	var doubled: String = str(network.call("_version_refusal_text", "update your client. Download a matching client from %s and check the archive against SHA256SUMS.txt." % link))
 	if doubled.count(link) != 1:
 		_fail("the release link was repeated: " + doubled)
