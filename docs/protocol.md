@@ -141,8 +141,10 @@ Initial handshake message. Must be sent immediately after connection.
   A v2 nonce is accepted once on that process until it expires. When
   `LOCALEXCEPTION_JOIN_AUDIENCE` is set, only a v2 ticket for that exact audience is
   accepted. The native client sends v2, and it does not attach a ticket on
-  public cleartext `ws`. A ticket does not name the player and it does not by
-  itself resume a dropped pawn.
+  public cleartext `ws`. Cleartext is limited to loopback, private IPv4,
+  unique-local `fc00::/7` and link-local `fe80::/10`, judged on the address
+  rather than a textual prefix, so `fc::1` and `fe8::1` stay public. A ticket
+  does not name the player and it does not by itself resume a dropped pawn.
 - `resume`: optional. Absent means a dropped socket removes the pawn. An empty
   string asks for a resume token on `Welcome`. A token rebinds the parked pawn
   and the server answers with a new token. A bad or expired token is

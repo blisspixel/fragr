@@ -4,6 +4,12 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.18 - 2026-11-27
+
+- A cleartext join ticket is sent only to a loopback, private, unique-local
+  or link-local address. A host whose text merely starts with those letters,
+  such as fc::1 or fe8::1, no longer receives one.
+
 ## v0.99.17 - 2026-11-27
 
 - A full Duel line and a version refusal show the server's sentence only
