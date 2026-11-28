@@ -614,8 +614,8 @@ func show_podium(podium: Variant, my_id: String, queue: Variant = [], my_place: 
 		var duel: Variant = data.get("duel")
 		if duel is Array and (duel as Array).size() == 2 and duel[0] is Dictionary and duel[1] is Dictionary:
 			lines.append(tr("HUD_DUEL_SERIES").format({
-				"a": str(duel[0].get("name", "?")).to_upper(), "a_wins": int(duel[0].get("wins", 0)),
-				"b": str(duel[1].get("name", "?")).to_upper(), "b_wins": int(duel[1].get("wins", 0)),
+				"a": LocalExceptionSettings.prompt_label(duel[0].get("name", "?"), 64), "a_wins": int(duel[0].get("wins", 0)),
+				"b": LocalExceptionSettings.prompt_label(duel[1].get("name", "?"), 64), "b_wins": int(duel[1].get("wins", 0)),
 			}))
 		if voters > 0 and not my_id.is_empty():
 			if ready.has(my_id):
@@ -656,13 +656,13 @@ static func duel_queue_lines(queue: Variant, my_place: int, watching: bool, podi
 	if queue is Array:
 		for entry: Variant in queue:
 			if entry is String and not (entry as String).is_empty() and names.size() < 16:
-				names.append(entry)
+				names.append(LocalExceptionSettings.prompt_label(entry, 64))
 	if not watching and not podium:
 		return lines
 	if not names.is_empty():
 		var shown: Array[String] = []
 		for index: int in mini(names.size(), 3):
-			shown.append(names[index].to_upper())
+			shown.append(names[index])
 		var more: int = names.size() - shown.size()
 		lines.append(TranslationServer.translate("HUD_DUEL_NEXT_UP").format({"names": ", ".join(shown)}) + (TranslationServer.translate("HUD_DUEL_NEXT_MORE").format({"more": more}) if more > 0 else ""))
 	if watching:
@@ -789,7 +789,8 @@ func set_ctf_state(flags: Variant, scores: Variant, limit: Variant, players: Arr
 	var viewer_team: String = ""
 	for player: Variant in players:
 		if player is Dictionary:
-			names[str(player.get("id", ""))] = str(player.get("name", ""))
+			var shown: String = LocalExceptionSettings.one_line(player.get("name", ""), 64)
+			names[str(player.get("id", ""))] = "?" if shown.is_empty() else shown
 			if str(player.get("id", "")) == viewer_id:
 				viewer_position = [player.get("x", 0.0), player.get("y", 0.0), player.get("z", 0.0)]
 				viewer_team = MatchRules.valid_team(player.get("team"))
@@ -1309,18 +1310,18 @@ func set_episode_chrome(ep_id: String, title: String, objective: String, progres
 	# Solo Broadcast face: title + objective chip. Silly booth, not wiki.
 	var prev_progress = episode_progress
 	episode_id = ep_id
-	episode_title = title
-	episode_objective = objective
-	episode_progress = progress
+	episode_title = LocalExceptionSettings.one_line(title, 80)
+	episode_objective = LocalExceptionSettings.one_line(objective, 400)
+	episode_progress = LocalExceptionSettings.one_line(progress, 400)
 	episode_phase = phase
 	_refresh_mode_label()
-	if title != "" and not episode_title_shown and round_message:
+	if episode_title != "" and not episode_title_shown and round_message:
 		episode_title_shown = true
-		show_episode_title_card(title, objective)
+		show_episode_title_card(episode_title, episode_objective)
 	# Host-per-NODS-tick: flash when progress advances under nods phase.
 	# Skip empty first paint (join / cold open) and jammer+ handoff.
-	if phase == "nods" and progress != "" and prev_progress != "" and progress != prev_progress:
-		show_nods_tick(progress, sticky_host_line)
+	if phase == "nods" and episode_progress != "" and prev_progress != "" and episode_progress != prev_progress:
+		show_nods_tick(episode_progress, sticky_host_line)
 
 func show_episode_title_card(title: String, objective: String = ""):
 	if not round_message:

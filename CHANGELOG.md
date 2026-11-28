@@ -4,6 +4,12 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.20 - 2026-11-27
+
+- A podium callsign, a duel-queue name, a vote map name, a flag carrier and
+  a Solo Broadcast line show the server's text only as one plain line. A
+  brace in that copy stays a letter, so the name is not drawn as a key.
+
 ## v0.99.19 - 2026-11-27
 
 - A callsign, a Host line, a speak, a venue notice, an objective line, the

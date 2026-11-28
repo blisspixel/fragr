@@ -83,6 +83,8 @@ func _test_prompts() -> void:
 	_check(InputGlyphs.plain(use) == "NORTH: READ TRANSFER RECORD", "positional pad use prompt")
 	_check(InputGlyphs.plain("{weapon_1}") == "1", "a key-only action still shows its key on a pad")
 	_check(InputGlyphs.plain("{unknown} {}") == "{unknown} {}", "unknown names stay literal")
+	_check(InputGlyphs.plain("{{fire}} {{use}}") == "{fire} {use}", "doubled braces stay letters: " + InputGlyphs.plain("{{fire}} {{use}}"))
+	_check(InputGlyphs.plain("{weapon_1} {{fire}}") == "1 {fire}", "a vote key stays a key beside a copied brace")
 	# A rebound key shows up in the prompt.
 	var prefs: LocalExceptionSettings = LocalExceptionSettings.new("user://glyphs-unused.cfg")
 	InputBindings.assign(prefs, "interact", 0, "key:71")

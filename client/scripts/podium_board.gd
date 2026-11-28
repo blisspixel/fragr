@@ -129,8 +129,8 @@ static func lines(podium: Dictionary, my_id: String, bests: Array[Dictionary], p
 	var duel: Variant = podium.get("duel")
 	if duel is Array and (duel as Array).size() == 2 and duel[0] is Dictionary and duel[1] is Dictionary:
 		out.append(_line(TranslationServer.translate("HUD_DUEL_SERIES").format({
-			"a": str(duel[0].get("name", "?")).to_upper(), "a_wins": _count(duel[0].get("wins")),
-			"b": str(duel[1].get("name", "?")).to_upper(), "b_wins": _count(duel[1].get("wins")),
+			"a": LocalExceptionSettings.prompt_label(duel[0].get("name", "?"), 64), "a_wins": _count(duel[0].get("wins")),
+			"b": LocalExceptionSettings.prompt_label(duel[1].get("name", "?"), 64), "b_wins": _count(duel[1].get("wins")),
 		}), MenuTheme.BONE, TITLE_SIZE))
 	# Your own book when you have met somebody; otherwise the room's.
 	var own: Array[Dictionary] = _own_lines(mine) if not my_id.is_empty() else ([] as Array[Dictionary])
@@ -177,7 +177,7 @@ static func _own_lines(mine: Dictionary) -> Array[Dictionary]:
 	var nemesis: String = str(mine["nemesis"]) if mine.get("nemesis") is String else ""
 	var book: Array[String] = []
 	for rival: Dictionary in rivals:
-		var name: String = str(rival["name"]).to_upper()
+		var name: String = LocalExceptionSettings.prompt_label(rival["name"], 64)
 		var won: int = _count(rival.get("won"))
 		var lost: int = _count(rival.get("lost"))
 		if not nemesis.is_empty() and str(rival["name"]) == nemesis:
@@ -204,8 +204,8 @@ static func _room_lines(stories: Array[Dictionary]) -> Array[Dictionary]:
 			continue
 		for rival: Variant in story["rivals"]:
 			if rival is Dictionary and rival.get("name") == story["nemesis"]:
-				books.append({"a": str(rival["name"]).to_upper(), "a_tag": tag(rival.get("kind")),
-					"b": str(story["name"]).to_upper(), "b_tag": tag(story.get("kind")),
+				books.append({"a": LocalExceptionSettings.prompt_label(rival["name"], 64), "a_tag": tag(rival.get("kind")),
+					"b": LocalExceptionSettings.prompt_label(story["name"], 64), "b_tag": tag(story.get("kind")),
 					"won": _count(rival.get("lost")), "lost": _count(rival.get("won"))})
 	books.sort_custom(func(x: Dictionary, y: Dictionary) -> bool:
 		var margin_x: int = int(x["won"]) - int(x["lost"])
@@ -239,7 +239,7 @@ static func _vote_lines(vote: Dictionary, my_id: String, pad: bool) -> Array[Dic
 		var map_id: int = _count(option.get("map_id"))
 		var votes: int = _count(option.get("votes"))
 		var key: String = "{" + VOTE_KEYS[index] + "} " if not my_id.is_empty() and not pad else ""
-		var row: String = key + str(option.get("map_name", "?")).to_upper() + "  " + TranslationServer.translate("PODIUM_VOTE_ONE" if votes == 1 else "PODIUM_VOTES").format({"votes": votes})
+		var row: String = key + LocalExceptionSettings.prompt_label(option.get("map_name", "?"), 80) + "  " + TranslationServer.translate("PODIUM_VOTE_ONE" if votes == 1 else "PODIUM_VOTES").format({"votes": votes})
 		if map_id == mine:
 			row += "  " + TranslationServer.translate("PODIUM_YOUR_VOTE")
 		out.append(_line(row, MenuTheme.EMBER if map_id == leader else MenuTheme.BONE))
