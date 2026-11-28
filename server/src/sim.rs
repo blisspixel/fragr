@@ -1954,7 +1954,44 @@ impl GameState {
         self.set_actor_action(id, action, true);
     }
 
+    /// Admit one numbered human sample, or refuse it before any side effect.
+    ///
+    /// A repeated, older, or unnumbered sample after a numbered one must not
+    /// change a ballot, a ready-up, or the body. The number is consumed even
+    /// while the fighter is eliminated or waiting, so a podium press still
+    /// counts and cannot be replayed into the next life.
+    fn admit_human_sample(&mut self, id: Uuid, seq: Option<u32>, companion_intent: bool) -> bool {
+        let Some(player) = self.players.iter_mut().find(|p| p.id == id) else {
+            return true;
+        };
+        if player.is_campaign_companion() != companion_intent || player.role != Role::Human {
+            return true;
+        }
+        match (seq, player.last_received_seq) {
+            (Some(incoming), Some(previous)) => {
+                let distance = incoming.wrapping_sub(previous);
+                if distance == 0 || distance >= (1_u32 << 31) {
+                    return false;
+                }
+                player.last_received_seq = Some(incoming);
+                true
+            }
+            (Some(incoming), None) => {
+                player.last_received_seq = Some(incoming);
+                true
+            }
+            // A legacy human that never numbered inputs still plays.
+            // Once numbered, a mixed unnumbered Action cannot have a
+            // replayable selected sequence and must not change input.
+            (None, Some(_)) => false,
+            (None, None) => true,
+        }
+    }
+
     fn set_actor_action(&mut self, id: Uuid, mut action: Action, companion_intent: bool) {
+        if !self.admit_human_sample(id, action.seq, companion_intent) {
+            return;
+        }
         // The podium's ready-up counts before anything about this body: an
         // eliminated or waiting fighter can still ask for the next round.
         if action.again && !companion_intent {
@@ -1995,27 +2032,6 @@ impl GameState {
                     player.just_fired = false;
                 }
                 Gate::Down { weapon, look }
-            } else if player.role == Role::Human {
-                match (action.seq, player.last_received_seq) {
-                    (Some(seq), Some(previous)) => {
-                        let distance = seq.wrapping_sub(previous);
-                        if distance == 0 || distance >= (1_u32 << 31) {
-                            Gate::Skip
-                        } else {
-                            player.last_received_seq = Some(seq);
-                            Gate::Apply
-                        }
-                    }
-                    (Some(seq), None) => {
-                        player.last_received_seq = Some(seq);
-                        Gate::Apply
-                    }
-                    // A legacy human that never numbered inputs still plays.
-                    // Once numbered, a mixed unnumbered Action cannot have a
-                    // replayable selected sequence and must not change input.
-                    (None, Some(_)) => Gate::Skip,
-                    (None, None) => Gate::Apply,
-                }
             } else {
                 Gate::Apply
             }

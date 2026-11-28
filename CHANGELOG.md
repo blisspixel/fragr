@@ -4,6 +4,12 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.22 - 2026-11-28
+
+- A repeated or older numbered action is ignored before it can change a map
+  ballot or a ready-up. A fresh action still votes and readies, including
+  while that fighter is eliminated or waiting to respawn.
+
 ## v0.99.21 - 2026-11-28
 
 - A stance chip shows the server's behavior only as one plain line before
