@@ -159,26 +159,33 @@ static func action_name(action: String) -> String:
 
 ## --- Templates ----------------------------------------------------------------
 
-## Split a template into literal text and action names.
+## Split a template into literal text and action names. `{{` and `}}` are
+## the letters `{` and `}`, so a copied callsign cannot name a key.
 static func parts(template: String) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	var rest: String = template
-	while not rest.is_empty():
-		var open: int = rest.find("{")
-		var close: int = rest.find("}", open + 1) if open >= 0 else -1
-		if open < 0 or close < 0:
-			out.append({"text": rest})
-			break
-		var name: String = rest.substr(open + 1, close - open - 1)
-		if open > 0:
-			out.append({"text": rest.substr(0, open)})
-		if TOKENS.has(name):
-			out.append({"action": TOKENS[name]})
-		elif InputMap.has_action(name):
-			out.append({"action": name})
-		else:
-			out.append({"text": rest.substr(open, close - open + 1)})
-		rest = rest.substr(close + 1)
+	var literal: String = ""
+	var index: int = 0
+	while index < template.length():
+		var character: String = template[index]
+		var doubled: bool = index + 1 < template.length() and template[index + 1] == character
+		if doubled and (character == "{" or character == "}"):
+			literal += character
+			index += 2
+			continue
+		if character == "{":
+			var close: int = template.find("}", index + 1)
+			var name: String = template.substr(index + 1, close - index - 1) if close >= 0 else ""
+			if close >= 0 and (TOKENS.has(name) or InputMap.has_action(name)):
+				if not literal.is_empty():
+					out.append({"text": literal})
+					literal = ""
+				out.append({"action": TOKENS[name] if TOKENS.has(name) else name})
+				index = close + 1
+				continue
+		literal += character
+		index += 1
+	if not literal.is_empty():
+		out.append({"text": literal})
 	return out
 
 ## Plain text for a template: "{use}: OPEN THE PANEL" reads "F: OPEN THE PANEL".

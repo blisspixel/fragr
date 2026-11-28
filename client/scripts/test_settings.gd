@@ -168,6 +168,13 @@ func _initialize() -> void:
 			or LocalExceptionSettings.one_line("abcd", 0) != "":
 		push_error("test_settings: a copied line trims, then keeps the limit, and refuses a non-string")
 		ok = false
+	if LocalExceptionSettings.prompt_line("Ada\n{fire}" + String.chr(0x202E), 64) != "Ada {{fire}}":
+		push_error("test_settings: a prompt copy keeps braces as letters and drops a hidden mark")
+		ok = false
+	if LocalExceptionSettings.prompt_label("Probe", 64) != "PROBE" \
+			or LocalExceptionSettings.prompt_label(String.chr(0x202E), 64) != "?":
+		push_error("test_settings: a prompt label is the plain capitals, or a question mark when empty")
+		ok = false
 	s.set_value("profile", "name", "x".repeat(80))
 	if s.player_name().length() != 24:
 		push_error("test_settings: callsign must fit its display contract")

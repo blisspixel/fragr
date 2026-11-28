@@ -117,6 +117,18 @@ func _test_scores() -> void:
 	_check(str(hud._standings[0].get("name", "")) == "Adax", "the board stores the plain callsign")
 	var row_marks: Array = ScoreboardPlate.marks(hud._standings[0], hud.board_mvp, {}, false)
 	_check(not row_marks.is_empty() and str(row_marks[0].get("key", "")) == "mvp", "the MVP mark still matches the plain callsign")
+	hud.set_match_rules(MatchRules.parse({"mode":"ctf"}))
+	hud.set_round_info("Active", 30, 3)
+	hud.set_ctf_state([
+		{"team":"union", "status":"carried", "carrier":"a1"},
+		{"team":"coalition", "status":"home"}],
+		{"union":0, "coalition":0}, 3,
+		[{"id":"a1", "name": marked_name + "\nBob"}], "a1")
+	_check(hud.mode_chip_label.text.contains("CARRIED BY Adax Bob"), "a flag carrier stays one plain line: " + hud.mode_chip_label.text)
+	_check(not hud.mode_chip_label.text.contains(String.chr(0x202E)), "a flag carrier drops a bidirectional mark")
+	hud.set_episode_chrome("ep", "Ada" + String.chr(0x2028) + "Lot", "Clear" + String.chr(0x202E) + " NODS", "1\n2", "live")
+	_check(hud.mode_chip_label.text.contains("ADA LOT") and hud.mode_chip_label.text.contains("Clear NODS") and hud.mode_chip_label.text.contains("1 2"), "a Solo Broadcast chip stays plain lines: " + hud.mode_chip_label.text)
+	_check(not hud.episode_title.contains(String.chr(0x2028)) and not hud.episode_objective.contains(String.chr(0x202E)), "the stored broadcast lines drop the marks")
 	hud.round_message.hide()
 
 func _test_map_handoffs() -> void:

@@ -144,6 +144,32 @@ func _run() -> void:
 	_check(PodiumBoard.choice(vote, RIVAL, 0, 1) == 5, "no ballot: the cycle steps from the leader")
 	_check(PodiumBoard.choice({"options": "x"}, ME, 0) == 0 and PodiumBoard.choice(null, ME, 0) == 0, "a malformed vote picks nothing")
 	_check(PodiumBoard.nemesis_key("AUNT LINDA", 5) == PodiumBoard.nemesis_key("AUNT LINDA", 5), "the nemesis line is stable")
+	var marked: String = "Ada" + String.chr(0x202E) + "x\n{fire}"
+	var hostile: Dictionary = {"voters": 1, "story": [
+		{"id": ME, "name": "Probe", "kind": "human", "nemesis": marked, "rivals": [
+			{"name": marked, "kind": "bot", "won": 1, "lost": 2}]}],
+		"vote": {"options": [{"map_id": 2, "map_name": "Sector" + String.chr(0x2028) + "9{fire}", "votes": 1}],
+			"leader": 2, "closes_in": 20, "bots_vote": false}}
+	var hostile_lines: Array[Dictionary] = PodiumBoard.lines(hostile, ME, [], false)
+	var nemesis_line: String = ""
+	var vote_line: String = ""
+	for line: Dictionary in hostile_lines:
+		var row: String = str(line["text"])
+		if row.begins_with("NEMESIS"):
+			nemesis_line = row
+		if row.contains("SECTOR"):
+			vote_line = row
+	_check(nemesis_line == "NEMESIS  ADAX {{FIRE}} [BOT]  //  2 TO 1", "a nemesis copy doubles braces before a prompt scan: " + nemesis_line)
+	_check(vote_line.ends_with("SECTOR 9{{FIRE}}  1 VOTE") and vote_line.begins_with("{weapon_1} "), "a vote keeps its own key and a plain map: " + vote_line)
+	hud.show_podium(hostile, ME)
+	var hostile_text: String = board._label.get_parsed_text()
+	_check(hostile_text.contains("NEMESIS  ADAX {FIRE} [BOT]") and hostile_text.contains("SECTOR 9{FIRE}"), "the board shows the letters, not a key: " + hostile_text)
+	_check(not hostile_text.contains(String.chr(0x202E)) and not hostile_text.contains(String.chr(0x2028)), "the board drops the hidden mark and the line break")
+	hud.show_podium({"voters": 0, "duel": [{"id": ME, "name": marked, "wins": 2}, {"id": RIVAL, "name": "Nightfall", "wins": 1}]}, "")
+	text = _plate_text(hud)
+	_check(text.contains("SERIES  ADAX {FIRE} 2 : 1 NIGHTFALL"), "the series plate keeps one plain name: " + text)
+	hud.show_podium(null, "", [marked, "Probe"], 0, true)
+	_check(_plate_text(hud).contains("NEXT UP  ADAX {FIRE}, PROBE"), "the queue keeps one plain name: " + _plate_text(hud))
 	# Upright: the board never rotates.
 	_check(is_zero_approx(board.rotation) and is_zero_approx(board._label.rotation), "the board sits level")
 	# No story and no vote: back to the plate.

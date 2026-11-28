@@ -474,6 +474,22 @@ static func one_line(value: Variant, limit: int, keep_nbsp: bool = false) -> Str
 			clean += character
 	return clean.strip_edges().left(limit)
 
+## One plain line for a sentence a prompt renderer will scan. Braces stay
+## visible. A doubled brace is a letter, so a callsign is not a key.
+static func prompt_line(value: Variant, limit: int) -> String:
+	var shown: String = one_line(value, limit)
+	var out: String = ""
+	for character: String in shown:
+		if character == "{" or character == "}":
+			out += character
+		out += character
+	return out
+
+## The same line in capitals. An empty copy becomes "?".
+static func prompt_label(value: Variant, limit: int) -> String:
+	var shown: String = prompt_line(value, limit).to_upper()
+	return "?" if shown.is_empty() else shown
+
 func player_name() -> String:
 	return clean_player_name(get_value("profile", "name"))
 
