@@ -123,28 +123,34 @@ static func rivals_from_story(story: Variant, my_id: String) -> Dictionary:
 	for entry: Variant in story:
 		if not entry is Dictionary or entry.get("id") != my_id:
 			continue
-		var nemesis: String = str(entry["nemesis"]).to_upper() if entry.get("nemesis") is String else ""
+		var nemesis: String = _book_name(entry.get("nemesis")) if entry.get("nemesis") is String else ""
 		if not entry.get("rivals") is Array:
 			continue
 		for rival: Variant in entry["rivals"]:
 			if not rival is Dictionary or not rival.get("name") is String:
 				continue
-			var name: String = str(rival["name"]).to_upper()
+			var name: String = _book_name(rival.get("name"))
 			out[name] = {"won": PodiumBoard._count(rival.get("won")), "lost": PodiumBoard._count(rival.get("lost")),
 				"nemesis": name == nemesis}
 		# The story lists only the three rivals met most; a nemesis met less
 		# often is still marked, with the count from its own entry when that
 		# names the viewer, and without one otherwise.
 		if not nemesis.is_empty() and not out.has(nemesis):
-			out[nemesis] = _nemesis_from_their_side(story, nemesis, str(entry.get("name", "")).to_upper())
+			out[nemesis] = _nemesis_from_their_side(story, nemesis, _book_name(entry.get("name", "")))
 	return out
+
+## The capitals a head-to-head key uses. The same plain line the board stores.
+static func _book_name(value: Variant) -> String:
+	if not value is String:
+		return ""
+	return LocalExceptionSettings.one_line(value, 64).to_upper()
 
 static func _nemesis_from_their_side(story: Array, nemesis: String, me: String) -> Dictionary:
 	for entry: Variant in story:
-		if not entry is Dictionary or str(entry.get("name", "")).to_upper() != nemesis or not entry.get("rivals") is Array:
+		if not entry is Dictionary or _book_name(entry.get("name", "")) != nemesis or not entry.get("rivals") is Array:
 			continue
 		for rival: Variant in entry["rivals"]:
-			if rival is Dictionary and str(rival.get("name", "")).to_upper() == me:
+			if rival is Dictionary and _book_name(rival.get("name", "")) == me:
 				return {"won": PodiumBoard._count(rival.get("lost")), "lost": PodiumBoard._count(rival.get("won")), "nemesis": true}
 	return {"won": -1, "lost": -1, "nemesis": true}
 
@@ -165,13 +171,18 @@ static func marks(row: Dictionary, mvp: String, rivals: Dictionary, own: bool) -
 			"key": "nemesis" if bool(book["nemesis"]) else ("up" if won > lost else ("down" if lost > won else "level"))})
 	return out
 
+## The callsign a row shows. Marks still compare the stored name.
+static func shown_name(value: Variant) -> String:
+	var clean: String = LocalExceptionSettings.one_line(value, 64)
+	return "?" if clean.is_empty() else clean
+
 ## One row as text, for the accessible reading and the harnesses: rank, side,
 ## callsign and chip, then frags, deaths and ping, the mode's objective
 ## counts, any marks, and YOU on the viewer's.
 static func row_text(row: Dictionary, index: int, own: bool, context: Dictionary = {}) -> String:
 	var side: String = MatchRules.team_short(MatchRules.valid_team(row.get("team")))
 	var tag: String = "[" + side + "] " if not side.is_empty() else ""
-	var text: String = str(index + 1) + ". " + tag + str(row.get("name", "?")) + str(row.get("chip", ""))
+	var text: String = str(index + 1) + ". " + tag + shown_name(row.get("name", "?")) + str(row.get("chip", ""))
 	text += "  " + str(int(row.get("kills", 0))) + "  " + str(int(row.get("deaths", 0))) + "  " + ping_text(row)
 	for column: Dictionary in objective_columns(str(context.get("mode", ""))):
 		text += "  " + tr_text(str(column["heading"])) + " " + str(int(row.get(column["key"], 0)))
@@ -345,7 +356,7 @@ func _row(row: Dictionary, index: int, own: bool, viewer_team: String, context: 
 	var relation: String = HudRelation.token(team, viewer_team)
 	plate.set_meta("relation", relation)
 	var colour: Color = MenuTheme.INK if own else MenuTheme.BONE
-	var name_text: String = str(row.get("name", "?")) + str(row.get("chip", "")) + ("  YOU" if own else "")
+	var name_text: String = shown_name(row.get("name", "?")) + str(row.get("chip", "")) + ("  YOU" if own else "")
 	var row_marks: Array[Dictionary] = marks(row, str(context.get("mvp", "")), context.get("rivals", {}), own)
 	plate.set_meta("marks", row_marks.map(func(mark: Dictionary) -> String: return str(mark["key"])))
 	var objective: PackedStringArray = []

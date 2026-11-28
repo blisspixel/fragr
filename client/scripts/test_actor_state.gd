@@ -160,6 +160,12 @@ func _run() -> void:
 	var pawn: Node3D = load("res://scenes/player.tscn").instantiate()
 	root.add_child(pawn)
 	pawn.set_process(false)
+	var marked_name: String = "Ada" + String.chr(0x202E) + "x"
+	pawn.set_player_data("guard", marked_name)
+	_check(pawn.player_name == marked_name and pawn.label.text == "Adax", "a plate shows one plain line and keeps the server name")
+	var rest_scale: Vector3 = pawn.body.scale
+	pawn.set_player_data("guard", "AUDITOR" + String.chr(0x202E))
+	_check(pawn.player_name != "AUDITOR" and pawn.body.scale == rest_scale and pawn.label.text == "AUDITOR", "a hidden mark does not become the Auditor")
 	pawn.set_player_data("guard", "Intake Clerk")
 	var appearance: Dictionary = _actor()
 	appearance.merge({"x": 0.0, "y": 1.5, "z": 4.0, "yaw": 0.0, "weapon": "Tack"})

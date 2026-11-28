@@ -921,7 +921,7 @@ func _refresh_map_chip_badge() -> void:
 
 func set_status(text: String):
 	if status_label:
-		status_label.text = "Status: " + text
+		status_label.text = "Status: " + LocalExceptionSettings.one_line(text, 400)
 
 func set_league_identity(mode_name: String, playlist: String):
 	if mode_name != "":
@@ -932,8 +932,9 @@ func set_league_identity(mode_name: String, playlist: String):
 	update_scoreboard()
 
 func set_map_name(name: String):
-	if name != "":
-		map_label = name
+	var shown: String = LocalExceptionSettings.one_line(name, 80)
+	if shown != "":
+		map_label = shown
 	_refresh_map_chip_badge()
 	_refresh_mode_label()
 
@@ -1585,8 +1586,8 @@ func show_warmup_bumper(host_line: String, secs_left: int = 0, roster = []):
 	_apply_warmup_tv(host_line, secs_left, roster, false)
 	# Fallback only when WarmupTv nodes are missing (headless / old scene).
 	if warmup_tv == null and round_message:
-		var line = host_line
-		if line == "":
+		var line: String = LocalExceptionSettings.one_line(host_line, 400)
+		if line.is_empty():
 			line = _plain_intro()
 		var sub = "WARMUP // " + map_label.to_upper()
 		if secs_left > 0:
@@ -1615,8 +1616,8 @@ func _apply_warmup_tv(host_line: String, secs_left: int, roster, refresh_only: b
 		_bind_warmup_tv()
 	if warmup_tv == null:
 		return
-	var line = host_line
-	if line == "":
+	var line: String = LocalExceptionSettings.one_line(host_line, 400)
+	if line.is_empty():
 		line = _plain_intro()
 	warmup_tv_host_line = line
 	warmup_tv_secs = max(secs_left, 0)
@@ -1647,13 +1648,13 @@ func _apply_warmup_tv(host_line: String, secs_left: int, roster, refresh_only: b
 			_warmup_pulse.tween_property(warmup_tv, "scale", Vector2.ONE, 0.14)
 
 func _set_warmup_roster(roster) -> void:
-	var names = []
+	var names: Array[String] = []
 	if typeof(roster) == TYPE_ARRAY:
-		for entry in roster:
-			var n = str(entry)
-			if n == "" or n == "Spectator":
+		for entry: Variant in roster:
+			var callsign: String = LocalExceptionSettings.one_line(entry, 64)
+			if callsign.is_empty() or callsign == "Spectator":
 				continue
-			names.append(n)
+			names.append(callsign)
 	warmup_tv_roster_names = names
 	if warmup_tv_roster == null:
 		return
@@ -1739,8 +1740,10 @@ func show_checkpoint(resumed: bool = false) -> void:
 	combat_feed.push(tr("HUD_CHECKPOINT_RESUMED" if resumed else "HUD_CHECKPOINT"))
 
 func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_line: String = "", podium: Variant = [], winning_team: Variant = null, capture_scores: Variant = null) -> void:
-	board_mvp = mvp_name
-	result_subject = "MVP: " + mvp_name + " // " + str(mvp_frags) if not mvp_name.is_empty() else "ROUND OVER"
+	# The board stores callsigns through the same plain-line rule, so the
+	# MVP mark still finds the row.
+	board_mvp = "" if mvp_name.is_empty() else FragFeed._name(mvp_name)
+	result_subject = "MVP: " + board_mvp + " // " + str(mvp_frags) if not mvp_name.is_empty() else "ROUND OVER"
 	score_subject.clear()
 	host_duck(4.0, true)
 	# Round-end MVP / podium Host drama. The board keeps the round's final
@@ -1822,6 +1825,21 @@ static func podium_score(value: Variant) -> String:
 		return str(int(value))
 	return str(value)
 
+## One card, keeping the client's line breaks. Each line drops a hidden or
+## bidirectional scalar. A non-breaking space stays, so a podium place remains
+## one unit. A line that was only a hidden mark is left out.
+func _plain_banner(text: String) -> String:
+	var kept: PackedStringArray = PackedStringArray()
+	for part: String in text.split("\n", true):
+		if part.is_empty():
+			kept.append("")
+			continue
+		var line: String = LocalExceptionSettings.one_line(part, 400, true)
+		if line.is_empty():
+			continue
+		kept.append(line)
+	return "\n".join(kept)
+
 ## Every card on the shared round label starts here: the previous card's
 ## stamp, pulse, transform and tint are retired before the new text shows, so
 ## nothing from an earlier round, result or episode card leaks into this one.
@@ -1831,7 +1849,7 @@ func _show_round_banner(text: String, seconds: float, backed: bool = false) -> v
 	if stamp_card != null:
 		stamp_card.retire()
 	round_banner_remaining = seconds
-	round_message.text = text
+	round_message.text = _plain_banner(text)
 	round_message.scale = Vector2.ONE
 	round_message.rotation = 0.0
 	round_message.modulate = MenuTheme.UNTINTED

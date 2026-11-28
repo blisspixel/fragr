@@ -400,7 +400,8 @@ func set_player_data(id: String, name: String):
 	
 	_own_color = player_color
 	if label:
-		label.text = name
+		var shown: String = LocalExceptionSettings.one_line(name, 64)
+		label.text = "?" if shown.is_empty() else shown
 		label.modulate = player_color
 	
 	target_position = position

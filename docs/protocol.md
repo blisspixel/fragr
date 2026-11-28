@@ -1221,6 +1221,11 @@ Off-tick callout / taunt from a human or agent. Not sticky Action. Control-plane
 - Named server rule bots may emit occasional Speak taunts on frag, death, Warmup and a streak of 2, 3 or 5 via the same `try_speak` path (SPEAK_COOLDOWN applies; silent drop on rate-limit; Compliance boss excluded)
 - Named rule bots also make rare objective callouts to their own side in capture the flag and Sabotage (gameplay 60, the event's `team`); the same cooldown applies, and NODS make none
 
+The native client copies a server callsign, Host line, speak, venue notice,
+objective line, map name or status sentence onto a label only as one plain
+line. A line break becomes a space. A hidden or bidirectional scalar is
+dropped. A variation selector stays. The server's own filters are unchanged.
+
 #### Wire board
 
 The process-local board. Humans, free agents, and spectators share it. It is

@@ -38,10 +38,18 @@ func _initialize() -> void:
 	if roster != "DEAD AIR DAN [AGG]":
 		push_error("test_spectator_stance_chips: roster_entry got %s" % roster)
 		ok = false
+	var marked_roster: String = str(chip.call("roster_entry", "Ada" + String.chr(0x202E) + "x", "Aggressive"))
+	if marked_roster != "ADAX [AGG]":
+		push_error("test_spectator_stance_chips: a roster chip kept a bidirectional mark: %s" % marked_roster)
+		ok = false
 
 	var follow: String = str(chip.call("follow_line", "Jev", "push_enemy", ""))
 	if follow != "FOLLOWING: Jev [PSH]":
 		push_error("test_spectator_stance_chips: follow without weapon got %s" % follow)
+		ok = false
+	var marked_follow: String = str(chip.call("follow_line", "Ada" + String.chr(0x202E) + "x", "push_enemy", "RAIL"))
+	if marked_follow != "FOLLOWING: Adax [PSH]\nRAIL":
+		push_error("test_spectator_stance_chips: a follow line kept a bidirectional mark: %s" % marked_follow)
 		ok = false
 
 	var follow_w: String = str(chip.call("follow_line", "Jev", "hold_angle", "RAIL (long)"))
