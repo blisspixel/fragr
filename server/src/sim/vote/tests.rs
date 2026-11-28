@@ -43,6 +43,27 @@ fn vote(state: &mut GameState, id: Uuid, map: MapKind) {
     );
 }
 
+fn numbered_vote(state: &mut GameState, id: Uuid, seq: Option<u32>, map: MapKind, again: bool) {
+    state.set_action(
+        id,
+        Action {
+            seq,
+            vote: Some(map.id()),
+            again,
+            ..Action::default()
+        },
+    );
+}
+
+fn ballot(state: &GameState, id: Uuid) -> u32 {
+    wire(state)
+        .ballots
+        .iter()
+        .find(|row| row.id == id)
+        .expect("a ballot")
+        .map_id
+}
+
 fn wire(state: &GameState) -> MapVote {
     state
         .snapshot()
@@ -126,6 +147,41 @@ fn a_fixed_map_or_a_single_choice_opens_no_vote() {
     assert!(island.map_vote.is_none());
     island.start_round();
     assert_eq!(island.map, MapKind::HoldfastAtoll);
+}
+
+#[test]
+fn a_stale_numbered_sample_cannot_replace_a_ballot_or_a_ready_up() {
+    let mut state = rotating(MapKind::ArenaDuel, GameMode::Ffa);
+    let id = join(&mut state, 1, "Probe", Role::Human);
+    state.end_round("Frag limit reached".into());
+    let ignored = state.input_ignored.len();
+    numbered_vote(&mut state, id, Some(4), MapKind::Sector9, false);
+    numbered_vote(&mut state, id, Some(5), MapKind::Directive17, true);
+    // An older ballot, a duplicate sequence with a different map, and an
+    // unnumbered action after a numbered one must leave the live choice.
+    numbered_vote(&mut state, id, Some(4), MapKind::Sector9, false);
+    numbered_vote(&mut state, id, Some(5), MapKind::ComplianceYard, false);
+    numbered_vote(&mut state, id, None, MapKind::LowWater, false);
+    assert_eq!(ballot(&state, id), MapKind::Directive17.id());
+    assert!(state.again.contains(&id));
+    assert_eq!(
+        state.input_ignored.len(),
+        ignored,
+        "a stale sample is not a new refusal"
+    );
+    numbered_vote(&mut state, id, Some(6), MapKind::Sector9, false);
+    assert_eq!(ballot(&state, id), MapKind::Sector9.id());
+    assert!(
+        state.again.contains(&id),
+        "a later sample does not un-ready"
+    );
+
+    state.players[0].eliminated = true;
+    numbered_vote(&mut state, id, Some(7), MapKind::Directive17, false);
+    numbered_vote(&mut state, id, Some(6), MapKind::ComplianceYard, false);
+    numbered_vote(&mut state, id, None, MapKind::LowWater, false);
+    assert_eq!(ballot(&state, id), MapKind::Directive17.id());
+    assert_eq!(state.players[0].last_received_seq, Some(7));
 }
 
 #[test]
