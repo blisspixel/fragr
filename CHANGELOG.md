@@ -4,6 +4,12 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.21 - 2026-11-28
+
+- A stance chip shows the server's behavior only as one plain line before
+  its three-letter code. A line break becomes a space. A hidden or
+  bidirectional mark is dropped. A known stance keeps its short code.
+
 ## v0.99.20 - 2026-11-27
 
 - A podium callsign, a duel-queue name, a vote map name, a flag carrier and

@@ -6,7 +6,9 @@ class_name StanceChip
 
 
 static func short(behavior: String) -> String:
-	var b := behavior.strip_edges()
+	# A server chip is display only. Copy it as one plain line before the
+	# three-letter fallback, so a break or a hidden mark cannot reach a plate.
+	var b: String = LocalExceptionSettings.one_line(behavior, 32)
 	if b == "":
 		return ""
 	match b:
