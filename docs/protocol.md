@@ -1225,10 +1225,10 @@ The native client copies a server callsign, Host line, speak, venue notice,
 objective line, map name or status sentence onto a label only as one plain
 line. A line break becomes a space. A hidden or bidirectional scalar is
 dropped. A variation selector stays. The same copy is used for a podium
-callsign, a duel-queue name, a vote map name, a flag carrier and a Solo
-Broadcast title, objective or progress line. On a prompt, braces in that
-copy stay letters, so a callsign is not a key. The server's own filters are
-unchanged.
+callsign, a duel-queue name, a vote map name, a flag carrier, a Solo
+Broadcast title, objective or progress line, and a stance chip. On a prompt,
+braces in that copy stay letters, so a callsign is not a key. The server's
+own filters are unchanged.
 
 #### Wire board
 
