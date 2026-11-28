@@ -25,7 +25,8 @@ func _ready() -> void:
 	_plate.hide()
 
 func push(text: String) -> bool:
-	return false if text.strip_edges().is_empty() else notices.push({"text": text.left(512)})
+	var line: String = LocalExceptionSettings.one_line(text, 512)
+	return false if line.is_empty() else notices.push({"text": line})
 
 func clear() -> void:
 	notices.clear()

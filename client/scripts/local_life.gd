@@ -37,7 +37,7 @@ func record_frag(victim_id: String, by_id: String, by_name: String, tick: int) -
 	if phase == Phase.ALIVE:
 		_go_down(tick)
 	killer_id = by_id
-	killer_name = by_name.strip_edges()
+	killer_name = LocalExceptionSettings.one_line(by_name, 64)
 	if not by_id.is_empty() and by_id == victim_id:
 		cause = "self"
 		killer_id = ""
@@ -150,10 +150,11 @@ func card_lines(now_usec: int, watching: String, lost: Array[String] = [], seat:
 		_:
 			headline = TranslationServer.translate("HUD_DEATH_DOWN")
 	var view: String = TranslationServer.translate("HUD_DEATH_HOLDING")
-	if not watching.is_empty() and seat:
-		view = InputGlyphs.plain(TranslationServer.translate("HUD_DEATH_WATCHING_MATE")).format({"name": watching})
-	elif not watching.is_empty():
-		view = TranslationServer.translate("HUD_DEATH_WATCHING").format({"name": watching})
+	var watched: String = LocalExceptionSettings.one_line(watching, 64)
+	if not watched.is_empty() and seat:
+		view = InputGlyphs.plain(TranslationServer.translate("HUD_DEATH_WATCHING_MATE")).format({"name": watched})
+	elif not watched.is_empty():
+		view = TranslationServer.translate("HUD_DEATH_WATCHING").format({"name": watched})
 	var timing: String
 	if phase == Phase.OUT:
 		timing = TranslationServer.translate("HUD_DEATH_OUT")
@@ -219,10 +220,7 @@ static func _points(value: Variant) -> int:
 
 
 static func _recap_name(value: Variant) -> String:
-	if not value is String:
-		return ""
-	var clean: String = (value as String).strip_edges()
-	return clean.left(MAX_RECAP_NAME)
+	return LocalExceptionSettings.one_line(value, MAX_RECAP_NAME)
 
 
 ## This body's snapshot row while it lives: where it stood and faced, and

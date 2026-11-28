@@ -351,7 +351,9 @@ static func clutch_lines(state: Dictionary, viewer_id: String, viewer_team: Stri
 	if alive is Dictionary:
 		var other: String = "coalition" if team == "union" else "union"
 		against = maxi(_count(alive.get(other), 64), 0)
-	var shown: String = name.to_upper() if not name.is_empty() else _text("HUD_DEATH_SOMEONE")
+	var shown: String = LocalExceptionSettings.one_line(name, 64).to_upper()
+	if shown.is_empty():
+		shown = _text("HUD_DEATH_SOMEONE")
 	if id == viewer_id:
 		return PackedStringArray([_text("SABOTAGE_CLUTCH_SELF"), _text("SABOTAGE_CLUTCH_ODDS").format({"own": 1, "other": against})])
 	if not viewer_team.is_empty() and viewer_team != team:

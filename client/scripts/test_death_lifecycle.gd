@@ -72,6 +72,9 @@ func _life_transitions() -> void:
 	life.record_frag("self", "ghost", "", 30)
 	_check(life.card_lines(0, "")[0] == "FRAGGED BY AN UNNAMED FIGHTER", "missing killer name is still legible")
 	life.reset()
+	life.record_frag("self", "rival", "Ada" + String.chr(0x202E) + "x", 31)
+	_check(life.card_lines(0, "Ada" + String.chr(0x2028) + "Bob")[0] == "FRAGGED BY Adax" and life.card_lines(0, "Ada" + String.chr(0x2028) + "Bob")[1] == "WATCHING Ada Bob", "a death card is one plain line")
+	life.reset()
 	# World death with neither id nor name.
 	life.record_frag("self", "", "", 40)
 	_check(life.cause == "unknown" and life.card_lines(0, "")[0] == "YOU WENT DOWN", "no killer fact reads as down")
@@ -412,6 +415,8 @@ func _clutch_card() -> void:
 	_check(own == PackedStringArray(["LAST ONE STANDING", "1 V 3"]), "the clutch fighter's own stamp: %s" % [own])
 	var mate: PackedStringArray = SabotageState.clutch_lines(state, RIVAL, "union", "Meat", "union")
 	_check(mate[0] == "MEAT IS THE LAST ONE" and mate[1] == "1 V 3", "a teammate's stamp: %s" % [mate])
+	var marked_clutch: PackedStringArray = SabotageState.clutch_lines(state, RIVAL, "union", "Ada" + String.chr(0x202E) + "x", "union")
+	_check(marked_clutch[0] == "ADAX IS THE LAST ONE", "a clutch stamp drops a bidirectional mark: %s" % [marked_clutch])
 	var foe: PackedStringArray = SabotageState.clutch_lines(state, RIVAL, "coalition", "Meat", "union")
 	_check(foe[0] == "ONE LEFT: MEAT" and foe[1] == "3 V 1", "the other side's stamp: %s" % [foe])
 	var muster: Dictionary = {"phase": "muster", "resupply": {"union": 0, "coalition": 2}}

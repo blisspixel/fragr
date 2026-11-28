@@ -142,6 +142,32 @@ func _initialize() -> void:
 			or LocalExceptionSettings.plain_scalar(0x2028) or LocalExceptionSettings.plain_scalar(0x202E):
 		push_error("test_settings: a plain line keeps a space and a variation selector, and drops line and bidi marks")
 		ok = false
+	if LocalExceptionSettings.one_line("  Ada\n\tBob  ", 64) != "Ada  Bob":
+		push_error("test_settings: a copied line turns a tab and a newline into spaces")
+		ok = false
+	if LocalExceptionSettings.one_line("Ada" + String.chr(0x2028) + "Bob", 64) != "Ada Bob":
+		push_error("test_settings: a line separator stays a space")
+		ok = false
+	if LocalExceptionSettings.one_line("Ada" + String.chr(0x202E) + "x", 64) != "Adax":
+		push_error("test_settings: a bidirectional mark leaves a copied line")
+		ok = false
+	if not LocalExceptionSettings.one_line(String.chr(0x202E), 64).is_empty():
+		push_error("test_settings: a line of only a hidden mark is empty")
+		ok = false
+	if LocalExceptionSettings.one_line("A" + String.chr(0xFE0F), 64) != "A" + String.chr(0xFE0F):
+		push_error("test_settings: a variation selector stays on a copied line")
+		ok = false
+	if LocalExceptionSettings.one_line("A" + String.chr(0x0301), 64) != "A" + String.chr(0x0301):
+		push_error("test_settings: a combining mark stays on a copied line")
+		ok = false
+	if LocalExceptionSettings.one_line("A" + String.chr(0x00A0) + "B", 64) != "AB" \
+			or LocalExceptionSettings.one_line("A" + String.chr(0x00A0) + "B", 64, true) != "A" + String.chr(0x00A0) + "B":
+		push_error("test_settings: a non-breaking space stays only when a place needs it")
+		ok = false
+	if LocalExceptionSettings.one_line("  abcd  ", 2) != "ab" or LocalExceptionSettings.one_line(42, 8) != "" \
+			or LocalExceptionSettings.one_line("abcd", 0) != "":
+		push_error("test_settings: a copied line trims, then keeps the limit, and refuses a non-string")
+		ok = false
 	s.set_value("profile", "name", "x".repeat(80))
 	if s.player_name().length() != 24:
 		push_error("test_settings: callsign must fit its display contract")

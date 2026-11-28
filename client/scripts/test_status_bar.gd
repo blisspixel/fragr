@@ -98,6 +98,25 @@ func _test_scores() -> void:
 	hud.show_round_end("Winner", "frag limit", 9)
 	hud._process(6.0)
 	_check(hud.mode_chip_label.text.contains("UNION 20 : 17 FREE COALITION"), "TDM accepted final team scores remain after the card closes")
+	var marked_name: String = "Ada" + String.chr(0x202E) + "x"
+	hud.set_status(marked_name + String.chr(0x2028) + "y")
+	_check(hud.status_label.text == "Status: Adax y", "status shows one plain line")
+	var venue: String = hud.map_label
+	hud.set_map_name(String.chr(0x202E))
+	_check(hud.map_label == venue, "a hidden map name does not replace the venue")
+	hud.set_map_name("Larak" + String.chr(0x2028) + "Lot")
+	_check(hud.map_label == "Larak Lot", "a map name keeps a line break as a space")
+	hud.map_label = venue
+	hud._set_warmup_roster([marked_name, "Spectator", String.chr(0x202E), "Nightfall"])
+	_check(hud.warmup_tv_roster_names == ["Adax", "Nightfall"], "the warmup roster drops a hidden name and a bidirectional mark")
+	hud._show_round_banner(marked_name + "\nPODIUM: #1" + hud.NBSP + "Ada\n" + String.chr(0x202E), 1.0)
+	_check(hud.round_message.text == "Adax\nPODIUM: #1" + hud.NBSP + "Ada", "a card keeps its break and a podium place: " + hud.round_message.text.c_escape())
+	hud.show_round_end(marked_name, "", 3)
+	_check(hud.result_subject == "MVP: Adax // 3" and hud.board_mvp == "Adax", "the result names the MVP without the mark")
+	hud.sync_scores_from_players([{"id": "ada", "name": marked_name, "score": 3}])
+	_check(str(hud._standings[0].get("name", "")) == "Adax", "the board stores the plain callsign")
+	var row_marks: Array = ScoreboardPlate.marks(hud._standings[0], hud.board_mvp, {}, false)
+	_check(not row_marks.is_empty() and str(row_marks[0].get("key", "")) == "mvp", "the MVP mark still matches the plain callsign")
 	hud.round_message.hide()
 
 func _test_map_handoffs() -> void:

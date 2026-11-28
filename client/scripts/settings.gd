@@ -454,6 +454,26 @@ static func _name_scalar_allowed(code: int) -> bool:
 static func plain_scalar(code: int) -> bool:
 	return _name_scalar_allowed(code)
 
+## One label line copied from a server. Line breaks become spaces. A hidden
+## or bidirectional scalar is dropped. A variation selector stays.
+## `limit` counts scalars after trimming. A non-breaking space stays only
+## when `keep_nbsp` is set, so a podium place can remain one unit.
+static func one_line(value: Variant, limit: int, keep_nbsp: bool = false) -> String:
+	if not value is String or limit < 1:
+		return ""
+	var clean: String = ""
+	for character: String in value:
+		var code: int = character.unicode_at(0)
+		# Line separators become a space before the scalar check, which
+		# would otherwise drop U+2028 and U+2029 instead of separating words.
+		if code == 9 or code == 10 or code == 13 or code == 0x2028 or code == 0x2029:
+			clean += " "
+		elif keep_nbsp and code == 0x00A0:
+			clean += character
+		elif _name_scalar_allowed(code):
+			clean += character
+	return clean.strip_edges().left(limit)
+
 func player_name() -> String:
 	return clean_player_name(get_value("profile", "name"))
 

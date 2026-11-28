@@ -4,6 +4,13 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.99.19 - 2026-11-27
+
+- A callsign, a Host line, a speak, a venue notice, an objective line, the
+  map chip and a status sentence show the server's text only as one plain
+  line. A line break becomes a space. A hidden or bidirectional mark is
+  dropped. A variation selector stays.
+
 ## v0.99.18 - 2026-11-27
 
 - A cleartext join ticket is sent only to a loopback, private, unique-local

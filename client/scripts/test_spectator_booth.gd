@@ -275,6 +275,7 @@ func _check_nameplate() -> void:
 			var pixel: Color = image.get_pixel(x, y)
 			_check(not (pixel.r > 0.7 and pixel.g < 0.3 and pixel.b < 0.3), "no Union red on a nameplate")
 	_check(NameplateLayout.plate_text("Aunt Linda", "Balanced", " +3") == "Aunt Linda [BAL] +3", "words keep the true chip, no health text")
+	_check(NameplateLayout.plate_text("Ada" + String.chr(0x202E) + "x", "Balanced", " +3") == "Adax [BAL] +3", "a plate drops a bidirectional mark and keeps the chip")
 	label.queue_free()
 
 func _check_feed_and_board() -> void:

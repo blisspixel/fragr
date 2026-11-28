@@ -70,14 +70,14 @@ func set_region(rect: Rect2) -> void:
 	size = rect.size
 
 func push(text: String, colour: Color = MenuTheme.BONE, host_seconds: float = 0.0) -> void:
-	var line: String = text.replace("\n", " ").replace("\r", " ").replace("\t", " ").strip_edges()
+	var line: String = LocalExceptionSettings.one_line(text, 200)
 	if line.is_empty() or _limit == 0:
 		return
 	if _entries.size() >= _limit:
 		_remove(0)
 	var label: Label = Label.new()
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.text = line.left(200)
+	label.text = line
 	MenuTheme.pixel_text(label, text_size, MenuTheme.readable_text(colour), 3)
 	# Every corner line has its own plate, so it reads over light geometry.
 	label.add_theme_stylebox_override("normal", MenuTheme.backing())

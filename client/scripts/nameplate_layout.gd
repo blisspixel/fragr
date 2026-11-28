@@ -30,7 +30,10 @@ const PLATE_PRIORITY: int = 10
 ## The plate's words: callsign, the server's true behaviour chip and the
 ## score chip. Health is the bar, not text.
 static func plate_text(player_name: String, behavior: String, score_chip: String = "") -> String:
-	return player_name + StanceChip.bracket(behavior) + score_chip
+	var shown: String = LocalExceptionSettings.one_line(player_name, 64)
+	if shown.is_empty():
+		shown = "?"
+	return shown + StanceChip.bracket(behavior) + score_chip
 
 ## World text that is never depth-cut: the words, the bar and any edge drawn
 ## on the plate draw over geometry. Cover is decided whole, by `hidden_by`.

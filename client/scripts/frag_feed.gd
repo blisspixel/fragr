@@ -44,9 +44,8 @@ static func is_kill_icon(art: String) -> bool:
 	return WeaponArt.KILL_ICON.get(art) is Texture2D
 
 static func _name(value: Variant) -> String:
-	if not value is String:
-		return "?"
-	return value.replace("\n", " ").replace("\r", " ").replace("\t", " ").left(64)
+	var clean: String = LocalExceptionSettings.one_line(value, 64)
+	return "?" if clean.is_empty() else clean
 
 func push(data: Dictionary, killer_id: String = "", victim_id: String = "", local_id: String = "", viewer_team: String = "") -> bool:
 	var killer_team: String = MatchRules.valid_team(data.get("killer_team"))

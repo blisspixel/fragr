@@ -92,6 +92,12 @@ func _check_static_rules() -> void:
 	_check(keys.call({"name": "Static Kid"}, true).is_empty(), "the viewer's own row carries no book")
 	_check(keys.call({"name": "Nobody"}, false).is_empty(), "a stranger is unmarked")
 	_check(ScoreboardPlate.marks({"name": "Meat Proxy"}, "Meat Proxy", {}, false)[0].key == "mvp", "the server's MVP is marked")
+	var marked_name: String = "Ada" + String.chr(0x202E) + "x"
+	var hidden_row: String = ScoreboardPlate.row_text({"name": marked_name, "kills": 1, "deaths": 0}, 0, false, {})
+	_check(hidden_row.begins_with("1. Adax") and not hidden_row.contains(String.chr(0x202E)), "a board callsign drops a bidirectional mark: " + hidden_row)
+	_check(ScoreboardPlate.marks({"name": marked_name}, marked_name, {}, false)[0].key == "mvp", "the MVP mark still matches the server name")
+	var hidden_book: Dictionary = ScoreboardPlate.rivals_from_story([{"id": "me", "name": "Nightfall", "rivals": [{"name": marked_name, "won": 2, "lost": 1}]}], "me")
+	_check(hidden_book.has("ADAX") and ScoreboardPlate.marks({"name": "Adax"}, "", hidden_book, false)[0].key == "up", "a rival book keeps the plain callsign")
 	# A nemesis met less often than the three rivals listed is still marked:
 	# with the count from its own entry when that names the viewer.
 	var crowded: Array = [{"id": ME, "name": "Nightfall", "nemesis": "Second Sighting", "rivals": [

@@ -40,17 +40,17 @@ static func bracket(behavior: String) -> String:
 
 
 static func roster_entry(player_name: String, behavior: String = "") -> String:
-	var n := player_name.strip_edges()
-	if n == "" or n == "Spectator":
+	var shown: String = LocalExceptionSettings.one_line(player_name, 64)
+	if shown.is_empty() or shown == "Spectator":
 		return ""
-	return n.to_upper() + bracket(behavior)
+	return shown.to_upper() + bracket(behavior)
 
 
 static func follow_line(player_name: String, behavior: String = "", weapon_desc: String = "") -> String:
-	var n := player_name.strip_edges()
-	if n == "":
+	var shown: String = LocalExceptionSettings.one_line(player_name, 64)
+	if shown.is_empty():
 		return weapon_desc
-	var line := "FOLLOWING: " + n + bracket(behavior)
+	var line: String = "FOLLOWING: " + shown + bracket(behavior)
 	if weapon_desc != "":
 		line += "\n" + weapon_desc
 	return line
